@@ -5,8 +5,8 @@
 \title{Segmentation engine}
 \usage{
 segmentation_engine(
-  time = 1:length(obs),
   obs,
+  time = 1:length(obs),
   u = 0 * obs,
   nS = 2,
   nMin = 1,
@@ -17,9 +17,9 @@ segmentation_engine(
 )
 }
 \arguments{
-\item{time}{real vector, time}
-
 \item{obs}{real vector, observations}
+
+\item{time}{real vector, time}
 
 \item{u}{real vector, uncertainty in observations (as a standard deviation)}
 
@@ -41,6 +41,7 @@ list with the following components :
   \item tau: real vector, estimated shift times
   \item segments: data frame, segment index and mean value
   \item mcmc: data frame, MCMC simulation
+  \item data.p: data frame, assign a stable period to the initial data
   \item DIC: real, DIC estimation
 }
 }
@@ -57,14 +58,19 @@ res <- segmentation_engine(obs=obs)
 # Estimated shift time
 res$tau
 
+# mean value of segment
+res$segments
+
 # Uncertainty in shift time
 hist(res$mcmc$tau1)
 
 # DIC estimation
 res$DIC
 
+# Assign a stable period
+res$data.p
+
 # Plot
 plot(obs)
 lines(res$segments$mean)
-
 }
