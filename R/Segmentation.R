@@ -67,8 +67,8 @@ segmentation_engine <- function(obs,
 
   priors <- vector(mode = 'list',length = npar)
 
-  for(j in 1:nS){
-    priors [[j]] <- RBaM::parameter(name=paste0('mu',j),
+  for(i in 1:nS){
+    priors [[i]] <- RBaM::parameter(name=paste0('mu',i),
                               init=mean(obs),
                               prior.dist = 'FlatPrior' ,
                               prior.par = NULL)
@@ -76,10 +76,10 @@ segmentation_engine <- function(obs,
 
   prior_tau_init <- as.numeric(quantile(time,probs = seq(1,nS-1)/nS))
 
-  if(j>1){
-    for(j in 1:(nS-1)){
-      priors [[nS+j]] <- RBaM::parameter(name=paste0('tau',j),
-                                         init= prior_tau_init[j],
+  if(i>1){
+    for(i in 1:(nS-1)){
+      priors [[nS+i]] <- RBaM::parameter(name=paste0('tau',i),
+                                         init= prior_tau_init[i],
                                          prior.dist = 'FlatPrior' ,
                                          prior.par = NULL)
     }
@@ -133,21 +133,35 @@ segmentation_engine <- function(obs,
 
   colnames(mcmc.segm)[ncol(mcmc.segm)-1] <- "structural_sd"
 
-  if(nS>1){
-    tau_MAP <- mcmc.segm[which.max(mcmc.segm$LogPost),
+  simulation.mean <- resid.segm$Y1_sim
+
+  if(nS==1){
+    obss=obs # Subseries = whole series
+    segments=simulation.mean # Subseries = whole series
+    times=time
+    us=u
+    tau.MAP=NULL # no shift time
+  } else {
+    tau.MAP <- mcmc.segm[which.max(mcmc.segm$LogPost),
                          ((nS+1):(nS+nS-1))]
-  }else{
-    tau_MAP=NULL
+    # Store subseries into a list
+    obss=segments=times=us=vector(mode='list',length=nS)
+    augmentedTau=c(0,tau.MAP,length(obs)) # complete taus with 0 and last time step to simplify next lines of code
+    for(i in 1:nS){
+      obss[[i]]=obs[(augmentedTau[i]+1):augmentedTau[i+1]]
+      segments[[i]]=simulation.mean[(augmentedTau[i]+1):augmentedTau[i+1]]
+      times[[i]]=time[(augmentedTau[i]+1):augmentedTau[i+1]]
+      us[[i]]=u[(augmentedTau[i]+1):augmentedTau[i+1]]
+    }
   }
-  simulation <- resid.segm$Y1_sim
 
   # Clever way to identify the segments index associated with each observation
-  index <- cumsum(diff(c(Inf,simulation))!=0)
+  # index <- cumsum(diff(c(Inf,simulation))!=0)
 
-  return(list(tau=tau_MAP,
-       segments=data.frame(index=index,mean=simulation),
+  return(list(tau=tau.MAP,
+       segments=segments,
        mcmc=mcmc.segm,
-       data.p = data.frame(index=index,time.p=time,obs.p=obs,u.p=u),
+       data.p = list(obs.p=obss,time.p=times,u.p=us),
        DIC=mcmc.DIC[1,2]))
 }
 
@@ -227,131 +241,4 @@ segmentation <- function(obs,
   return(list(results=res,nS=which.min(DICs)))
 }
 
-# segmentation_recursive <- function(time=1:length(obs),
-#                                    obs,
-#                                    u=0*obs,
-#                                    nSmax=2,
-#                                    nMin= 1,
-#                                    nCycles=100,
-#                                    burn=0.5,
-#                                    nSlim=max(nCycles/10,1),
-#                                    temp.folder=file.path(tempdir(),'BaM')){
-#
-#   if(nSmax<=0){
-#     stop('Maximum number of segments should be larger than 0',call.=FALSE)
-#   }
-#
-#   res.rec.p <- segmentation(obs=obs)
-#   nSopt <- res.rec.p$nS
-#
-#   if(nSopt==1){  # Non time shift identified
-#     res.rec <- list( res = res.rec.p$results[[1]])
-#     return(res.rec)
-#   }else{
-#
-#     j <- 2
-#     data <- res.rec.p$results[[j]]$data.p  #intermediate case
-#     data <- res.rec_test$results[[1]]$data.p  #first case
-#
-#     atej <- seg_rec(data = data)
-#
-#     res.rec.tau <- c()  # a mettre dans la fonction
-#     seg_rec<- function(data,iter=0){ #DF with this colons index,time.p,obs.p,u.p
-#
-#       data.p <- split(data,data$index)
-#
-#       for(i in 1:length(data.p)){
-#         res.rec_test <- segmentation(time =data.p[[i]]$time.p,
-#                                      obs = data.p[[i]]$obs.p ,
-#                                      u = data.p[[i]]$u.p )
-#         nSopt <- res.rec_test$nS
-#         res.rec.tau.p <- res.rec_test$results[[nSopt]]$tau
-#         res.rec.tau <- rbind(res.rec.tau,res.rec.tau.p)
-#         if(nSopt==1){
-#           return(list(tau=res.rec.tau,
-#                       res=res.rec_test$results,
-#                       iterations=iter+1))
-#         }else{
-#           return(seg_rec(data=res.rec_test$results[[nSopt]]$data.p),
-#                  iter+1)
-#         }
-#       }
-#     }
-#
-#
-#         if(res.rec_test$nS==1){
-#           return(res.rec_test_f =list( res = res.rec.p$results[[1]]))
-#         }else{
-#
-#         }
-#       }
-#       return(data=data_rec)
-#
-#     }
-#
-#     res.rec.p$results
-#
-#   }
-#
-# }
-
-
-#   }else{ # time shift identified
-#     tau.seg.rec <- c()
-#     res.seg.rec <- res
-#
-#     # for() #a reflechir pour parcourir toutes les sous périodes
-#     if(nSopt==1){
-#       tau.seg.rec <- rbind(tau.seg.rec,NULL)
-#       segments = res.seg.rec$results[[1]]$segments
-#       mcmc = res.seg.rec$results[[1]]$mcmc
-#
-#     }else{
-#
-#       # function(nSopt){
-#       #
-#       # }
-#       while(nSopt!=1){
-#       tau.seg.rec <- rbind(tau.seg.rec,res.seg.rec$results[[nSopt]]$tau)
-#       }
-#     }
-#   }
-#
-#   i <- 1
-#   index <- res$results[[i]]$segments$index
-#   time.p <-
-#   obs.p <-
-#   u.p <-
-#   function(index,time.p,obs.p,u.p){  #DF : index, time.p, obs.p
-#
-#
-#
-#
-#   }
-#
-#
-#     while(nSopt!=1){
-#       obs.temp.data <- cbind(res.seg.rec$results[[nSopt]]$segments,time,obs,u)
-#       obs.temp.P <- split(obs.temp.data,obs.temp.data$index)
-#       for(j in 1:nSopt){   # j =
-#         DF.seg.rec <- segmentation(time=obs.temp.P[[j]]$time,
-#                                  obs=obs.temp.P[[j]]$obs,
-#                                  u=obs.temp.P[[j]]$u,
-#                                  nSmax,nMin,nCycles,burn,nSlim,temp.folder)
-#         nSopt<- DF.seg.rec$nS
-#
-#     }
-#   }
-#
-#
-#
-#
-#     # nSopt<- res$nS (update nSopt)
-#   }
-#
-#
-#
-#
-#
-# }
 
