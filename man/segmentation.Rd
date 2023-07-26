@@ -5,8 +5,8 @@
 \title{Segmentation}
 \usage{
 segmentation(
-  time = 1:length(obs),
   obs,
+  time = 1:length(obs),
   u = 0 * obs,
   nSmax = 2,
   nMin = 1,
@@ -17,9 +17,9 @@ segmentation(
 )
 }
 \arguments{
-\item{time}{real vector, time}
-
 \item{obs}{real vector, observations}
+
+\item{time}{real vector, time}
 
 \item{u}{real vector, uncertainty in observations (as a standard deviation)}
 
@@ -41,7 +41,9 @@ list with the following components :
   \item tau: real vector, estimated shift times
   \item segments: data frame, segment index and mean value
   \item mcmc: data frame, MCMC simulation
+  \item data.p: data frame, assign a stable period to the initial data
   \item DIC: real, DIC estimation
+  \item nS: integer, optimal number of segments following DIC criterion
 }
 }
 \description{
@@ -54,17 +56,23 @@ obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
 # Run segmentation function
 res <- segmentation(obs=obs)
 
+# Optimal number of segments nSopt
+nSopt <- res$nS
+nSopt
+
 # Estimated shift time
-res$tau
+res$results[[nSopt]]$tau
 
 # Uncertainty in shift time
-hist(res$mcmc$tau1)
+hist(res$results[[nSopt]]$mcmc$tau)
+
+#' Assign a stable period
+res$results[[nSopt]]$data.p
 
 # DIC estimation
-res$DIC
+res$results[[nSopt]]$DIC
 
 # Plot
 plot(obs)
-lines(res$segments$mean)
-
+lines(res$results[[res$nS]]$segments$mean)
 }
