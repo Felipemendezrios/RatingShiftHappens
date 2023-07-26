@@ -2,8 +2,8 @@
 #'
 #' Segmentation procedure for a \strong{known} given number of segments
 #'
-#' @param time real vector, time
 #' @param obs real vector, observations
+#' @param time real vector, time
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nS integer, number of segments
 #' @param nMin integer, minimum number of observations by segment
@@ -16,6 +16,7 @@
 #'   \item tau: real vector, estimated shift times
 #'   \item segments: data frame, segment index and mean value
 #'   \item mcmc: data frame, MCMC simulation
+#'   \item data.p: data frame, assign a stable period to the initial data
 #'   \item DIC: real, DIC estimation
 #' }
 #' @examples
@@ -28,16 +29,21 @@
 #' # Estimated shift time
 #' res$tau
 #'
+#'# mean value of segment
+#' res$segments
+#'
 #' # Uncertainty in shift time
 #' hist(res$mcmc$tau1)
 #'
 #' # DIC estimation
 #' res$DIC
 #'
+#' # Assign a stable period
+#' res$data.p
+#'
 #' # Plot
 #' plot(obs)
 #' lines(res$segments$mean)
-#'
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
 segmentation_engine <- function(obs,
@@ -109,8 +115,6 @@ segmentation_engine <- function(obs,
                                                               init=sd(obs) ,
                                                               prior.dist = "FlatPrior+"))))
 
-  # mcmcSummary()
-
   # Run BaM executable
   RBaM::BaM(mod=mod,
       data=data,
@@ -151,8 +155,8 @@ segmentation_engine <- function(obs,
 #'
 #' Segmentation procedure for a \strong{unknown} given number of segments
 #'
-#' @param time real vector, time
 #' @param obs real vector, observations
+#' @param time real vector, time
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nSmax integer, maximum number of segments to assess
 #' @param nMin integer, minimum number of observations by segment
@@ -165,7 +169,9 @@ segmentation_engine <- function(obs,
 #'   \item tau: real vector, estimated shift times
 #'   \item segments: data frame, segment index and mean value
 #'   \item mcmc: data frame, MCMC simulation
+#'   \item data.p: data frame, assign a stable period to the initial data
 #'   \item DIC: real, DIC estimation
+#'   \item nS: integer, optimal number of segments following DIC criterion
 #' }
 #' @examples
 #' # Create observation vector
@@ -174,19 +180,25 @@ segmentation_engine <- function(obs,
 #' # Run segmentation function
 #' res <- segmentation(obs=obs)
 #'
+#' # Optimal number of segments nSopt
+#' nSopt <- res$nS
+#' nSopt
+#'
 #' # Estimated shift time
-#' res$tau
+#' res$results[[nSopt]]$tau
 #'
 #' # Uncertainty in shift time
-#' hist(res$mcmc$tau1)
+#' hist(res$results[[nSopt]]$mcmc$tau)
+#'
+#' #' Assign a stable period
+#' res$results[[nSopt]]$data.p
 #'
 #' # DIC estimation
-#' res$DIC
+#' res$results[[nSopt]]$DIC
 #'
 #' # Plot
 #' plot(obs)
-#' lines(res$segments$mean)
-#'
+#' lines(res$results[[res$nS]]$segments$mean)
 #' @export
 segmentation <- function(obs,
                          time=1:length(obs),
@@ -208,13 +220,12 @@ segmentation <- function(obs,
   DICs <- rep(NA,nSmax)
   for(i in (1:nSmax)){
     nS <- i
-    res[[i]] <- segmentation_engine(time,obs,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
+    res[[i]] <- segmentation_engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
     DICs [i] <- res[[i]]$DIC
   }
 
   return(list(results=res,nS=which.min(DICs)))
 }
-
 
 # segmentation_recursive <- function(time=1:length(obs),
 #                                    obs,
