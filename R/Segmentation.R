@@ -40,15 +40,15 @@
 #'
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
-segmentation_engine <- function(time=1:length(obs),
-                         obs,
-                         u=0*obs,
-                         nS=2,
-                         nMin= 1,
-                         nCycles=100,
-                         burn=0.5,
-                         nSlim=max(nCycles/10,1),
-                         temp.folder=file.path(tempdir(),'BaM')){
+segmentation_engine <- function(obs,
+                                time=1:length(obs),
+                                u=0*obs,
+                                nS=2,
+                                nMin= 1,
+                                nCycles=100,
+                                burn=0.5,
+                                nSlim=max(nCycles/10,1),
+                                temp.folder=file.path(tempdir(),'BaM')){
 
   if(length(obs)<nS){
    stop('Number of observations is lower than number of segments',call.=FALSE)
@@ -143,6 +143,7 @@ segmentation_engine <- function(time=1:length(obs),
   return(list(tau=tau_MAP,
        segments=data.frame(index=index,mean=simulation),
        mcmc=mcmc.segm,
+       data.p = data.frame(index=index,time.p=time,obs.p=obs,u.p=u),
        DIC=mcmc.DIC[1,2]))
 }
 
@@ -187,15 +188,15 @@ segmentation_engine <- function(time=1:length(obs),
 #' lines(res$segments$mean)
 #'
 #' @export
-segmentation <- function(time=1:length(obs),
-                                obs,
-                                u=0*obs,
-                                nSmax=2,
-                                nMin= 1,
-                                nCycles=100,
-                                burn=0.5,
-                                nSlim=max(nCycles/10,1),
-                                temp.folder=file.path(tempdir(),'BaM')){
+segmentation <- function(obs,
+                         time=1:length(obs),
+                         u=0*obs,
+                         nSmax=2,
+                         nMin= 1,
+                         nCycles=100,
+                         burn=0.5,
+                         nSlim=max(nCycles/10,1),
+                         temp.folder=file.path(tempdir(),'BaM')){
 
 
   if(nSmax<=0){
@@ -215,4 +216,131 @@ segmentation <- function(time=1:length(obs),
 }
 
 
+# segmentation_recursive <- function(time=1:length(obs),
+#                                    obs,
+#                                    u=0*obs,
+#                                    nSmax=2,
+#                                    nMin= 1,
+#                                    nCycles=100,
+#                                    burn=0.5,
+#                                    nSlim=max(nCycles/10,1),
+#                                    temp.folder=file.path(tempdir(),'BaM')){
+#
+#   if(nSmax<=0){
+#     stop('Maximum number of segments should be larger than 0',call.=FALSE)
+#   }
+#
+#   res.rec.p <- segmentation(obs=obs)
+#   nSopt <- res.rec.p$nS
+#
+#   if(nSopt==1){  # Non time shift identified
+#     res.rec <- list( res = res.rec.p$results[[1]])
+#     return(res.rec)
+#   }else{
+#
+#     j <- 2
+#     data <- res.rec.p$results[[j]]$data.p  #intermediate case
+#     data <- res.rec_test$results[[1]]$data.p  #first case
+#
+#     atej <- seg_rec(data = data)
+#
+#     res.rec.tau <- c()  # a mettre dans la fonction
+#     seg_rec<- function(data,iter=0){ #DF with this colons index,time.p,obs.p,u.p
+#
+#       data.p <- split(data,data$index)
+#
+#       for(i in 1:length(data.p)){
+#         res.rec_test <- segmentation(time =data.p[[i]]$time.p,
+#                                      obs = data.p[[i]]$obs.p ,
+#                                      u = data.p[[i]]$u.p )
+#         nSopt <- res.rec_test$nS
+#         res.rec.tau.p <- res.rec_test$results[[nSopt]]$tau
+#         res.rec.tau <- rbind(res.rec.tau,res.rec.tau.p)
+#         if(nSopt==1){
+#           return(list(tau=res.rec.tau,
+#                       res=res.rec_test$results,
+#                       iterations=iter+1))
+#         }else{
+#           return(seg_rec(data=res.rec_test$results[[nSopt]]$data.p),
+#                  iter+1)
+#         }
+#       }
+#     }
+#
+#
+#         if(res.rec_test$nS==1){
+#           return(res.rec_test_f =list( res = res.rec.p$results[[1]]))
+#         }else{
+#
+#         }
+#       }
+#       return(data=data_rec)
+#
+#     }
+#
+#     res.rec.p$results
+#
+#   }
+#
+# }
+
+
+#   }else{ # time shift identified
+#     tau.seg.rec <- c()
+#     res.seg.rec <- res
+#
+#     # for() #a reflechir pour parcourir toutes les sous périodes
+#     if(nSopt==1){
+#       tau.seg.rec <- rbind(tau.seg.rec,NULL)
+#       segments = res.seg.rec$results[[1]]$segments
+#       mcmc = res.seg.rec$results[[1]]$mcmc
+#
+#     }else{
+#
+#       # function(nSopt){
+#       #
+#       # }
+#       while(nSopt!=1){
+#       tau.seg.rec <- rbind(tau.seg.rec,res.seg.rec$results[[nSopt]]$tau)
+#       }
+#     }
+#   }
+#
+#   i <- 1
+#   index <- res$results[[i]]$segments$index
+#   time.p <-
+#   obs.p <-
+#   u.p <-
+#   function(index,time.p,obs.p,u.p){  #DF : index, time.p, obs.p
+#
+#
+#
+#
+#   }
+#
+#
+#     while(nSopt!=1){
+#       obs.temp.data <- cbind(res.seg.rec$results[[nSopt]]$segments,time,obs,u)
+#       obs.temp.P <- split(obs.temp.data,obs.temp.data$index)
+#       for(j in 1:nSopt){   # j =
+#         DF.seg.rec <- segmentation(time=obs.temp.P[[j]]$time,
+#                                  obs=obs.temp.P[[j]]$obs,
+#                                  u=obs.temp.P[[j]]$u,
+#                                  nSmax,nMin,nCycles,burn,nSlim,temp.folder)
+#         nSopt<- DF.seg.rec$nS
+#
+#     }
+#   }
+#
+#
+#
+#
+#     # nSopt<- res$nS (update nSopt)
+#   }
+#
+#
+#
+#
+#
+# }
 
