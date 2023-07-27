@@ -7,7 +7,7 @@
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nS integer, number of segments
 #' @param nMin integer, minimum number of observations by segment
-#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles.
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
@@ -177,7 +177,7 @@ segmentation_engine <- function(obs,
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nSmax integer, maximum number of segments to assess
 #' @param nMin integer, minimum number of observations by segment
-#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles.
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
@@ -247,7 +247,73 @@ segmentation <- function(obs,
   return(list(results=res,nS=which.min(DICs)))
 }
 
-
+#' Recursive segmentation
+#'
+#' Recursive segmentation procedure for a \strong{unknown} given number of segments
+#'
+#' @param obs real vector, observations
+#' @param time real vector, time
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @param nSmax integer, maximum number of segments to assess
+#' @param nMin integer, minimum number of observations by segment
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles.
+#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim integer, MCMC slim step
+#' @param temp.folder directory, temporary directory to write computations
+#' @return List with the following components :
+#' \enumerate{
+#'   \item tau: real vector, estimated shift times
+#'   \item segments: list, segment mean value indexed by the list number
+#'   \item mcmc: data frame, MCMC simulation
+#'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
+#'   \item DIC: real, DIC estimation
+#'   \item nS: integer, optimal number of segments following DIC criterion
+#'   \item tree : data frame, table for tree structure after segmentation
+#' }
+#' @examples
+#' # Create series to be segmented
+#' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+#' time=1:length(obs)
+#'
+#' # Apply recursive segmentation
+#' results=recursive.segmentation(obs)
+#'
+#' # Have a look at recursion tree
+#' results$tree
+#'
+#' # Get terminal nodes
+#' terminal=which(results$tree$nS==1)
+#'
+#' # Plot original series and terminal nodes defining final segments
+#' X11();plot(time,obs)
+#' for(i in 1:length(terminal)){
+#'data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
+#'node=list(obs=data.stable.p$data.p$obs.p,
+#'          times=data.stable.p$data.p$time.p,
+#'          u=data.stable.p$data.p$u.p)
+#'points(node$times,node$obs,col=i)
+#'text(node$times,node$obs,terminal[i],pos=3,col=i)
+#'}
+#'
+#'# Get time shifts
+#'time.shifts=which(results$tree$nS!=1)
+#'for(i in 1:length(time.shifts)){
+#'nSopt.p = results$res[[time.shifts[[i]]]]$nS
+#' abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
+#' abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+#' lines(x=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]],y=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],col='blue')
+#' lines(x=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]],y=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],col='blue')
+#'}
+#'
+#'# Visualize tree with data.tree package
+#'if(NROW(results$tree)>1){
+#'  tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
+#'  plot(tree)
+#'} else { # No segmentation took place, make a dummy plot
+#'  tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
+#'  plot(tree)
+#'}
+#' @export
 recursive.segmentation <- function(obs,
                                    time=1:length(obs),
                                    u=0*obs,
@@ -312,34 +378,5 @@ recursive.segmentation <- function(obs,
   return(list(res=allRes,tree=tree))
 }
 
-# # Test
-# #------------
-# # Create series to be segmented
-# x=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
-# time=1:length(x)
-# u=0*x
-# # Apply recursive segmentation
-# results=rec(x,time,u)
-# # Have a look at recursion tree
-# results$tree
-# # Get terminal nodes
-# terminal=which(results$tree$nS==1)
-# # Plot original series and terminal nodes defining final segments
-# X11();plot(time,x)
-# for(i in 1:length(terminal)){
-#   data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
-#   node=list(obs=data.stable.p$data.p$obs.p,
-#             times=data.stable.p$data.p$time.p,
-#             u=data.stable.p$data.p$u.p)
-#   points(node$times,node$obs,col=i)
-#   text(node$times,node$obs,terminal[i],pos=3,col=i)
-# }
-# # Visualize tree with data.tree package
-# if(NROW(results$tree)>1){
-#   tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
-#   plot(tree)
-# } else { # No segmentation took place, make a dummy plot
-#   tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
-#   plot(tree)
-# }
+
 
