@@ -59,6 +59,7 @@ segmentation_engine <- function(obs,
                                 nSlim=max(nCycles/10,1),
                                 temp.folder=file.path(tempdir(),'BaM')){
 
+
   if(length(obs)<nS){
    stop('Number of observations is lower than number of segments',call.=FALSE)
   }
@@ -66,6 +67,15 @@ segmentation_engine <- function(obs,
     stop('Missing values not allowed in observation, time and uncertainty')
   }
 
+  # sort data frame case time not ascending
+  DF.order <- data.frame(obs=obs,
+                         time=time,
+                         u=u)
+  DF.order.f <- DF.order[order(DF.order$time)]
+
+  obs <- DF.order.f$obs
+  time <- DF.order.f$time
+  u <- DF.order.f$u
   npar = nS + nS - 1
 
   priors <- vector(mode = 'list',length = npar)
@@ -149,12 +159,17 @@ segmentation_engine <- function(obs,
                          ((nS+1):(nS+nS-1))]
     # Store subseries into a list
     obss=segments=times=us=vector(mode='list',length=nS)
-    augmentedTau=c(0,tau.MAP,length(obs)) # complete taus with 0 and last time step to simplify next lines of code
+    intervals.time.shift=c(time[1],tau.MAP,rev(time)[1]) # intervals defined by time shifts
+
     for(i in 1:nS){
-      obss[[i]]=obs[(augmentedTau[i]+1):augmentedTau[i+1]]
-      segments[[i]]=simulation.mean[(augmentedTau[i]+1):augmentedTau[i+1]]
-      times[[i]]=time[(augmentedTau[i]+1):augmentedTau[i+1]]
-      us[[i]]=u[(augmentedTau[i]+1):augmentedTau[i+1]]
+
+      position.ti.p <- which((time-intervals.time.shift[i])>=0)[1]
+      position.tf.p <- rev(which((time-intervals.time.shift[i+1])<=0))[1]
+
+      obss[[i]]=obs[position.ti.p:position.tf.p]
+      segments[[i]]=simulation.mean[position.ti.p:position.tf.p]
+      times[[i]]=time[position.ti.p:position.tf.p]
+      us[[i]]=u[position.ti.p:position.tf.p]
     }
   }
 
@@ -271,8 +286,13 @@ segmentation <- function(obs,
 #'   \item tree : data frame, table for tree structure after segmentation
 #' }
 #' @examples
+#' #------------------------------------------------------
+#' # First example:
+#' #------------------------------------------------------
+#'
+#' set.seed(2023)
 #' # Create series to be segmented
-#' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+#' obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1))
 #' time=1:length(obs)
 #'
 #' # Apply recursive segmentation
@@ -296,14 +316,24 @@ segmentation <- function(obs,
 #'}
 #'
 #'# Get time shifts
-#'time.shifts=which(results$tree$nS!=1)
-#'for(i in 1:length(time.shifts)){
-#'nSopt.p = results$res[[time.shifts[[i]]]]$nS
-#' abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
-#' abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
-#' lines(x=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]],y=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],col='blue')
-#' lines(x=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]],y=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],col='blue')
-#'}
+# time.shifts=which(results$tree$nS!=1)
+# for(i in 1:length(time.shifts)){
+# nSopt.p = results$res[[time.shifts[[i]]]]$nS
+# abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
+# abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+# segments(
+# x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1],
+# x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+# y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+# y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+# col='blue')
+# segments(
+# x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+# x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1],
+# y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+# y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+# col='blue')
+#' #'}
 #'
 #'# Visualize tree with data.tree package
 #'if(NROW(results$tree)>1){
@@ -313,6 +343,43 @@ segmentation <- function(obs,
 #'  tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
 #'  plot(tree)
 #'}
+#'
+#' #------------------------------------------------------
+#' # Second example:
+#' #------------------------------------------------------
+#' set.seed(2023)
+#' obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1),rnorm(10,mean=5,sd=1),rnorm(5,mean=1,sd=1))
+#' time=1:length(obs)
+#' # Apply recursive segmentation
+#' results=recursive.segmentation(obs)
+#'
+#' # Have a look at recursion tree
+#' results$tree
+#'
+#' # Get terminal nodes
+#' terminal=which(results$tree$nS==1)
+#'
+#' # Plot original series and terminal nodes defining final segments
+#' X11();plot(time,obs)
+#' for(i in 1:length(terminal)){
+#' data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
+#' node=list(obs=data.stable.p$data.p$obs.p,
+#'          times=data.stable.p$data.p$time.p,
+#'          u=data.stable.p$data.p$u.p)
+#' points(node$times,node$obs,col=i)
+#' text(node$times,node$obs,terminal[i],pos=3,col=i)
+#' }
+#'
+#'# Get time shifts
+#' time.shifts=which(results$tree$nS!=1)
+#' nSopt.p <- c()
+#'
+#' for(i in 1:length(time.shifts)){
+#' nSopt.p [i] = results$res[[time.shifts[[i]]]]$nS
+#'
+#' }
+#'
+#'
 #' @export
 recursive.segmentation <- function(obs,
                                    time=1:length(obs),
