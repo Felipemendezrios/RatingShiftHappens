@@ -14,9 +14,9 @@
 #' @return list with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
-#'   \item segments: data frame, segment index and mean value
+#'   \item segments: list, segment mean value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
-#'   \item data.p: data frame, assign a stable period to the initial data
+#'   \item data.p: list, assign a stable period to the initial data indexed by the list number
 #'   \item DIC: real, DIC estimation
 #' }
 #' @examples
@@ -181,9 +181,9 @@ segmentation_engine <- function(obs,
 #' @return list with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
-#'   \item segments: data frame, segment index and mean value
+#'   \item segments: list, segment mean value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
-#'   \item data.p: data frame, assign a stable period to the initial data
+#'   \item data.p: list, assign a stable period to the initial data indexed by the list number
 #'   \item DIC: real, DIC estimation
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #' }

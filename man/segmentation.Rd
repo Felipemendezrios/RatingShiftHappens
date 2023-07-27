@@ -39,9 +39,9 @@ segmentation(
 list with the following components :
 \enumerate{
   \item tau: real vector, estimated shift times
-  \item segments: data frame, segment index and mean value
+  \item segments: list, segment mean value indexed by the list number
   \item mcmc: data frame, MCMC simulation
-  \item data.p: data frame, assign a stable period to the initial data
+  \item data.p: list, separate and assign information by identified stable period indexed by the list number
   \item DIC: real, DIC estimation
   \item nS: integer, optimal number of segments following DIC criterion
 }
@@ -66,7 +66,7 @@ res$results[[nSopt]]$tau
 # Uncertainty in shift time
 hist(res$results[[nSopt]]$mcmc$tau)
 
-#' Assign a stable period
+# Separate and assign information by identified stable period
 res$results[[nSopt]]$data.p
 
 # DIC estimation
@@ -74,5 +74,8 @@ res$results[[nSopt]]$DIC
 
 # Plot
 plot(obs)
-lines(res$results[[res$nS]]$segments$mean)
+lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue')
+lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue')
+abline(v=res$results[[nSopt]]$tau,col='green')
+abline(v=quantile(res$results[[nSopt]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
 }

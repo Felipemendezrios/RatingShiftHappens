@@ -39,9 +39,9 @@ segmentation_engine(
 list with the following components :
 \enumerate{
   \item tau: real vector, estimated shift times
-  \item segments: data frame, segment index and mean value
+  \item segments: list, segment mean value indexed by the list number
   \item mcmc: data frame, MCMC simulation
-  \item data.p: data frame, assign a stable period to the initial data
+  \item data.p: list, separate and assign information by identified stable period indexed by the list number
   \item DIC: real, DIC estimation
 }
 }
@@ -58,19 +58,22 @@ res <- segmentation_engine(obs=obs)
 # Estimated shift time
 res$tau
 
-# mean value of segment
+# mean value per segment indexed by the list number
 res$segments
 
 # Uncertainty in shift time
 hist(res$mcmc$tau1)
 
+# Separate and assign information by identified stable period
+res$data.p
+
 # DIC estimation
 res$DIC
 
-# Assign a stable period
-res$data.p
-
 # Plot
 plot(obs)
-lines(res$segments$mean)
+lines(x=res$data.p$time.p[[1]],y=res$segments[[1]],col='blue')
+lines(x=res$data.p$time.p[[2]],y=res$segments[[2]],col='blue')
+abline(v=res$tau,col='green')
+abline(v=quantile(res$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
 }
