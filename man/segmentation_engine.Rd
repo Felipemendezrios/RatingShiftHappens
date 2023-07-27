@@ -36,7 +36,7 @@ segmentation_engine(
 \item{temp.folder}{directory, temporary directory to write computations}
 }
 \value{
-list with the following components :
+List with the following components :
 \enumerate{
   \item tau: real vector, estimated shift times
   \item segments: list, segment mean value indexed by the list number
