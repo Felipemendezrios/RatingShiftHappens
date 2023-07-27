@@ -27,7 +27,7 @@ segmentation_engine(
 
 \item{nMin}{integer, minimum number of observations by segment}
 
-\item{nCycles}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles.}
+\item{nCycles}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles}
 
 \item{burn}{real between 0 (included) and 1 (excluded), MCMC burning factor}
 
