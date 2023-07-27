@@ -11,12 +11,12 @@
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
-#' @return list with the following components :
+#' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
 #'   \item segments: list, segment mean value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
-#'   \item data.p: list, assign a stable period to the initial data indexed by the list number
+#'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
 #'   \item DIC: real, DIC estimation
 #' }
 #' @examples
@@ -29,21 +29,24 @@
 #' # Estimated shift time
 #' res$tau
 #'
-#'# mean value of segment
+#' # mean value per segment indexed by the list number
 #' res$segments
 #'
 #' # Uncertainty in shift time
 #' hist(res$mcmc$tau1)
 #'
+#' # Separate and assign information by identified stable period
+#' res$data.p
+#'
 #' # DIC estimation
 #' res$DIC
 #'
-#' # Assign a stable period
-#' res$data.p
-#'
 #' # Plot
 #' plot(obs)
-#' lines(res$segments$mean)
+#' lines(x=res$data.p$time.p[[1]],y=res$segments[[1]],col='blue')
+#' lines(x=res$data.p$time.p[[2]],y=res$segments[[2]],col='blue')
+#' abline(v=res$tau,col='green')
+#' abline(v=quantile(res$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
 segmentation_engine <- function(obs,
@@ -178,12 +181,12 @@ segmentation_engine <- function(obs,
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
-#' @return list with the following components :
+#' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
 #'   \item segments: list, segment mean value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
-#'   \item data.p: list, assign a stable period to the initial data indexed by the list number
+#'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
 #'   \item DIC: real, DIC estimation
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #' }
@@ -204,7 +207,7 @@ segmentation_engine <- function(obs,
 #' # Uncertainty in shift time
 #' hist(res$results[[nSopt]]$mcmc$tau)
 #'
-#' #' Assign a stable period
+#' # Separate and assign information by identified stable period
 #' res$results[[nSopt]]$data.p
 #'
 #' # DIC estimation
@@ -212,7 +215,10 @@ segmentation_engine <- function(obs,
 #'
 #' # Plot
 #' plot(obs)
-#' lines(res$results[[res$nS]]$segments$mean)
+#' lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue')
+#' lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue')
+#' abline(v=res$results[[nSopt]]$tau,col='green')
+#' abline(v=quantile(res$results[[nSopt]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
 #' @export
 segmentation <- function(obs,
                          time=1:length(obs),
