@@ -248,3 +248,106 @@ segmentation <- function(obs,
 }
 
 
+
+seg <- function(x,time=1:length(x)){
+  # Segmentation function
+  # Just a placeholder version to test the recursive part
+
+  # Estimate number of segments (here just a random choice between 1 and 3)
+  nS=sample(1:min(3,length(x)),1)
+  if(nS==1){
+    segments=x # Subseries = whole series
+    times=time
+    tau=NA # no shift time
+  } else {
+    # "Estimated" Shift times - in fact just a random split
+    tau=sort(sample(1:(length(x)-1),nS-1,replace = FALSE))
+    # Store subseries into a list
+    segments=times=vector(mode='list',length=nS)
+    augmentedTau=c(0,tau,length(x)) # complete taus with 0 and last time step to simplify next lines of code
+    for(i in 1:nS){
+      segments[[i]]=x[(augmentedTau[i]+1):augmentedTau[i+1]]
+      times[[i]]=time[(augmentedTau[i]+1):augmentedTau[i+1]]
+    }
+  }
+  return(list(nS=nS,times=times,segments=segments,tau=tau))
+}
+
+rec <- function(x,time){
+  # recursive segmentation
+
+  # Initialization
+  allRes=list() # store segmentation results for all nodes in a sequential list
+  k=0 # Main counter used to control indices in allRes
+  tree=data.frame() # store tree structure (parents - children relationship)
+  p=1 # Auxiliary counter needed to keep track of children / parents indices
+  level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
+  X=list(x) # List of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
+  TIME=list(time) # List of corresponding times
+  indices=c(1) # Vector containing the indices of each node - same size as X
+  parents=c(0) # Vector containing the indices of the parents of each node - same size as X
+  continue=TRUE
+  while(continue){
+    level=level+1 # Increment recursion level
+    nX=length(X) # Number of nodes at this level
+    keepgoing=rep(NA,nX) # Should recursion continue for each node?
+    newX=newTIME=newIndices=newParents=c() # Will be used to update subseries, indices and parents at the end of each recursion level
+    m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
+    for(j in 1:nX){ # Loop on each node
+      k=k+1 # Increment main counter
+      foo=seg(X[[j]],TIME[[j]]) # Apply segmentation to subseries stored in node X[[j]]
+      # Save results for this node
+      allRes[[k]]=foo
+      # Update recursion tree
+      tree=rbind(tree,data.frame(indx=k,level=level,parent=parents[j],nS=foo$nS))
+      # This was the trickiest part: keeping track of indices and parents
+      keepgoing[j]=foo$nS>1 # if nS=1, segmentation will not continue for this node which is hence terminal
+      if(keepgoing[j]){ # Save results for segmentation at next level
+        for(i in 1:foo$nS){ # Loop on each segment detected for the current node
+          p=p+1 # Increment auxiliary counter
+          m=m+1 # Increment local counter
+          newX[[m]]=foo$segments[[i]] # Save ith segment (on a total of nS)
+          newTIME[[m]]=foo$times[[i]] # Save corresponding times
+          newParents[m]=indices[j] # At next level, the parent of this segment will be the index of current node
+          newIndices[m]=p # At next level, the index of this segment will be p
+        }
+      }
+    }
+    # Check if recursion should continue at all, i.e. if at least one node is not terminal
+    if(all(keepgoing==FALSE)) continue=FALSE
+    # Update list of nodes to be further segmented at next level + parents and indices
+    X=newX
+    TIME=newTIME
+    parents=newParents
+    indices=newIndices
+  }
+  return(list(res=allRes,tree=tree))
+}
+
+# Test
+#------------
+# Create series to be segmented
+n=50
+x=rnorm(n);time=1:length(x)
+# Apply recursive segmentation
+results=rec(x,time)
+# Have a look at recursion tree
+results$tree
+# Get terminal nodes
+terminal=which(results$tree$nS==1)
+# Plot original series and terminal nodes defining final segments
+X11();plot(time,x)
+for(i in 1:length(terminal)){
+  node=results$res[[terminal[i]]]
+  points(node$times,node$segments,col=i)
+  text(node$times,node$segments,terminal[i],pos=3,col=i)
+}
+# Visualize tree with data.tree package
+if(NROW(results$tree)>1){
+  tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
+  plot(tree)
+} else { # No segmentation took place, make a dummy plot
+  tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
+  plot(tree)
+}
+
