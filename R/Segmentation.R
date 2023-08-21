@@ -71,7 +71,7 @@ segmentation_engine <- function(obs,
   DF.order <- data.frame(obs=obs,
                          time=time,
                          u=u)
-  DF.order.f <- DF.order[order(DF.order$time)]
+  DF.order.f <- DF.order[order(DF.order$time),]
 
   obs <- DF.order.f$obs
   time <- DF.order.f$time
