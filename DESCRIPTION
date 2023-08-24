@@ -3,7 +3,7 @@ Type: Package
 Title: Tools for Detecting, Visualizing and Estimating Rating Shifts 
 Version: 0.1.0
 Author: c(
-    person("Felipe", "Mendez", email = "felipe-alberto.mendez-rios@inrae.fr",role = c("aut", "cre")),
+    person("Felipe", "Mendez", email = "felipe-alberto.mendez-rios@inrae.fr",role = c("aut", "cre"),comment = c(ORCID = "0009-0004-0371-8699")),
     person("Benjamin", "Renard", email = "benjamin.renard@inrae.fr",role = c("aut"),comment = c(ORCID = "0000-0001-8447-5430")),
     person("Matteo", "Darienzo", role = c("aut")),
     person("INRAE", role = c("fnd")),
