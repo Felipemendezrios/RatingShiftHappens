@@ -2,7 +2,7 @@
 
 export(recursive.segmentation)
 export(segmentation)
-export(segmentation_engine)
+export(segmentation.engine)
 importFrom(RBaM,BaM)
 importFrom(RBaM,dataset)
 importFrom(RBaM,mcmcCooking)

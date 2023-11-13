@@ -24,7 +24,7 @@
 #' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
 #'
 #' # Run segmentation engine function
-#' res <- segmentation_engine(obs=obs)
+#' res <- segmentation.engine(obs=obs)
 #'
 #' # Estimated shift time
 #' res$tau
@@ -49,7 +49,7 @@
 #' abline(v=quantile(res$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
-segmentation_engine <- function(obs,
+segmentation.engine <- function(obs,
                                 time=1:length(obs),
                                 u=0*obs,
                                 nS=2,
@@ -255,7 +255,7 @@ segmentation <- function(obs,
   DICs <- rep(NA,nSmax)
   for(i in (1:nSmax)){
     nS <- i
-    res[[i]] <- segmentation_engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
+    res[[i]] <- segmentation.engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
     DICs [i] <- res[[i]]$DIC
   }
 
