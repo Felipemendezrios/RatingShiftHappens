@@ -6,7 +6,7 @@
 .Ruserdata
 
 # RStudio files
-.Rproj.user/
+.Rproj.user
 
 # knitr and R markdown default cache directories
 *_cache/
@@ -25,3 +25,4 @@ vignettes/*.pdf
 
 # Git files
 .Rbuildignore
+.gitattributes
