@@ -15,7 +15,7 @@
 #' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
-#'   \item segments: list, segment mean value indexed by the list number
+#'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
 #'   \item DIC: real, DIC estimation
@@ -151,15 +151,15 @@ segmentation.engine <- function(obs,
 
   if(nS==1){
     obss=obs # Subseries = whole series
-    segments=simulation.MAP # Subseries = whole series
+    segments.MAP=simulation.MAP # Sub series = whole series
     times=time
     us=u
     tau.MAP=NULL # no shift time
   } else {
     tau.MAP <- mcmc.segm[which.max(mcmc.segm$LogPost),
                          ((nS+1):(nS+nS-1))]
-    # Store subseries into a list
-    obss=segments=times=us=vector(mode='list',length=nS)
+    # Store sub series into a list
+    obss=segments.MAP=times=us=vector(mode='list',length=nS)
     intervals.time.shift=c(time[1],tau.MAP,rev(time)[1]) # intervals defined by time shifts
 
     for(i in 1:nS){
@@ -168,7 +168,7 @@ segmentation.engine <- function(obs,
       position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<=0))[1]
 
       obss[[i]]=obs[position.ti.p:position.tf.p]
-      segments[[i]]=simulation.MAP[position.ti.p:position.tf.p]
+      segments.MAP[[i]]=simulation.MAP[position.ti.p:position.tf.p]
       times[[i]]=time[position.ti.p:position.tf.p]
       us[[i]]=u[position.ti.p:position.tf.p]
     }
@@ -178,10 +178,10 @@ segmentation.engine <- function(obs,
   # index <- cumsum(diff(c(Inf,simulation))!=0)
 
   return(list(tau=tau.MAP,
-       segments=segments,
-       mcmc=mcmc.segm,
-       data.p = list(obs.p=obss,time.p=times,u.p=us),
-       DIC=mcmc.DIC[1,2]))
+              segments=segments.MAP,
+              mcmc=mcmc.segm,
+              data.p = list(obs.p=obss,time.p=times,u.p=us),
+              DIC=mcmc.DIC[1,2]))
 }
 
 #' Segmentation
