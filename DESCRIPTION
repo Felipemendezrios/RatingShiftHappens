@@ -13,9 +13,9 @@ Description: This package provides operational tool for detecting, visualizing a
     It is based on Darienzo et al. (2021) <https://doi.org/10.1029/2020WR028607>
     and Mansanarez et al. (2019) <https://doi.org/10.1029/2018WR023389>.
     See also BayDERS <https://github.com/MatteoDarienzo/BayDERS> for similar tools. 
-License: GPL-3
+License: GPL (>= 3)
 Encoding: UTF-8
-LazyData: true
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports:
 	RBaM
