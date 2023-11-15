@@ -100,9 +100,9 @@ segmentation.engine <- function(obs,
   }
   # Config_Xtra
   xtra=RBaM::xtraModelInfo(object=c(nS=nS,
-                              tmin_xtra=0,
-                              nmin_xtra=nMin,
-                              option_xtra=1)
+                                    tmin_xtra=0,
+                                    nmin_xtra=nMin,
+                                    option_xtra=1)
   )
   # Model
   mod=RBaM::model(
@@ -164,8 +164,8 @@ segmentation.engine <- function(obs,
 
     for(i in 1:nS){
 
-      position.ti.p <- which((time-intervals.time.shift[i])>=0)[1]
-      position.tf.p <- rev(which((time-intervals.time.shift[i+1])<=0))[1]
+      position.ti.p <- which((time-intervals.time.shift[[i]])>=0)[1]
+      position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<=0))[1]
 
       obss[[i]]=obs[position.ti.p:position.tf.p]
       segments[[i]]=simulation.mean[position.ti.p:position.tf.p]
