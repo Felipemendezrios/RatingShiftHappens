@@ -21,33 +21,84 @@
 #'   \item DIC: real, DIC estimation
 #' }
 #' @examples
+#' # Set random generation
+#' set.seed(1)
+#'
 #' # Create observation vector
 #' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+#' nS.user=2
 #'
 #' # Run segmentation engine function
-#' res <- segmentation.engine(obs=obs)
+#' res <- segmentation.engine(obs=obs,nS=nS.user)
 #'
 #' # Estimated shift time
 #' res$tau
 #'
-#' # mean value per segment indexed by the list number
+#' # Maximum a posterior value per segment indexed by the list number
 #' res$segments
 #'
 #' # Uncertainty in shift time
-#' hist(res$mcmc$tau1)
+#' Shift=res$mcmc$tau1
+#' hist(Shift)
 #'
-#' # Separate and assign information by identified stable period
-#' res$data.p
+#' uncertainty95_shift = quantile(Shift,probs=c(0.025,0.975))
 #'
-#' # DIC estimation
-#' res$DIC
+#' # Uncertainty in segment estimation
+#' mu.seg.1.unc=res$mcmc$mu1
+#' graphics::hist(mu.seg.1.unc,
+#'                xlab='obs',
+#'                main='Histogram of first segment of observation')
+#'            uncertainty95_segment <- list()
+#' for(i in 1:nS.user){
+#'    uncertainty95_segment [[i]] = stats::quantile(res$mcmc[,i],probs=c(0.025,0.975))
+#'  }
 #'
-#' # Plot
-#' plot(obs)
-#' lines(x=res$data.p$time.p[[1]],y=res$segments[[1]],col='blue')
-#' lines(x=res$data.p$time.p[[2]],y=res$segments[[2]],col='blue')
-#' abline(v=res$tau,col='green')
-#' abline(v=quantile(res$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+#'  # Separate and assign information by identified stable period
+#'  res$data.p
+#'  # DIC estimation
+#'  res$DIC
+#'
+#'  # Plot
+#'  obs_segmented <- data.frame()
+#' for(i in 1:length(res$data.p$obs.p)){
+#'  obs_segmented_temp=cbind(obs=res$data.p$obs.p[[i]],period=i)
+#'  obs_segmented=rbind(obs_segmented,obs_segmented_temp)
+#' }
+#'
+#' plot(x=obs_segmented$obs,
+#'   col=factor(obs_segmented$period),
+#'   pch=16,
+#'   main='Final segmentation',
+#'   ylab='obs',
+#'   xlab='time')
+#'
+#' for(i in 1:nS.user){
+#'   lines(x=res$data.p$time.p[[i]],y=res$segments[[i]],col='blue')
+#'   rect(xleft=res$data.p$time.p[[i]][1],
+#'        xright=rev(res$data.p$time.p[[i]])[1],
+#'        ybottom=uncertainty95_segment[[i]][1],
+#'        ytop=uncertainty95_segment[[i]][2],
+#'        col= rgb(0,0,1,alpha=0.2),
+#'        border = 'transparent')
+#' }
+#' for(i in 1:(nS.user-1)){
+#'   abline(v=res$tau,col='green', lwd=2)
+#'   if(i==1){
+#'     rect(xleft=uncertainty95_shift[[1]],
+#'          xright=uncertainty95_shift[[2]],
+#'          ybottom=min(obs)*2,
+#'          ytop=max(obs)*2,
+#'          col= rgb(0,1,0,alpha=0.2),
+#'          border = 'transparent')
+#'   }else{
+#'     rect(xleft=uncertainty95_shift[[i]][1],
+#'          xright=rev(uncertainty95_shift[[i]])[1],
+#'          ybottom=min(obs)*2,
+#'          ytop=max(obs)*2,
+#'          col= rgb(0,1,0,alpha=0.2),
+#'          border = 'transparent')
+#'   }
+#' }
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
 segmentation.engine <- function(obs,
@@ -139,9 +190,9 @@ segmentation.engine <- function(obs,
       remnant = remnant_prior
   )
 
-  mcmc.segm    <- read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
-  mcmc.DIC     <- read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
-  resid.segm   <- read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
+  mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
+  mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
+  resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
 
   # unlink(temp.folder, recursive=TRUE)
 
@@ -201,7 +252,7 @@ segmentation.engine <- function(obs,
 #' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
-#'   \item segments: list, segment mean value indexed by the list number
+#'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
 #'   \item DIC: real, DIC estimation
@@ -281,7 +332,7 @@ segmentation <- function(obs,
 #' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
-#'   \item segments: list, segment mean value indexed by the list number
+#'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
 #'   \item DIC: real, DIC estimation
