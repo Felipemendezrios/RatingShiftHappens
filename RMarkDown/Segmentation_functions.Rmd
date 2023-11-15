@@ -1,0 +1,35 @@
+---
+title: "Rating Shift Happens package documentation"
+author: "Felipe MENDEZ and Benjamin RENARD"
+date: "December 2023"
+output: 
+  html_document: 
+    number_sections: yes
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{Getting started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE,results='hide')
+```
+
+# Introduction
+
+Darienzo (2021) developed BayDERS for detecting and estimating stage-discharge rating shifts for retrospective and real-time streamflow quantification. In 2022, a sensibility analysis was conducted to assess the stability and performance of the tool, leading to multiple corrections. Nevertheless, debugging the tool proved difficult due to the integration of different models such as rating curve and recessions estimation. Hence, a dissociation procedure has been implemented to extract essential functions, enabling the automatic segmentation of a random variable. Theses functions have been organized and coded in a package format, which will be explained in the present report.   
+
+# Documentation
+This report contains documentation of the package Rating Shift Happens, which provides several tools for detecting, visualizing and estimating rating shifts. 
+
+Three fundamental functions are available so far :
+
+- segmentation.engine
+- segmentation: Segmentation procedure for a \strong{unknown} given number of segments
+- recursive.segmentation: Recursive segmentation procedure for a \strong{unknown} given number of segments
+
+These functions will be explain more precisely below:
+
+- segmentation.engine: Segmentation procedure for a \strong{known} given number of segments
+
