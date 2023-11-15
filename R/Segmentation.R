@@ -147,11 +147,11 @@ segmentation.engine <- function(obs,
 
   colnames(mcmc.segm)[ncol(mcmc.segm)-1] <- "structural_sd"
 
-  simulation.mean <- resid.segm$Y1_sim
+  simulation.MAP <- resid.segm$Y1_sim
 
   if(nS==1){
     obss=obs # Subseries = whole series
-    segments=simulation.mean # Subseries = whole series
+    segments=simulation.MAP # Subseries = whole series
     times=time
     us=u
     tau.MAP=NULL # no shift time
@@ -168,7 +168,7 @@ segmentation.engine <- function(obs,
       position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<=0))[1]
 
       obss[[i]]=obs[position.ti.p:position.tf.p]
-      segments[[i]]=simulation.mean[position.ti.p:position.tf.p]
+      segments[[i]]=simulation.MAP[position.ti.p:position.tf.p]
       times[[i]]=time[position.ti.p:position.tf.p]
       us[[i]]=u[position.ti.p:position.tf.p]
     }
