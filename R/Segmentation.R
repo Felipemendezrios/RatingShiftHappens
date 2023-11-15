@@ -11,6 +11,7 @@
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
+#'
 #' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
@@ -196,6 +197,7 @@ segmentation.engine <- function(obs,
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
+#'
 #' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
@@ -275,6 +277,7 @@ segmentation <- function(obs,
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
+#'
 #' @return List with the following components :
 #' \enumerate{
 #'   \item tau: real vector, estimated shift times
@@ -316,27 +319,27 @@ segmentation <- function(obs,
 #'}
 #'
 #'# Get time shifts
-# time.shifts=which(results$tree$nS!=1)
-# for(i in 1:length(time.shifts)){
-# nSopt.p = results$res[[time.shifts[[i]]]]$nS
-# abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
-# abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
-# segments(
-# x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1],
-# x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
-# y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
-# y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
-# col='blue')
-# segments(
-# x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
-# x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1],
-# y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
-# y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
-# col='blue')
-#' #'}
+#' time.shifts=which(results$tree$nS!=1)
+#' for(i in 1:length(time.shifts)){
+#' nSopt.p = results$res[[time.shifts[[i]]]]$nS
+#' abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
+#' abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+#' segments(
+#' x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1],
+#' x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+#' y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+#' y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+#' col='blue')
+#' segments(
+#' x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+#' x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1],
+#' y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+#' y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+#' col='blue')
+#' }
 #'
-#'# Visualize tree with data.tree package
-#'if(NROW(results$tree)>1){
+#' # Visualize tree with data.tree package
+#' if(NROW(results$tree)>1){
 #'  tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
 #'  plot(tree)
 #'} else { # No segmentation took place, make a dummy plot
@@ -344,7 +347,7 @@ segmentation <- function(obs,
 #'  plot(tree)
 #'}
 #'
-#' #------------------------------------------------------
+#'#------------------------------------------------------
 #' # Second example:
 #' #------------------------------------------------------
 #' set.seed(2023)
@@ -378,8 +381,6 @@ segmentation <- function(obs,
 #' nSopt.p [i] = results$res[[time.shifts[[i]]]]$nS
 #'
 #' }
-#'
-#'
 #' @export
 recursive.segmentation <- function(obs,
                                    time=1:length(obs),
