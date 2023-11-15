@@ -50,3 +50,97 @@ List with the following components :
 \description{
 Recursive segmentation procedure for a \strong{unknown} given number of segments
 }
+\examples{
+#------------------------------------------------------
+# First example:
+#------------------------------------------------------
+
+set.seed(2023)
+# Create series to be segmented
+obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1))
+time=1:length(obs)
+
+# Apply recursive segmentation
+results=recursive.segmentation(obs)
+
+# Have a look at recursion tree
+results$tree
+
+# Get terminal nodes
+terminal=which(results$tree$nS==1)
+
+# Plot original series and terminal nodes defining final segments
+X11();plot(time,obs)
+for(i in 1:length(terminal)){
+data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
+node=list(obs=data.stable.p$data.p$obs.p,
+         times=data.stable.p$data.p$time.p,
+         u=data.stable.p$data.p$u.p)
+points(node$times,node$obs,col=i)
+text(node$times,node$obs,terminal[i],pos=3,col=i)
+}
+
+# Get time shifts
+time.shifts=which(results$tree$nS!=1)
+for(i in 1:length(time.shifts)){
+nSopt.p = results$res[[time.shifts[[i]]]]$nS
+abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
+abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+segments(
+x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1],
+x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+col='blue')
+segments(
+x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1],
+y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+col='blue')
+}
+
+# Visualize tree with data.tree package
+if(NROW(results$tree)>1){
+ tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
+ plot(tree)
+} else { # No segmentation took place, make a dummy plot
+ tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
+ plot(tree)
+}
+
+#------------------------------------------------------
+# Second example:
+#------------------------------------------------------
+set.seed(2023)
+obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1),rnorm(10,mean=5,sd=1),rnorm(5,mean=1,sd=1))
+time=1:length(obs)
+# Apply recursive segmentation
+results=recursive.segmentation(obs)
+
+# Have a look at recursion tree
+results$tree
+
+# Get terminal nodes
+terminal=which(results$tree$nS==1)
+
+# Plot original series and terminal nodes defining final segments
+X11();plot(time,obs)
+for(i in 1:length(terminal)){
+data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
+node=list(obs=data.stable.p$data.p$obs.p,
+         times=data.stable.p$data.p$time.p,
+         u=data.stable.p$data.p$u.p)
+points(node$times,node$obs,col=i)
+text(node$times,node$obs,terminal[i],pos=3,col=i)
+}
+
+# Get time shifts
+time.shifts=which(results$tree$nS!=1)
+nSopt.p <- c()
+
+for(i in 1:length(time.shifts)){
+nSopt.p [i] = results$res[[time.shifts[[i]]]]$nS
+
+}
+}
