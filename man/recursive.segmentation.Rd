@@ -38,13 +38,13 @@ recursive.segmentation(
 \value{
 List with the following components :
 \enumerate{
-  \item tau: real vector, estimated shift times
-  \item segments: list, segment mean value indexed by the list number
-  \item mcmc: data frame, MCMC simulation
-  \item data.p: list, separate and assign information by identified stable period indexed by the list number
-  \item DIC: real, DIC estimation
-  \item nS: integer, optimal number of segments following DIC criterion
-  \item tree : data frame, table for tree structure after segmentation
+\item tau: real vector, estimated shift times
+\item segments: list, segment maximum a posterior (MAP) value indexed by the list number
+\item mcmc: data frame, MCMC simulation
+\item data.p: list, separate and assign information by identified stable period indexed by the list number
+\item DIC: real, DIC estimation
+\item nS: integer, optimal number of segments following DIC criterion
+\item tree : data frame, table for tree structure after segmentation
 }
 }
 \description{
