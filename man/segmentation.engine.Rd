@@ -108,7 +108,7 @@ alpha <- 125
 
 # Set color plot
 color_customized_rect <- function(alpha){
-   color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names = 'green'),
+   color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
                   rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
                   rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
                   rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),

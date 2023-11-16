@@ -152,10 +152,13 @@ segmentation.engine <- function(obs,
 
 
   if(length(obs)<nS){
-   stop('Number of observations is lower than number of segments',call.=FALSE)
+    stop('Number of observations is lower than number of segments',call.=FALSE)
   }
   if(any(is.na(obs)) | any(is.na(time)) | any(is.na(u))){
     stop('Missing values not allowed in observation, time and uncertainty')
+  }
+  if(nS<=0){
+    stop('Number of segments is lower than one',call.=FALSE)
   }
 
   # sort data frame case time not ascending
@@ -298,11 +301,15 @@ segmentation.engine <- function(obs,
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #' }
 #' @examples
+#' #' # Set random generation
+#' set.seed(1)
+#'
 #' # Create observation vector
 #' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+#' nSmax.user=2
 #'
 #' # Run segmentation function
-#' res <- segmentation(obs=obs)
+#' res <- segmentation(obs=obs,nSmax=nSmax.user)
 #'
 #' # Optimal number of segments nSopt
 #' nSopt <- res$nS
@@ -310,6 +317,13 @@ segmentation.engine <- function(obs,
 #'
 #' # Estimated shift time
 #' res$results[[nSopt]]$tau
+#'
+#' # intervals defined by time shifts
+#' if(nSmax.user!=1){
+#'  intervals.time.shift=c(res$data.p$time[[1]][1],res$tau,rev(res$data.p$time[[nS.user]])[1])
+#' }else{
+#'  intervals.time.shift=list(res$data.p$time[1],rev(res$data.p$time)[1])
+#' }
 #'
 #' # Uncertainty in shift time
 #' hist(res$results[[nSopt]]$mcmc$tau)
