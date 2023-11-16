@@ -62,69 +62,106 @@ res <- segmentation.engine(obs=obs,nS=nS.user)
 # Estimated shift time
 res$tau
 
+# intervals defined by time shifts
+if(nS.user!=1){
+ intervals.time.shift=c(res$data.p$time[[1]][1],res$tau,rev(res$data.p$time[[nS.user]])[1])
+}else{
+ intervals.time.shift=list(res$data.p$time[1],rev(res$data.p$time)[1])
+}
+
 # Maximum a posterior value per segment indexed by the list number
 res$segments
 
 # Uncertainty in shift time
-Shift=res$mcmc$tau1
-hist(Shift)
+if(nS.user!=1){
+   Shift=res$mcmc$tau1
+   hist(Shift,
+        main='Histogram of first shift')
 
-uncertainty95_shift = quantile(Shift,probs=c(0.025,0.975))
+   uncertainty95_shift <- list()
+   for(i in 1:(nS.user-1)){
+    uncertainty95_shift[[i]] = stats::quantile(res$mcmc[,nS.user+i],probs=c(0.025,0.975))
+   }
+}
+
 
 # Uncertainty in segment estimation
 mu.seg.1.unc=res$mcmc$mu1
 graphics::hist(mu.seg.1.unc,
                xlab='obs',
                main='Histogram of first segment of observation')
-           uncertainty95_segment <- list()
+
+uncertainty95_segment <- list()
 for(i in 1:nS.user){
    uncertainty95_segment [[i]] = stats::quantile(res$mcmc[,i],probs=c(0.025,0.975))
- }
-
- # Separate and assign information by identified stable period
- res$data.p
- # DIC estimation
- res$DIC
-
- # Plot
- obs_segmented <- data.frame()
-for(i in 1:length(res$data.p$obs.p)){
- obs_segmented_temp=cbind(obs=res$data.p$obs.p[[i]],period=i)
- obs_segmented=rbind(obs_segmented,obs_segmented_temp)
 }
 
-plot(x=obs_segmented$obs,
-  col=factor(obs_segmented$period),
-  pch=16,
-  main='Final segmentation',
-  ylab='obs',
-  xlab='time')
+# Separate and assign information by identified stable period
+res$data.p
+# DIC estimation
+res$DIC
 
+# Setting plot
+
+# Transparency
+alpha <- 125
+
+# Set color plot
+color_customized_rect <- function(alpha){
+   color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names = 'green'),
+                  rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
+                  rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
+                  rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
+                  rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
+   return(color)
+}
+
+# Assign period to data
+obs_segmented <- data.frame()
+
+# Conditional to separate non segmentation case
+if(typeof(res$data.p$obs.p)=='list'){
+  for(i in 1:length(res$data.p$obs.p)){
+   obs_segmented_temp=cbind(obs=res$data.p$obs.p[[i]],period=i)
+   obs_segmented=rbind(obs_segmented,obs_segmented_temp)
+  }
+}else{
+ obs_segmented=data.frame(obs=res$data.p$obs.p,period=1)
+}
+
+# Plot observations
+plot(x=obs_segmented$obs,
+     col=factor(obs_segmented$period),
+     pch=16,
+     main='Final segmentation',
+     ylab='obs',
+     xlab='time')
+
+# Plot segments
 for(i in 1:nS.user){
-  lines(x=res$data.p$time.p[[i]],y=res$segments[[i]],col='blue')
-  rect(xleft=res$data.p$time.p[[i]][1],
-       xright=rev(res$data.p$time.p[[i]])[1],
+  segments(x0=intervals.time.shift[[i]],
+           x1=intervals.time.shift[[i+1]],
+           y0=res$segments[[i]],
+           y1=res$segments[[i]],
+           col='blue')
+  rect(xleft=intervals.time.shift[[i]],
+       xright=intervals.time.shift[[i+1]],
        ybottom=uncertainty95_segment[[i]][1],
        ytop=uncertainty95_segment[[i]][2],
-       col= rgb(0,0,1,alpha=0.2),
+       col= rgb(0,0,255,max=255,alpha=125,names='blue'),
        border = 'transparent')
 }
-for(i in 1:(nS.user-1)){
-  abline(v=res$tau,col='green', lwd=2)
-  if(i==1){
-    rect(xleft=uncertainty95_shift[[1]],
-         xright=uncertainty95_shift[[2]],
-         ybottom=min(obs)*2,
-         ytop=max(obs)*2,
-         col= rgb(0,1,0,alpha=0.2),
-         border = 'transparent')
-  }else{
-    rect(xleft=uncertainty95_shift[[i]][1],
-         xright=rev(uncertainty95_shift[[i]])[1],
-         ybottom=min(obs)*2,
-         ytop=max(obs)*2,
-         col= rgb(0,1,0,alpha=0.2),
-         border = 'transparent')
+
+# Plot shifts
+if(nS.user!=1){
+ for(i in 1:(nS.user-1)){
+  abline(v=res$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
+  rect(xleft=uncertainty95_shift[[i]][1],
+       xright=rev(uncertainty95_shift[[i]])[1],
+       ybottom=min(obs)*2,
+       ytop=max(obs)*2,
+       col= color_customized_rect(125)[[i]],
+       border = 'transparent')
   }
 }
 }
