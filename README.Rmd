@@ -34,7 +34,7 @@ Three fundamental functions are available so far :
 
 You can install the development version of RatingShiftHappens from [GitHub](https://github.com/Felipemendezrios/RatingShiftHappens) with: 
 
-``` {r  results='hide'}
+``` {r  results='hide',message=FALSE}
 # install.packages("devtools")
 devtools::install_github("Felipemendezrios/RatingShiftHappens")
 devtools::install_github('BaM-tools/RBaM') 

@@ -1,11 +1,9 @@
 Rating Shift Happens
 ================
-Felipe MENDEZ and Benjamin RENARD (INRAE, Riverly and RECOVER)
+Felipe MENDEZ and Benjamin RENARD (INRAE, RiverLy and RECOVER).
 December 2023
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
-# Introduction
+## Introduction
 
 Darienzo (2021) developed
 [BayDERS](https://github.com/MatteoDarienzo/BayDERS) for detecting and
@@ -26,34 +24,29 @@ the segmentation process.
 
 Three fundamental functions are available so far :
 
-1.  segmentation.engine.
-2.  segmentation.
-3.  recursive.segmentation.
+1.  segmentation.engine
+2.  segmentation
+3.  recursive.segmentation
 
 ## Installation
 
-You can install the development version of RatingShiftHappens from
-[GitHub](https://github.com/Felipemendezrios/RatingShiftHappens) with:
+You can install the development version of
+[RatingShiftHappens](https://github.com/Felipemendezrios/RatingShiftHappens)
+from GitHub with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("Felipemendezrios/RatingShiftHappens")
-#> Downloading GitHub repo Felipemendezrios/RatingShiftHappens@HEAD
-#> Installation du package dans 'C:/Users/famendezrios/AppData/Local/Temp/RtmpQtNKgF/temp_libpath29003c493e99'
-#> (car 'lib' n'est pas spécifié)
 devtools::install_github('BaM-tools/RBaM') 
-#> Skipping install of 'RBaM' from a github remote, the SHA1 (f9fd7137) has not changed since last install.
-#>   Use `force = TRUE` to force installation
 
 library(RatingShiftHappens)
 ```
 
-Functions will be explained more precisely below along with a example:
+Functions will be explained more precisely below along with a example.
 
-1.  segmentation.engine: Segmentation procedure for a *known* given
-    number of segments
+## segmentation.engine function
 
-## Using segmentation engine function
+Segmentation procedure for a **known** given number of segments
 
 This is a basic example which shows you how to segment a random
 variable:
@@ -155,14 +148,13 @@ variable:
 #> 
 #> $u.p[[2]]
 #>  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 
  # DIC estimation
  res$DIC
 #> [1] 131.985
 
- # Setting plot
-
- # Transparency
- alpha <- 125
+ # Setting transparency for plotting
+ alpha = 125
 
  # Set color plot
  color_customized_rect <- function(alpha){
@@ -226,35 +218,121 @@ variable:
 
 <img src="man/readme/README-segmentation.engine-3.png" width="100%" />
 
-2.  segmentation: Segmentation procedure for a given number of segments
+## segmentation function
 
-## Example
+Segmentation procedure for a **unknown** given number of segments
 
 This is a basic example which shows you how to segment a variable with a
-number of segments:
+**unknown** number of segments:
 
-# `{r segmentation} # # Set random generation # set.seed(1) #  # # Create observation vector # obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1)) #  # # Run segmentation function # res <- segmentation(obs=obs,nSmax = 3) # # Optimal number of segments nSopt # nSopt <- res$nS # nSopt #  # # Estimated shift time # res$results[[nSopt]]$tau #  # # Uncertainty in shift time # Shift=res$results[[nSopt]]$mcmc$tau # hist(Shift) #  # uncertainty95 = quantile(Shift,probs=c(0.025,0.975)) #  # # Separate and assign information by identified stable period # res$results[[nSopt]]$data.p #  # # DIC estimation # res$results[[nSopt]]$DIC #  # # Plot # obs_segmented <- data.frame() # for(i in 1:length(res$results[[nSopt]]$data.p$obs.p)){ #   obs_segmented_temp=cbind(obs=res$results[[nSopt]]$data.p$obs.p[[i]],period=i) #   obs_segmented=rbind(obs_segmented,obs_segmented_temp) # } #  # # Plot # plot(x=obs_segmented$obs, #      col=factor(obs_segmented$period), #      pch=16, #      main='Final segmentation', #      ylab='obs', #      xlab='time') # lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue') # lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue') # abline(v=res$results[[nSopt]]$tau,col='green') # rect(xleft=uncertainty95[1], #      xright=uncertainty95[2], #      ybottom=min(obs)*2, #      ytop=max(obs)*2,  #      col= rgb(0,1,0,alpha=0.2), #      border = 'transparent') #`
+<!-- # ```{r segmentation} -->
+<!-- # # Set random generation -->
+<!-- # set.seed(1) -->
+<!-- #  -->
+<!-- # # Create observation vector -->
+<!-- # obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1)) -->
+<!-- #  -->
+<!-- # # Run segmentation function -->
+<!-- # res <- segmentation(obs=obs,nSmax = 3) -->
+<!-- # # Optimal number of segments nSopt -->
+<!-- # nSopt <- res$nS -->
+<!-- # nSopt -->
+<!-- #  -->
+<!-- # # Estimated shift time -->
+<!-- # res$results[[nSopt]]$tau -->
+<!-- #  -->
+<!-- # # Uncertainty in shift time -->
+<!-- # Shift=res$results[[nSopt]]$mcmc$tau -->
+<!-- # hist(Shift) -->
+<!-- #  -->
+<!-- # uncertainty95 = quantile(Shift,probs=c(0.025,0.975)) -->
+<!-- #  -->
+<!-- # # Separate and assign information by identified stable period -->
+<!-- # res$results[[nSopt]]$data.p -->
+<!-- #  -->
+<!-- # # DIC estimation -->
+<!-- # res$results[[nSopt]]$DIC -->
+<!-- #  -->
+<!-- # # Plot -->
+<!-- # obs_segmented <- data.frame() -->
+<!-- # for(i in 1:length(res$results[[nSopt]]$data.p$obs.p)){ -->
+<!-- #   obs_segmented_temp=cbind(obs=res$results[[nSopt]]$data.p$obs.p[[i]],period=i) -->
+<!-- #   obs_segmented=rbind(obs_segmented,obs_segmented_temp) -->
+<!-- # } -->
+<!-- #  -->
+<!-- # # Plot -->
+<!-- # plot(x=obs_segmented$obs, -->
+<!-- #      col=factor(obs_segmented$period), -->
+<!-- #      pch=16, -->
+<!-- #      main='Final segmentation', -->
+<!-- #      ylab='obs', -->
+<!-- #      xlab='time') -->
+<!-- # lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue') -->
+<!-- # lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue') -->
+<!-- # abline(v=res$results[[nSopt]]$tau,col='green') -->
+<!-- # rect(xleft=uncertainty95[1], -->
+<!-- #      xright=uncertainty95[2], -->
+<!-- #      ybottom=min(obs)*2, -->
+<!-- #      ytop=max(obs)*2,  -->
+<!-- #      col= rgb(0,1,0,alpha=0.2), -->
+<!-- #      border = 'transparent') -->
+<!-- # ``` -->
+<!-- #  -->
 
-# 
+## recursive.segmentation function
 
-# 3. recursive.segmentation: Recursive segmentation procedure for a  given number of segments
+Recursive segmentation procedure for a **unknown** given number of
+segments
 
-# 
-
-# \#\# Example
-
-# 
-
-# This is a basic example which shows you how to segment a variable with a  number of segments using a recursive process:
-
-# 
-
-# 
-
-# `{r recursive.segmentation} # # Set random generation # set.seed(1) #  # # Create series to be segmented # obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1)) # time=1:length(obs) #  # # Apply recursive segmentation # results=recursive.segmentation(obs) # # Have a look at recursion tree # results$tree #  # # Get terminal nodes # terminal=which(results$tree$nS==1) #  # # Plot original series and terminal nodes defining final segments # X11();plot(time,obs) # for(i in 1:length(terminal)){ #   data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period #   node=list(obs=data.stable.p$data.p$obs.p, #             times=data.stable.p$data.p$time.p, #             u=data.stable.p$data.p$u.p) #   points(node$times,node$obs,col=i) #   text(node$times,node$obs,terminal[i],pos=3,col=i) # } # # Get time shifts # time.shifts=which(results$tree$nS!=1) # for(i in 1:length(time.shifts)){ #   nSopt.p = results$res[[time.shifts[[i]]]]$nS #   abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green') #   abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2) #   segments( #     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1], #     x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau, #     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]], #     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]], #     col='blue') #   segments( #     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau, #     x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1], #     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]], #     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]], #     col='blue') # } #  # # Visualize tree with data.tree package # if(NROW(results$tree)>1){ #   tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network") #   plot(tree) # } else { # No segmentation took place, make a dummy plot #   tree <- data.tree::as.Node(data.frame(1,2),mode = "network") #   plot(tree) # } #`
+This is a basic example which shows you how to segment a variable with a
+**unknown** number of segments using a recursive process: <!-- #  -->
+<!-- #  --> <!-- # ```{r recursive.segmentation} -->
+<!-- # # Set random generation --> <!-- # set.seed(1) --> <!-- #  -->
+<!-- # # Create series to be segmented -->
+<!-- # obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1)) -->
+<!-- # time=1:length(obs) --> <!-- #  -->
+<!-- # # Apply recursive segmentation -->
+<!-- # results=recursive.segmentation(obs) -->
+<!-- # # Have a look at recursion tree --> <!-- # results$tree -->
+<!-- #  --> <!-- # # Get terminal nodes -->
+<!-- # terminal=which(results$tree$nS==1) --> <!-- #  -->
+<!-- # # Plot original series and terminal nodes defining final segments -->
+<!-- # X11();plot(time,obs) --> <!-- # for(i in 1:length(terminal)){ -->
+<!-- #   data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period -->
+<!-- #   node=list(obs=data.stable.p$data.p$obs.p, -->
+<!-- #             times=data.stable.p$data.p$time.p, -->
+<!-- #             u=data.stable.p$data.p$u.p) -->
+<!-- #   points(node$times,node$obs,col=i) -->
+<!-- #   text(node$times,node$obs,terminal[i],pos=3,col=i) -->
+<!-- # } --> <!-- # # Get time shifts -->
+<!-- # time.shifts=which(results$tree$nS!=1) -->
+<!-- # for(i in 1:length(time.shifts)){ -->
+<!-- #   nSopt.p = results$res[[time.shifts[[i]]]]$nS -->
+<!-- #   abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green') -->
+<!-- #   abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2) -->
+<!-- #   segments( -->
+<!-- #     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1], -->
+<!-- #     x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau, -->
+<!-- #     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]], -->
+<!-- #     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]], -->
+<!-- #     col='blue') --> <!-- #   segments( -->
+<!-- #     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau, -->
+<!-- #     x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1], -->
+<!-- #     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]], -->
+<!-- #     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]], -->
+<!-- #     col='blue') --> <!-- # } --> <!-- #  -->
+<!-- # # Visualize tree with data.tree package -->
+<!-- # if(NROW(results$tree)>1){ -->
+<!-- #   tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network") -->
+<!-- #   plot(tree) -->
+<!-- # } else { # No segmentation took place, make a dummy plot -->
+<!-- #   tree <- data.tree::as.Node(data.frame(1,2),mode = "network") -->
+<!-- #   plot(tree) --> <!-- # } --> <!-- # ``` -->
 
 Here other example to show \_\_\_\_\_
 
-# `{r example} #  #`
+<!-- # ```{r example} -->
+<!-- #  -->
+<!-- # ``` -->
 
 devtools::build\_readme()
