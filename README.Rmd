@@ -13,7 +13,7 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "man/figures/README-",
+  fig.path = "man/readme/README-",
   out.width = "100%"
 )
 ```
@@ -37,6 +37,7 @@ You can install the development version of RatingShiftHappens from [GitHub](http
 ``` {r  message=FALSE}
 # install.packages("devtools")
 devtools::install_github("Felipemendezrios/RatingShiftHappens")
+devtools::install_github('BaM-tools/RBaM') 
 
 library(RatingShiftHappens)
 ```
@@ -50,86 +51,121 @@ Functions will be explained more precisely below along with a example:
 This is a basic example which shows you how to segment a random variable:
 
 ```{r segmentation.engine}
-# Set random generation
-set.seed(1)
+ # Set random generation
+ set.seed(1)
 
-# Create observation vector
-obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
-nS.user=2
+ # Create observation vector
+ obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+ nS.user=2
 
-# Run segmentation engine function
-res <- segmentation.engine(obs=obs,nS=nS.user)
+ # Run segmentation engine function
+ res <- segmentation.engine(obs=obs,nS=nS.user)
 
-# Estimated shift time
-res$tau
+ # Estimated shift time
+ res$tau
 
-# Maximum a posterior value per segment indexed by the list number
-res$segments
+ # intervals defined by time shifts
+ if(nS.user!=1){
+  intervals.time.shift=c(res$data.p$time[[1]][1],res$tau,rev(res$data.p$time[[nS.user]])[1])
+ }else{
+  intervals.time.shift=list(res$data.p$time[1],rev(res$data.p$time)[1])
+ }
 
-# Uncertainty in shift time
-Shift=res$mcmc$tau1
-hist(Shift)
- 
-uncertainty95_shift = quantile(Shift,probs=c(0.025,0.975))
+ # Maximum a posterior value per segment indexed by the list number
+ res$segments
 
-# Uncertainty in segment estimation
-mu.seg.1.unc=res$mcmc$mu1
-hist(mu.seg.1.unc,
-     xlab='obs',
-     main='Histogram of first segment of observation')
+ # Uncertainty in shift time
+ if(nS.user!=1){
+    Shift=res$mcmc$tau1
+    hist(Shift,
+         main='Histogram of first shift')
 
-uncertainty95_segment <- list()
-for(i in 1:nS.user){
-  uncertainty95_segment [[i]] = quantile(res$mcmc[,i],probs=c(0.025,0.975))
-}
- 
-# Separate and assign information by identified stable period
-res$data.p
+    uncertainty95_shift <- list()
+    for(i in 1:(nS.user-1)){
+     uncertainty95_shift[[i]] = stats::quantile(res$mcmc[,nS.user+i],probs=c(0.025,0.975))
+    }
+ }
 
-# DIC estimation
-res$DIC
 
-# Plot
-obs_segmented <- data.frame()
-for(i in 1:length(res$data.p$obs.p)){
-  obs_segmented_temp=cbind(obs=res$data.p$obs.p[[i]],period=i)
-  obs_segmented=rbind(obs_segmented,obs_segmented_temp)
-}
+ # Uncertainty in segment estimation
+ mu.seg.1.unc=res$mcmc$mu1
+ graphics::hist(mu.seg.1.unc,
+                xlab='obs',
+                main='Histogram of first segment of observation')
 
-plot(x=obs_segmented$obs,
-     col=factor(obs_segmented$period),
-     pch=16,
-     main='Final segmentation',
-     ylab='obs',
-     xlab='time')
+ uncertainty95_segment <- list()
+ for(i in 1:nS.user){
+    uncertainty95_segment [[i]] = stats::quantile(res$mcmc[,i],probs=c(0.025,0.975))
+ }
 
-for(i in 1:nS.user){
-  lines(x=res$data.p$time.p[[i]],y=res$segments[[i]],col='blue')
-  rect(xleft=res$data.p$time.p[[i]][1],
-       xright=rev(res$data.p$time.p[[i]])[1],
-       ybottom=uncertainty95_segment[[i]][1],
-       ytop=uncertainty95_segment[[i]][2], 
-       col= rgb(0,0,1,alpha=0.2),
-       border = 'transparent')
-}
-for(i in 1:(nS.user-1)){
-  abline(v=res$tau,col='green', lwd=2)
-  if(i==1){
-    rect(xleft=uncertainty95_shift[[1]],
-       xright=uncertainty95_shift[[2]],
-       ybottom=min(obs)*2,
-       ytop=max(obs)*2, 
-       col= rgb(0,1,0,alpha=0.2),
-       border = 'transparent')
-  }else{
-    rect(xleft=uncertainty95_shift[[i]][1],
-       xright=rev(uncertainty95_shift[[i]])[1],
-       ybottom=min(obs)*2,
-       ytop=max(obs)*2, 
-       col= rgb(0,1,0,alpha=0.2),
-       border = 'transparent')
-  }
-}
+ # Separate and assign information by identified stable period
+ res$data.p
+ # DIC estimation
+ res$DIC
+
+ # Setting plot
+
+ # Transparency
+ alpha <- 125
+
+ # Set color plot
+ color_customized_rect <- function(alpha){
+    color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
+                   rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
+                   rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
+                   rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
+                   rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
+    return(color)
+ }
+
+ # Assign period to data
+ obs_segmented <- data.frame()
+
+ # Conditional to separate non segmentation case
+ if(typeof(res$data.p$obs.p)=='list'){
+   for(i in 1:length(res$data.p$obs.p)){
+    obs_segmented_temp=cbind(obs=res$data.p$obs.p[[i]],period=i)
+    obs_segmented=rbind(obs_segmented,obs_segmented_temp)
+   }
+ }else{
+  obs_segmented=data.frame(obs=res$data.p$obs.p,period=1)
+ }
+
+ # Plot observations
+ plot(x=obs_segmented$obs,
+      col=factor(obs_segmented$period),
+      pch=16,
+      main='Final segmentation',
+      ylab='obs',
+      xlab='time')
+
+ # Plot segments
+ for(i in 1:nS.user){
+   segments(x0=intervals.time.shift[[i]],
+            x1=intervals.time.shift[[i+1]],
+            y0=res$segments[[i]],
+            y1=res$segments[[i]],
+            col='blue')
+   rect(xleft=intervals.time.shift[[i]],
+        xright=intervals.time.shift[[i+1]],
+        ybottom=uncertainty95_segment[[i]][1],
+        ytop=uncertainty95_segment[[i]][2],
+        col= rgb(0,0,255,max=255,alpha=125,names='blue'),
+        border = 'transparent')
+ }
+
+ # Plot shifts
+ if(nS.user!=1){
+  for(i in 1:(nS.user-1)){
+   abline(v=res$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
+   rect(xleft=uncertainty95_shift[[i]][1],
+        xright=rev(uncertainty95_shift[[i]])[1],
+        ybottom=min(obs)*2,
+        ytop=max(obs)*2,
+        col= color_customized_rect(125)[[i]],
+        border = 'transparent')
+   }
+ }
 ```
 
 2. segmentation: Segmentation procedure for a \strong{unknown} given number of segments
@@ -138,126 +174,126 @@ for(i in 1:(nS.user-1)){
 
 This is a basic example which shows you how to segment a variable with a \strong{unknown} number of segments:
 
-```{r segmentation}
-# Set random generation
-set.seed(1)
-
-# Create observation vector
-obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
-
-# Run segmentation function
-res <- segmentation(obs=obs,nSmax = 3)
-# Optimal number of segments nSopt
-nSopt <- res$nS
-nSopt
-
-# Estimated shift time
-res$results[[nSopt]]$tau
-
-# Uncertainty in shift time
-Shift=res$results[[nSopt]]$mcmc$tau
-hist(Shift)
-
-uncertainty95 = quantile(Shift,probs=c(0.025,0.975))
-
-# Separate and assign information by identified stable period
-res$results[[nSopt]]$data.p
-
-# DIC estimation
-res$results[[nSopt]]$DIC
-
-# Plot
-obs_segmented <- data.frame()
-for(i in 1:length(res$results[[nSopt]]$data.p$obs.p)){
-  obs_segmented_temp=cbind(obs=res$results[[nSopt]]$data.p$obs.p[[i]],period=i)
-  obs_segmented=rbind(obs_segmented,obs_segmented_temp)
-}
-
-# Plot
-plot(x=obs_segmented$obs,
-     col=factor(obs_segmented$period),
-     pch=16,
-     main='Final segmentation',
-     ylab='obs',
-     xlab='time')
-lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue')
-lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue')
-abline(v=res$results[[nSopt]]$tau,col='green')
-rect(xleft=uncertainty95[1],
-     xright=uncertainty95[2],
-     ybottom=min(obs)*2,
-     ytop=max(obs)*2, 
-     col= rgb(0,1,0,alpha=0.2),
-     border = 'transparent')
-```
-
-3. recursive.segmentation: Recursive segmentation procedure for a \strong{unknown} given number of segments
-
-## Example
-
-This is a basic example which shows you how to segment a variable with a \strong{unknown} number of segments using a recursive process:
-
-
-```{r recursive.segmentation}
-# Set random generation
-set.seed(1)
-
-# Create series to be segmented
-obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1))
-time=1:length(obs)
-
-# Apply recursive segmentation
-results=recursive.segmentation(obs)
-# Have a look at recursion tree
-results$tree
-
-# Get terminal nodes
-terminal=which(results$tree$nS==1)
-
-# Plot original series and terminal nodes defining final segments
-X11();plot(time,obs)
-for(i in 1:length(terminal)){
-  data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
-  node=list(obs=data.stable.p$data.p$obs.p,
-            times=data.stable.p$data.p$time.p,
-            u=data.stable.p$data.p$u.p)
-  points(node$times,node$obs,col=i)
-  text(node$times,node$obs,terminal[i],pos=3,col=i)
-}
-# Get time shifts
-time.shifts=which(results$tree$nS!=1)
-for(i in 1:length(time.shifts)){
-  nSopt.p = results$res[[time.shifts[[i]]]]$nS
-  abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
-  abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
-  segments(
-    x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1],
-    x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
-    y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
-    y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
-    col='blue')
-  segments(
-    x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
-    x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1],
-    y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
-    y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
-    col='blue')
-}
-
-# Visualize tree with data.tree package
-if(NROW(results$tree)>1){
-  tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
-  plot(tree)
-} else { # No segmentation took place, make a dummy plot
-  tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
-  plot(tree)
-}
-```
+# ```{r segmentation}
+# # Set random generation
+# set.seed(1)
+# 
+# # Create observation vector
+# obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+# 
+# # Run segmentation function
+# res <- segmentation(obs=obs,nSmax = 3)
+# # Optimal number of segments nSopt
+# nSopt <- res$nS
+# nSopt
+# 
+# # Estimated shift time
+# res$results[[nSopt]]$tau
+# 
+# # Uncertainty in shift time
+# Shift=res$results[[nSopt]]$mcmc$tau
+# hist(Shift)
+# 
+# uncertainty95 = quantile(Shift,probs=c(0.025,0.975))
+# 
+# # Separate and assign information by identified stable period
+# res$results[[nSopt]]$data.p
+# 
+# # DIC estimation
+# res$results[[nSopt]]$DIC
+# 
+# # Plot
+# obs_segmented <- data.frame()
+# for(i in 1:length(res$results[[nSopt]]$data.p$obs.p)){
+#   obs_segmented_temp=cbind(obs=res$results[[nSopt]]$data.p$obs.p[[i]],period=i)
+#   obs_segmented=rbind(obs_segmented,obs_segmented_temp)
+# }
+# 
+# # Plot
+# plot(x=obs_segmented$obs,
+#      col=factor(obs_segmented$period),
+#      pch=16,
+#      main='Final segmentation',
+#      ylab='obs',
+#      xlab='time')
+# lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue')
+# lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue')
+# abline(v=res$results[[nSopt]]$tau,col='green')
+# rect(xleft=uncertainty95[1],
+#      xright=uncertainty95[2],
+#      ybottom=min(obs)*2,
+#      ytop=max(obs)*2, 
+#      col= rgb(0,1,0,alpha=0.2),
+#      border = 'transparent')
+# ```
+# 
+# 3. recursive.segmentation: Recursive segmentation procedure for a \strong{unknown} given number of segments
+# 
+# ## Example
+# 
+# This is a basic example which shows you how to segment a variable with a \strong{unknown} number of segments using a recursive process:
+# 
+# 
+# ```{r recursive.segmentation}
+# # Set random generation
+# set.seed(1)
+# 
+# # Create series to be segmented
+# obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1))
+# time=1:length(obs)
+# 
+# # Apply recursive segmentation
+# results=recursive.segmentation(obs)
+# # Have a look at recursion tree
+# results$tree
+# 
+# # Get terminal nodes
+# terminal=which(results$tree$nS==1)
+# 
+# # Plot original series and terminal nodes defining final segments
+# X11();plot(time,obs)
+# for(i in 1:length(terminal)){
+#   data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
+#   node=list(obs=data.stable.p$data.p$obs.p,
+#             times=data.stable.p$data.p$time.p,
+#             u=data.stable.p$data.p$u.p)
+#   points(node$times,node$obs,col=i)
+#   text(node$times,node$obs,terminal[i],pos=3,col=i)
+# }
+# # Get time shifts
+# time.shifts=which(results$tree$nS!=1)
+# for(i in 1:length(time.shifts)){
+#   nSopt.p = results$res[[time.shifts[[i]]]]$nS
+#   abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
+#   abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+#   segments(
+#     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1],
+#     x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+#     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+#     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
+#     col='blue')
+#   segments(
+#     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
+#     x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1],
+#     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+#     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
+#     col='blue')
+# }
+# 
+# # Visualize tree with data.tree package
+# if(NROW(results$tree)>1){
+#   tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
+#   plot(tree)
+# } else { # No segmentation took place, make a dummy plot
+#   tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
+#   plot(tree)
+# }
+# ```
 
 Here other example to show _____
 
 # ```{r example}
 # 
 # ```
-build_readme()
+devtools::build_readme()
 
