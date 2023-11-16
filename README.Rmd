@@ -1,8 +1,7 @@
 ---
 title: "Rating Shift Happens"
 subtitle: "Documentation"
-author: "Felipe MENDEZ and Benjamin RENARD"
-organization: "INRAE, Riverly and RECOVER"
+author: "Felipe MENDEZ and Benjamin RENARD (INRAE, Riverly and RECOVER)"
 date: "December 2023"
 output: github_document
 ---
@@ -26,15 +25,16 @@ The goal of `RatingShiftHappens` package is to create a tools package for detect
 
 Three fundamental functions are available so far :
 
-1 segmentation.engine
-2. segmentation
-3. recursive.segmentation
+
+1. segmentation.engine.
+2. segmentation.
+3. recursive.segmentation.
 
 ## Installation
 
 You can install the development version of RatingShiftHappens from [GitHub](https://github.com/Felipemendezrios/RatingShiftHappens) with: 
 
-``` {r  message=FALSE}
+``` {r  results='hide'}
 # install.packages("devtools")
 devtools::install_github("Felipemendezrios/RatingShiftHappens")
 devtools::install_github('BaM-tools/RBaM') 

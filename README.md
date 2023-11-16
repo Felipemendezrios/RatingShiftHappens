@@ -1,6 +1,6 @@
 Rating Shift Happens
 ================
-Felipe MENDEZ and Benjamin RENARD
+Felipe MENDEZ and Benjamin RENARD (INRAE, Riverly and RECOVER)
 December 2023
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -26,7 +26,9 @@ the segmentation process.
 
 Three fundamental functions are available so far :
 
-1 segmentation.engine 2. segmentation 3. recursive.segmentation
+1.  segmentation.engine.
+2.  segmentation.
+3.  recursive.segmentation.
 
 ## Installation
 
@@ -36,17 +38,12 @@ You can install the development version of RatingShiftHappens from
 ``` r
 # install.packages("devtools")
 devtools::install_github("Felipemendezrios/RatingShiftHappens")
-#> 
-#> -- R CMD build -----------------------------------------------------------------
-#>          checking for file 'C:\Users\famendezrios\AppData\Local\Temp\RtmpawOozP\remotes3d346141d85\Felipemendezrios-RatingShiftHappens-479ad15/DESCRIPTION' ...     checking for file 'C:\Users\famendezrios\AppData\Local\Temp\RtmpawOozP\remotes3d346141d85\Felipemendezrios-RatingShiftHappens-479ad15/DESCRIPTION' ...   v  checking for file 'C:\Users\famendezrios\AppData\Local\Temp\RtmpawOozP\remotes3d346141d85\Felipemendezrios-RatingShiftHappens-479ad15/DESCRIPTION'
-#>       -  preparing 'RatingShiftHappens':
-#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   v  checking DESCRIPTION meta-information
-#>       -  checking for LF line-endings in source and make files and shell scripts
-#>   -  checking for empty or unneeded directories
-#>       -  building 'RatingShiftHappens_0.1.0.tar.gz'
-#>      
-#> 
+#> Downloading GitHub repo Felipemendezrios/RatingShiftHappens@HEAD
+#> Installation du package dans 'C:/Users/famendezrios/AppData/Local/Temp/RtmpQtNKgF/temp_libpath29003c493e99'
+#> (car 'lib' n'est pas spécifié)
 devtools::install_github('BaM-tools/RBaM') 
+#> Skipping install of 'RBaM' from a github remote, the SHA1 (f9fd7137) has not changed since last install.
+#>   Use `force = TRUE` to force installation
 
 library(RatingShiftHappens)
 ```
