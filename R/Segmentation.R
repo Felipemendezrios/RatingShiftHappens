@@ -158,7 +158,7 @@ segmentation.engine <- function(obs,
     stop('Missing values not allowed in observation, time and uncertainty')
   }
   if(nS<=0){
-    stop('Number of segments is lower than one',call.=FALSE)
+    stop('Maximum number of segments should be larger than 0',call.=FALSE)
   }
 
   # sort data frame case time not ascending
@@ -301,7 +301,7 @@ segmentation.engine <- function(obs,
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #' }
 #' @examples
-#' #' # Set random generation
+#' # Set random generation
 #' set.seed(1)
 #'
 #' # Create observation vector
