@@ -80,14 +80,13 @@
 #'
 #' # Set color plot
 #' color_customized_rect <- function(alpha){
-#'                           color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names = 'green'),
-#'                                          rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
-#'                                          rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
-#'                                          rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
-#'                                          rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
-#'                           return(color)
-#'                           }
-#'
+#'    color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
+#'                   rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
+#'                   rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
+#'                   rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
+#'                   rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
+#'    return(color)
+#' }
 #'
 #' # Assign period to data
 #' obs_segmented <- data.frame()
@@ -139,6 +138,8 @@
 #' }
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
+#' @importFrom stats quantile sd
+#' @importFrom utils read.table
 segmentation.engine <- function(obs,
                                 time=1:length(obs),
                                 u=0*obs,
@@ -177,7 +178,7 @@ segmentation.engine <- function(obs,
                               prior.par = NULL)
   }
 
-  prior_tau_init <- as.numeric(quantile(time,probs = seq(1,nS-1)/nS))
+  prior_tau_init <- as.numeric(stats::quantile(time,probs = seq(1,nS-1)/nS))
 
   if(i>1){
     for(i in 1:(nS-1)){
@@ -215,17 +216,17 @@ segmentation.engine <- function(obs,
 
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Constant",
                                          par = list(RBaM::parameter(name="gamma1",
-                                                              init=sd(obs) ,
+                                                              init=stats::sd(obs) ,
                                                               prior.dist = "FlatPrior+"))))
 
   # Run BaM executable
   RBaM::BaM(mod=mod,
-      data=data,
-      workspace=temp.folder,
-      mcmc=mcmc_temp,
-      cook = cook_temp,
-      dir.exe = file.path(find.package("RBaM"), "bin"),
-      remnant = remnant_prior
+            data=data,
+            workspace=temp.folder,
+            mcmc=mcmc_temp,
+            cook = cook_temp,
+            dir.exe = file.path(find.package("RBaM"), "bin"),
+            remnant = remnant_prior
   )
 
   mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
@@ -324,7 +325,7 @@ segmentation.engine <- function(obs,
 #' lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue')
 #' lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue')
 #' abline(v=res$results[[nSopt]]$tau,col='green')
-#' abline(v=quantile(res$results[[nSopt]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+#' abline(v=stats::quantile(res$results[[nSopt]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
 #' @export
 segmentation <- function(obs,
                          time=1:length(obs),
@@ -376,99 +377,6 @@ segmentation <- function(obs,
 #'   \item DIC: real, DIC estimation
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #'   \item tree : data frame, table for tree structure after segmentation
-#' }
-#' @examples
-#' #------------------------------------------------------
-#' # First example:
-#' #------------------------------------------------------
-#'
-#' set.seed(2023)
-#' # Create series to be segmented
-#' obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1))
-#' time=1:length(obs)
-#'
-#' # Apply recursive segmentation
-#' results=recursive.segmentation(obs)
-#'
-#' # Have a look at recursion tree
-#' results$tree
-#'
-#' # Get terminal nodes
-#' terminal=which(results$tree$nS==1)
-#'
-#' # Plot original series and terminal nodes defining final segments
-#' X11();plot(time,obs)
-#' for(i in 1:length(terminal)){
-#'data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
-#'node=list(obs=data.stable.p$data.p$obs.p,
-#'          times=data.stable.p$data.p$time.p,
-#'          u=data.stable.p$data.p$u.p)
-#'points(node$times,node$obs,col=i)
-#'text(node$times,node$obs,terminal[i],pos=3,col=i)
-#'}
-#'
-#'# Get time shifts
-#' time.shifts=which(results$tree$nS!=1)
-#' for(i in 1:length(time.shifts)){
-#' nSopt.p = results$res[[time.shifts[[i]]]]$nS
-#' abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green')
-#' abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
-#' segments(
-#' x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1],
-#' x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
-#' y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
-#' y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]],
-#' col='blue')
-#' segments(
-#' x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,
-#' x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1],
-#' y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
-#' y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]],
-#' col='blue')
-#' }
-#'
-#' # Visualize tree with data.tree package
-#' if(NROW(results$tree)>1){
-#'  tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
-#'  plot(tree)
-#'} else { # No segmentation took place, make a dummy plot
-#'  tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
-#'  plot(tree)
-#'}
-#'
-#'#------------------------------------------------------
-#' # Second example:
-#' #------------------------------------------------------
-#' set.seed(2023)
-#' obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1),rnorm(10,mean=5,sd=1),rnorm(5,mean=1,sd=1))
-#' time=1:length(obs)
-#' # Apply recursive segmentation
-#' results=recursive.segmentation(obs)
-#'
-#' # Have a look at recursion tree
-#' results$tree
-#'
-#' # Get terminal nodes
-#' terminal=which(results$tree$nS==1)
-#'
-#' # Plot original series and terminal nodes defining final segments
-#' X11();plot(time,obs)
-#' for(i in 1:length(terminal)){
-#' data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
-#' node=list(obs=data.stable.p$data.p$obs.p,
-#'          times=data.stable.p$data.p$time.p,
-#'          u=data.stable.p$data.p$u.p)
-#' points(node$times,node$obs,col=i)
-#' text(node$times,node$obs,terminal[i],pos=3,col=i)
-#' }
-#'
-#'# Get time shifts
-#' time.shifts=which(results$tree$nS!=1)
-#' nSopt.p <- c()
-#'
-#' for(i in 1:length(time.shifts)){
-#' nSopt.p [i] = results$res[[time.shifts[[i]]]]$nS
-#'
 #' }
 #' @export
 recursive.segmentation <- function(obs,
