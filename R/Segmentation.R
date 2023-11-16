@@ -319,10 +319,13 @@ segmentation.engine <- function(obs,
 #' res$results[[nSopt]]$tau
 #'
 #' # intervals defined by time shifts
-#' if(nSmax.user!=1){
-#'  intervals.time.shift=c(res$data.p$time[[1]][1],res$tau,rev(res$data.p$time[[nS.user]])[1])
+#' if(nSopt!=1){
+#'  intervals.time.shift=c(res$results[[nSopt]]$data.p$time[[1]][1],
+#'                         res$results[[nSopt]]$tau,
+#'                         rev(res$results[[nSopt]]$data.p$time[[nSopt]])[1])
 #' }else{
-#'  intervals.time.shift=list(res$data.p$time[1],rev(res$data.p$time)[1])
+#'  intervals.time.shift=list(res$results[[nSopt]]$data.p$time[1],
+#'                            rev(res$results[[nSopt]]$data.p$time)[1])
 #' }
 #'
 #' # Uncertainty in shift time
