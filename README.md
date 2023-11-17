@@ -32,7 +32,9 @@ Three fundamental functions are available so far :
 
 You can install the development version of
 [RatingShiftHappens](https://github.com/Felipemendezrios/RatingShiftHappens)
-from GitHub with:
+from GitHub using the following command. Please note that the
+[RBaM](https://github.com/BaM-tools/RBaM) package is also required to
+run this package.
 
 ``` r
 # install.packages("devtools")
