@@ -50,11 +50,15 @@ List with the following components :
 Segmentation procedure for a \strong{unknown} given number of segments
 }
 \examples{
+# Set random generation
+set.seed(1)
+
 # Create observation vector
 obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+nSmax.user=3
 
 # Run segmentation function
-res <- segmentation(obs=obs)
+res <- segmentation(obs=obs,nSmax=nSmax.user)
 
 # Optimal number of segments nSopt
 nSopt <- res$nS
@@ -63,19 +67,110 @@ nSopt
 # Estimated shift time
 res$results[[nSopt]]$tau
 
-# Uncertainty in shift time
-hist(res$results[[nSopt]]$mcmc$tau)
+# intervals defined by time shifts
+if(nSopt!=1){
+ intervals.time.shift=c(res$results[[nSopt]]$data.p$time[[1]][1],
+                        res$results[[nSopt]]$tau,
+                        rev(res$results[[nSopt]]$data.p$time[[nSopt]])[1])
+}else{
+ intervals.time.shift=list(res$results[[nSopt]]$data.p$time[1],
+                           rev(res$results[[nSopt]]$data.p$time)[1])
+}
 
+# Maximum a posterior value per segment indexed by the list number
+res$results[[nSopt]]$segments
+
+# Uncertainty in shift time
+if(nSopt!=1){
+   Shift=res$results[[nSopt]]$mcmc$tau1
+   hist(Shift,
+        main='Histogram of first shift')
+
+   uncertainty95_shift <- list()
+   for(i in 1:(nSopt-1)){
+    uncertainty95_shift[[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,nSopt+i],
+                                               probs=c(0.025,0.975))
+   }
+}
+
+# Uncertainty in segment estimation
+mu.seg.1.unc=res$results[[nSopt]]$mcmc$mu1
+graphics::hist(mu.seg.1.unc,
+               xlab='obs',
+               main='Histogram of first segment of observation')
+
+uncertainty95_segment <- list()
+for(i in 1:nSopt){
+   uncertainty95_segment [[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,i],
+                                                 probs=c(0.025,0.975))
+}
 # Separate and assign information by identified stable period
 res$results[[nSopt]]$data.p
 
 # DIC estimation
 res$results[[nSopt]]$DIC
 
-# Plot
-plot(obs)
-lines(x=res$results[[res$nS]]$data.p$time.p[[1]],y=res$results[[res$nS]]$segments[[1]],col='blue')
-lines(x=res$results[[res$nS]]$data.p$time.p[[2]],y=res$results[[res$nS]]$segments[[2]],col='blue')
-abline(v=res$results[[nSopt]]$tau,col='green')
-abline(v=stats::quantile(res$results[[nSopt]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2)
+# Setting plot
+
+# Transparency
+alpha <- 125
+
+# Set color plot
+color_customized_rect <- function(alpha){
+   color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
+                  rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
+                  rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
+                  rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
+                  rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
+   return(color)
+}
+
+# Assign period to data
+obs_segmented <- data.frame()
+
+# Conditional to separate non segmentation case
+if(typeof(res$results[[nSopt]]$data.p$obs.p)=='list'){
+  for(i in 1:length(res$results[[nSopt]]$data.p$obs.p)){
+   obs_segmented_temp=cbind(obs=res$results[[nSopt]]$data.p$obs.p[[i]],period=i)
+   obs_segmented=rbind(obs_segmented,obs_segmented_temp)
+  }
+}else{
+ obs_segmented=data.frame(obs=res$results[[nSopt]]$data.p$obs.p,period=1)
+}
+
+# Plot observations
+plot(x=obs_segmented$obs,
+     col=factor(obs_segmented$period),
+     pch=16,
+     main='Final segmentation',
+     ylab='obs',
+     xlab='time')
+
+# Plot segments
+for(i in 1:nSopt){
+  segments(x0=intervals.time.shift[[i]],
+           x1=intervals.time.shift[[i+1]],
+           y0=res$results[[nSopt]]$segments[[i]],
+           y1=res$results[[nSopt]]$segments[[i]],
+           col='blue')
+  rect(xleft=intervals.time.shift[[i]],
+       xright=intervals.time.shift[[i+1]],
+       ybottom=uncertainty95_segment[[i]][1],
+       ytop=uncertainty95_segment[[i]][2],
+       col= rgb(0,0,255,max=255,alpha=125,names='blue'),
+       border = 'transparent')
+}
+
+# Plot shifts
+if(nSopt!=1){
+ for(i in 1:(nSopt-1)){
+  abline(v=res$results[[nSopt]]$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
+  rect(xleft=uncertainty95_shift[[i]][1],
+       xright=rev(uncertainty95_shift[[i]])[1],
+       ybottom=min(obs)*2,
+       ytop=max(obs)*2,
+       col= color_customized_rect(125)[[i]],
+       border = 'transparent')
+  }
+}
 }
