@@ -55,6 +55,8 @@ set.seed(1)
 
 # Create observation vector
 obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+
+# Assign a maximum number of user-defined segments to be assessed
 nSmax.user=3
 
 # Run segmentation function
@@ -83,12 +85,12 @@ res$results[[nSopt]]$segments
 # Uncertainty in shift time
 if(nSopt!=1){
    Shift=res$results[[nSopt]]$mcmc$tau1
-   hist(Shift,
-        main='Histogram of first shift')
+   graphics::hist(Shift,
+                  main='Histogram of first shift')
 
-   uncertainty95_shift <- list()
+   uncertainty95.shift <- list()
    for(i in 1:(nSopt-1)){
-    uncertainty95_shift[[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,nSopt+i],
+    uncertainty95.shift[[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,nSopt+i],
                                                probs=c(0.025,0.975))
    }
 }
@@ -99,9 +101,9 @@ graphics::hist(mu.seg.1.unc,
                xlab='obs',
                main='Histogram of first segment of observation')
 
-uncertainty95_segment <- list()
+uncertainty95.segment <- list()
 for(i in 1:nSopt){
-   uncertainty95_segment [[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,i],
+   uncertainty95.segment [[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,i],
                                                  probs=c(0.025,0.975))
 }
 # Separate and assign information by identified stable period
@@ -155,8 +157,8 @@ for(i in 1:nSopt){
            col='blue')
   rect(xleft=intervals.time.shift[[i]],
        xright=intervals.time.shift[[i+1]],
-       ybottom=uncertainty95_segment[[i]][1],
-       ytop=uncertainty95_segment[[i]][2],
+       ybottom=uncertainty95.segment[[i]][1],
+       ytop=uncertainty95.segment[[i]][2],
        col= rgb(0,0,255,max=255,alpha=125,names='blue'),
        border = 'transparent')
 }
@@ -165,8 +167,8 @@ for(i in 1:nSopt){
 if(nSopt!=1){
  for(i in 1:(nSopt-1)){
   abline(v=res$results[[nSopt]]$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
-  rect(xleft=uncertainty95_shift[[i]][1],
-       xright=rev(uncertainty95_shift[[i]])[1],
+  rect(xleft=uncertainty95.shift[[i]][1],
+       xright=rev(uncertainty95.shift[[i]])[1],
        ybottom=min(obs)*2,
        ytop=max(obs)*2,
        col= color_customized_rect(125)[[i]],
