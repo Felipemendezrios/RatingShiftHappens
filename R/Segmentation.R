@@ -26,6 +26,8 @@
 #'
 #' # Create observation vector
 #' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+#'
+#' # Assign a number of user-defined segments to be assessed
 #' nS.user=2
 #'
 #' # Run segmentation engine function
@@ -50,9 +52,9 @@
 #'    hist(Shift,
 #'         main='Histogram of first shift')
 #'
-#'    uncertainty95_shift <- list()
+#'    uncertainty95.shift <- list()
 #'    for(i in 1:(nS.user-1)){
-#'     uncertainty95_shift[[i]] = stats::quantile(res$mcmc[,nS.user+i],probs=c(0.025,0.975))
+#'     uncertainty95.shift[[i]] = stats::quantile(res$mcmc[,nS.user+i],probs=c(0.025,0.975))
 #'    }
 #' }
 #'
@@ -63,9 +65,9 @@
 #'                xlab='obs',
 #'                main='Histogram of first segment of observation')
 #'
-#' uncertainty95_segment <- list()
+#' uncertainty95.segment <- list()
 #' for(i in 1:nS.user){
-#'    uncertainty95_segment [[i]] = stats::quantile(res$mcmc[,i],probs=c(0.025,0.975))
+#'    uncertainty95.segment [[i]] = stats::quantile(res$mcmc[,i],probs=c(0.025,0.975))
 #' }
 #'
 #' # Separate and assign information by identified stable period
@@ -118,8 +120,8 @@
 #'            col='blue')
 #'   rect(xleft=intervals.time.shift[[i]],
 #'        xright=intervals.time.shift[[i+1]],
-#'        ybottom=uncertainty95_segment[[i]][1],
-#'        ytop=uncertainty95_segment[[i]][2],
+#'        ybottom=uncertainty95.segment[[i]][1],
+#'        ytop=uncertainty95.segment[[i]][2],
 #'        col= rgb(0,0,255,max=255,alpha=125,names='blue'),
 #'        border = 'transparent')
 #' }
@@ -128,8 +130,8 @@
 #' if(nS.user!=1){
 #'  for(i in 1:(nS.user-1)){
 #'   abline(v=res$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
-#'   rect(xleft=uncertainty95_shift[[i]][1],
-#'        xright=rev(uncertainty95_shift[[i]])[1],
+#'   rect(xleft=uncertainty95.shift[[i]][1],
+#'        xright=rev(uncertainty95.shift[[i]])[1],
 #'        ybottom=min(obs)*2,
 #'        ytop=max(obs)*2,
 #'        col= color_customized_rect(125)[[i]],
@@ -152,7 +154,7 @@ segmentation.engine <- function(obs,
 
 
   if(length(obs)<nS){
-    stop('Number of observations is lower than number of segments',call.=FALSE)
+    stop('Number of observations is lower than the number of segments',call.=FALSE)
   }
   if(any(is.na(obs)) | any(is.na(time)) | any(is.na(u))){
     stop('Missing values not allowed in observation, time and uncertainty')
@@ -306,6 +308,8 @@ segmentation.engine <- function(obs,
 #'
 #' # Create observation vector
 #' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+#'
+#' # Assign a maximum number of user-defined segments to be assessed
 #' nSmax.user=3
 #'
 #' # Run segmentation function
@@ -337,9 +341,9 @@ segmentation.engine <- function(obs,
 #'    hist(Shift,
 #'         main='Histogram of first shift')
 #'
-#'    uncertainty95_shift <- list()
+#'    uncertainty95.shift <- list()
 #'    for(i in 1:(nSopt-1)){
-#'     uncertainty95_shift[[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,nSopt+i],
+#'     uncertainty95.shift[[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,nSopt+i],
 #'                                                probs=c(0.025,0.975))
 #'    }
 #' }
@@ -350,9 +354,9 @@ segmentation.engine <- function(obs,
 #'                xlab='obs',
 #'                main='Histogram of first segment of observation')
 #'
-#' uncertainty95_segment <- list()
+#' uncertainty95.segment <- list()
 #' for(i in 1:nSopt){
-#'    uncertainty95_segment [[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,i],
+#'    uncertainty95.segment [[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,i],
 #'                                                  probs=c(0.025,0.975))
 #' }
 #' # Separate and assign information by identified stable period
@@ -406,8 +410,8 @@ segmentation.engine <- function(obs,
 #'            col='blue')
 #'   rect(xleft=intervals.time.shift[[i]],
 #'        xright=intervals.time.shift[[i+1]],
-#'        ybottom=uncertainty95_segment[[i]][1],
-#'        ytop=uncertainty95_segment[[i]][2],
+#'        ybottom=uncertainty95.segment[[i]][1],
+#'        ytop=uncertainty95.segment[[i]][2],
 #'        col= rgb(0,0,255,max=255,alpha=125,names='blue'),
 #'        border = 'transparent')
 #' }
@@ -416,8 +420,8 @@ segmentation.engine <- function(obs,
 #' if(nSopt!=1){
 #'  for(i in 1:(nSopt-1)){
 #'   abline(v=res$results[[nSopt]]$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
-#'   rect(xleft=uncertainty95_shift[[i]][1],
-#'        xright=rev(uncertainty95_shift[[i]])[1],
+#'   rect(xleft=uncertainty95.shift[[i]][1],
+#'        xright=rev(uncertainty95.shift[[i]])[1],
 #'        ybottom=min(obs)*2,
 #'        ytop=max(obs)*2,
 #'        col= color_customized_rect(125)[[i]],
@@ -497,9 +501,9 @@ recursive.segmentation <- function(obs,
   U=list(u) # List of corresponding uncertainties
   indices=c(1) # Vector containing the indices of each node - same size as X
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
-  continue=TRUE
+  continue=TRUE # Logical determining whether recursion should continue
 
-  while(continue){
+   while(continue){
     level=level+1 # Increment recursion level
     nX=length(X) # Number of nodes at this level
     keepgoing=rep(NA,nX) # Should recursion continue for each node?
