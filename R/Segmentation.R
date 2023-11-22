@@ -244,22 +244,23 @@ segmentation.engine <- function(obs,
 
   simulation.MAP <- resid.segm$Y1_sim
 
+  data = data.frame(time=time,
+                    obs=obs,
+                    u=u,
+                    I95_lower=obs+qnorm(0.025)*u,
+                    I95_upper=obs+qnorm(0.975)*u,
+                    period = 1)
   if(nS==1){
     obss=obs # Subseries = whole series
     segments.MAP=simulation.MAP # Sub series = whole series
     times=time
     us=u
 
-    tau.MAP=NULL # no shift time
-
-    data = data.frame(obs=obss,
-                      time=times,
-                      u=us,
-                      I95_lower=obss-qnorm(0.025)*us,
-                      I95_upper=obss-qnorm(0.975)*us,
-                      period = 1)
+    shift=data.frame(tau=numeric(0), # no shift time
+                     I95_lower=numeric(0),
+                     I95_upper=numeric(0))
+    tau.MAP=shift$tau
   } else {
-
     # Estimated shift time along with uncertainties
     shift <- data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
                                       ((nS+1):(nS+nS-1))],
@@ -269,7 +270,7 @@ segmentation.engine <- function(obs,
                                                   probs=c(0.975)))
     tau.MAP <- shift$tau
     # Store sub series into a list
-    obss=segments.MAP=times=us=I95s_lower=I95s_upper=periods=vector(mode='list',length=nS)
+    obss=segments.MAP=times=us=periods=vector(mode='list',length=nS)
     intervals.time.shift=c(time[1],tau.MAP,rev(time)[1]) # intervals defined by time shifts
 
     for(i in 1:nS){
@@ -281,17 +282,9 @@ segmentation.engine <- function(obs,
       segments.MAP[[i]]=simulation.MAP[position.ti.p:position.tf.p]
       times[[i]]=time[position.ti.p:position.tf.p]
       us[[i]]=u[position.ti.p:position.tf.p]
-      I95s_lower[[i]]=obss[[i]]-qnorm(0.025)*us[[i]]
-      I95s_upper[[i]]=obss[[i]]-qnorm(0.975)*us[[i]]
       periods[[i]]=rep(i,length(obss[[i]]))
     }
-
-    data = data.frame(obs=unlist(obss),
-                      time=unlist(times),
-                      u=unlist(us),
-                      I95_lower=unlist(I95s_lower),
-                      I95_upper=unlist(I95s_upper),
-                      period = unlist(periods))
+    data$period = unlist(periods)
   }
 
   return(list(summary = list(data=data,
