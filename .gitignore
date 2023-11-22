@@ -4,7 +4,7 @@
 # User-specific files
 .Ruserdata
 # RStudio files
-.Rproj.user
+.Rproj.user/
 # knitr and R markdown default cache directories
 *_cache/
 /cache/
