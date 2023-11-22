@@ -15,6 +15,7 @@ Description: This package provides operational tool for detecting, visualizing a
     See also BayDERS <https://github.com/MatteoDarienzo/BayDERS> for similar tools. 
 License: GPL (>= 3)
 Encoding: UTF-8
+LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports:

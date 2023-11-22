@@ -1,0 +1,12 @@
+#' Floods of the Rhone River at Beaucaire, France
+#'
+#' A data frame containing annual maximum stages (H, m) et discharges (Q, m3/s)
+#' for the Rhone River at Beaucaire, France, along with the associated uncertainties
+#' (expressed as standard deviations) uH and uQ.
+#' Details on the reconstruction of of these long series can be found in the article
+#' by Lucas et al. (2023) referenced below.
+#' Note that years 1968, 1969 and 1970 are missing and are not in the data frame.
+#'
+#' @source \url{https://doi.org/10.1016/j.jhydrol.2023.129840}
+"RhoneRiver"
+
