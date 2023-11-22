@@ -412,54 +412,191 @@ Recursive segmentation procedure for a **unknown** given number of
 segments
 
 This is a basic example which shows you how to segment a variable with a
-**unknown** number of segments using a recursive process: <!-- #  -->
-<!-- #  --> <!-- # ```{r recursive.segmentation} -->
-<!-- # # Set random generation --> <!-- # set.seed(1) --> <!-- #  -->
-<!-- # # Create series to be segmented -->
-<!-- # obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1)) -->
-<!-- # time=1:length(obs) --> <!-- #  -->
-<!-- # # Apply recursive segmentation -->
-<!-- # results=recursive.segmentation(obs) -->
-<!-- # # Have a look at recursion tree --> <!-- # results$tree -->
-<!-- #  --> <!-- # # Get terminal nodes -->
-<!-- # terminal=which(results$tree$nS==1) --> <!-- #  -->
-<!-- # # Plot original series and terminal nodes defining final segments -->
-<!-- # X11();plot(time,obs) --> <!-- # for(i in 1:length(terminal)){ -->
-<!-- #   data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period -->
-<!-- #   node=list(obs=data.stable.p$data.p$obs.p, -->
-<!-- #             times=data.stable.p$data.p$time.p, -->
-<!-- #             u=data.stable.p$data.p$u.p) -->
-<!-- #   points(node$times,node$obs,col=i) -->
-<!-- #   text(node$times,node$obs,terminal[i],pos=3,col=i) -->
-<!-- # } --> <!-- # # Get time shifts -->
-<!-- # time.shifts=which(results$tree$nS!=1) -->
-<!-- # for(i in 1:length(time.shifts)){ -->
-<!-- #   nSopt.p = results$res[[time.shifts[[i]]]]$nS -->
-<!-- #   abline(v=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau,col='green') -->
-<!-- #   abline(v=quantile(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$mcmc$tau1,probs=c(0.025,0.975)),col='green',lty=2) -->
-<!-- #   segments( -->
-<!-- #     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[1]][1], -->
-<!-- #     x1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau, -->
-<!-- #     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]], -->
-<!-- #     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[1]], -->
-<!-- #     col='blue') --> <!-- #   segments( -->
-<!-- #     x0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$tau, -->
-<!-- #     x1=rev(results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$data.p$time.p[[2]])[1], -->
-<!-- #     y0=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]], -->
-<!-- #     y1=results$res[[time.shifts[[i]]]]$results[[nSopt.p]]$segments[[2]], -->
-<!-- #     col='blue') --> <!-- # } --> <!-- #  -->
-<!-- # # Visualize tree with data.tree package -->
-<!-- # if(NROW(results$tree)>1){ -->
-<!-- #   tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network") -->
-<!-- #   plot(tree) -->
-<!-- # } else { # No segmentation took place, make a dummy plot -->
-<!-- #   tree <- data.tree::as.Node(data.frame(1,2),mode = "network") -->
-<!-- #   plot(tree) --> <!-- # } --> <!-- # ``` -->
+**unknown** number of segments using a recursive process:
 
-Here other example to show \_\_\_\_\_
+``` r
+# Set random generation
+set.seed(1)
+# Create series to be segmented
+# obs=c(rnorm(30,mean=0,sd=1),rnorm(30,mean=2,sd=1))
+# obs=c(rnorm(30,mean=0,sd=1),
+#       rnorm(30,mean=2,sd=1),
+#       rnorm(30,mean=1,sd=1),
+#       rnorm(30,mean=2,sd=1))
 
-<!-- # ```{r example} -->
-<!-- #  -->
-<!-- # ``` -->
+obs=c(rnorm(30,mean=0.5,sd=1),
+      rnorm(30,mean=1.5,sd=1),
+      rnorm(30,mean=1,sd=1),
+      rnorm(30,mean=2,sd=1))
 
-devtools::build\_readme()
+time=1:length(obs)
+
+# Assign a maximum number of user-defined segments to be assessed
+nSmax.user=3
+
+# Apply recursive segmentation
+results=recursive.segmentation(obs, nSmax=nSmax.user)
+
+# Have a look at recursion tree
+results$tree
+#>   indx level parent nS
+#> 1    1     1      0  3
+#> 2    2     2      1  1
+#> 3    3     2      1  2
+#> 4    4     2      1  1
+#> 5    5     3      3  1
+#> 6    6     3      3  1
+
+# Visualize tree with data.tree package
+# if(NROW(results$tree)>1){
+#   tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
+#   plot(tree)
+# } else { # No segmentation took place, make a dummy plot
+#   tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
+#   plot(tree)
+# }
+
+# Get terminal nodes
+terminal=which(results$tree$nS==1)
+
+# Get node with time shifts
+nodes.shift.time=which(results$tree$nS!=1)
+
+nodes.shift.time
+#> [1] 1 3
+
+# Estimated shift time along with uncertainties
+shift.time.list <- c()
+for(i in 1:length(nodes.shift.time)){
+  nSopt.p = results$res[[nodes.shift.time[[i]]]]$nS
+  results.p=results$res[[nodes.shift.time[[i]]]]$results
+  # shift.time.p=results.p[[nSopt.p]]$tau
+  shift.time.p=cbind(c(results.p[[nSopt.p]]$tau))
+
+  for(j in 1:(nSopt.p-1)){
+
+    shift.time.p.unc=data.frame(tau=as.numeric(shift.time.p[j,]),
+                                u2.5=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
+                                                     probs=c(0.025)),
+                                u97.5=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
+                                                      probs=c(0.975)))
+    shift.time.list <- rbind(shift.time.list,
+                         shift.time.p.unc)
+  }
+}
+
+all.shift.time <- shift.time.list[order(shift.time.list$tau),]
+all.shift.time
+#>           tau     u2.5     u97.5
+#> 2.5%  29.5616 18.93388  39.98611
+#> 2.5%2 63.2496 32.13913  88.11706
+#> 2.5%1 90.1033 81.52526 105.78840
+
+# intervals defined by time shifts
+intervals.time.shift=c(results$res[[1]]$results[[1]]$data.p$time.p[1],
+                       all.shift.time$tau,
+                       rev(results$res[[1]]$results[[1]]$data.p$time.p)[1])
+
+# Get stable periods by adding information as period, segment,
+data.stable <- c()
+for(i in 1:length(terminal)){
+  data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
+
+  node = data.frame(obs=data.stable.p$data.p$obs.p,
+                    time=data.stable.p$data.p$time.p,
+                    u=data.stable.p$data.p$u.p,
+                    period = rep(i,length(data.stable.p$data.p$obs.p)))
+  data.stable = rbind(data.stable,node)
+}
+
+# Setting plot
+
+# Transparency
+alpha <- 125
+
+# Set color plot
+color_customized_rect <- function(alpha){
+  color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
+                 rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
+                 rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
+                 rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
+                 rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
+  return(color)
+}
+
+# Plot observations
+plot(x=data.stable$time,
+y=data.stable$obs,
+col=data.stable$period,
+xlab='time',
+ylab='obs',
+main='Final segmentation'
+)
+
+# Plot shifts
+for(i in 1:nrow(all.shift.time)){
+  abline(v=all.shift.time$tau[i],
+         col=color_customized_rect(255)[[i]])
+  rect(xleft=all.shift.time$u2.5[[i]],
+       xright=all.shift.time$u97.5[[i]],
+       ybottom=min(obs)*2,
+       ytop=max(obs)*2,
+       col= color_customized_rect(50)[[i]],
+       border = 'transparent')
+}
+
+# Pre-treatment data to extract segments from corresponding node
+all.global.data <- c()
+for(i in 1:length(nodes.shift.time)){
+  nSopt.p = results$res[[nodes.shift.time[[i]]]]$nS
+  results.p=results$res[[nodes.shift.time[[i]]]]$results
+
+  relation.parent.children.p=results$tree[which(results$tree$parent==nodes.shift.time[[i]]),]
+  id.segment.p=which(relation.parent.children.p$nS==1)
+
+  for(j in 1:length(id.segment.p)){
+    segments.p=results.p[[nSopt.p]]$segments[[id.segment.p[[j]]]]
+    obs.p=results.p[[nSopt.p]]$data.p$obs.p[[id.segment.p[[j]]]]
+    time.p=results.p[[nSopt.p]]$data.p$time.p[[id.segment.p[[j]]]]
+    u.p=results.p[[nSopt.p]]$data.p$u.p[[id.segment.p[[j]]]]
+    unc.segment.p=stats::quantile(results.p[[nSopt.p]]$mcmc[,id.segment.p[[j]]],
+                                  probs=c(0.025,0.975))
+
+    data.p.temp=data.frame(mu=segments.p,
+                           obs=obs.p,
+                           u=u.p,
+                           time=time.p,
+                           u2.5=rep(unc.segment.p[1],length(segments.p)),
+                           u97.5=rep(unc.segment.p[2],length(segments.p)))
+
+    all.global.data=rbind(all.global.data,data.p.temp)
+  }
+}
+
+all.global.data=all.global.data[order(all.global.data$time),]
+
+final.data.segmented=unname((split(all.global.data,all.global.data$mu)))
+
+# Plot segments
+for(i in 1:(nrow(all.shift.time)+1)){
+  text(final.data.segmented[[i]]$time,
+       final.data.segmented[[i]]$obs,
+       terminal[i],pos=3,
+       cex=0.8,
+       col='black')
+  segments(x0=intervals.time.shift[[i]],
+           x1=intervals.time.shift[[i+1]],
+           y0=final.data.segmented[[i]]$mu,
+           y1=final.data.segmented[[i]]$mu,
+           col='blue')
+  rect(xleft=intervals.time.shift[[i]],
+       xright=intervals.time.shift[[i+1]],
+       ybottom=final.data.segmented[[i]]$u2.5,
+       ytop=final.data.segmented[[i]]$u97.5,
+       col= rgb(0,0,255,max=255,alpha=5,names='blue'),
+       border = 'transparent')
+
+}
+```
+
+<img src="man/readme/README-unnamed-chunk-3-1.png" width="100%" />
