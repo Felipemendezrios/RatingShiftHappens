@@ -247,8 +247,8 @@ segmentation.engine <- function(obs,
   data = data.frame(time=time,
                     obs=obs,
                     u=u,
-                    I95_lower=obs+qnorm(0.025)*u,
-                    I95_upper=obs+qnorm(0.975)*u,
+                    I95_lower=obs+stats::qnorm(0.025)*u,
+                    I95_upper=obs+stats::qnorm(0.975)*u,
                     period = 1)
   if(nS==1){
     obss=obs # Subseries = whole series
@@ -261,13 +261,22 @@ segmentation.engine <- function(obs,
                      I95_upper=numeric(0))
     tau.MAP=shift$tau
   } else {
-    # Estimated shift time along with uncertainties
-    shift <- data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
-                                      ((nS+1):(nS+nS-1))],
-                        I95_lower=stats::quantile(mcmc.segm[,((nS+1):(nS+nS-1))],
-                                                  probs=c(0.025)),
-                        I95_upper=stats::quantile(mcmc.segm[,((nS+1):(nS+nS-1))],
-                                                  probs=c(0.975)))
+
+    shift <- c()
+    for(j in 1:(nS-1)){
+
+        shift.time.p.unc=data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
+                                                  (nS+j)],
+                                    I95_lower=stats::quantile(mcmc.segm[,(nS+j)],
+                                                              probs=c(0.025)),
+                                    I95_upper=stats::quantile(mcmc.segm[,(nS+j)],
+                                                              probs=c(0.975)))
+        shift <- rbind(shift,
+                       shift.time.p.unc)
+    }
+
+    shift <- shift[order(shift$tau),]
+
     tau.MAP <- shift$tau
     # Store sub series into a list
     obss=segments.MAP=times=us=periods=vector(mode='list',length=nS)
@@ -522,14 +531,6 @@ segmentation <- function(obs,
 #' # Have a look at recursion tree
 #' results$tree
 #'
-#' # Visualize tree with data.tree package
-#' if(NROW(results$tree)>1){
-#'   tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
-#'   plot(tree)
-#' } else { # No segmentation took place, make a dummy plot
-#'   tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
-#'   plot(tree)
-#' }
 #'
 #' # Get terminal nodes
 #' terminal=which(results$tree$nS==1)
@@ -690,7 +691,7 @@ recursive.segmentation <- function(obs,
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
   continue=TRUE # Logical determining whether recursion should continue
 
-   while(continue){
+  while(continue){
     level=level+1 # Increment recursion level
     nX=length(X) # Number of nodes at this level
     keepgoing=rep(NA,nX) # Should recursion continue for each node?
@@ -729,8 +730,64 @@ recursive.segmentation <- function(obs,
     parents=newParents
     indices=newIndices
   }
-  return(list(res=allRes,tree=tree))
+  # Get terminal nodes
+  terminal=which(tree$nS==1)
+
+  # Get stable periods by adding information as period, segment,
+  data <- c()
+  for(i in 1:length(terminal)){
+    data.stable.p=allRes[[terminal[i]]]$results[[1]]   #Save data from stable period
+
+    node = data.frame(time=data.stable.p$data.p$time.p,
+                      obs=data.stable.p$data.p$obs.p,
+                      u=data.stable.p$data.p$u.p,
+                      I95_lower=data.stable.p$data.p$obs.p+stats::qnorm(0.025)*data.stable.p$data.p$u.p,
+                      I95_upper=data.stable.p$data.p$obs.p+stats::qnorm(0.975)*data.stable.p$data.p$u.p,
+                      id = rep(i,length(data.stable.p$data.p$obs.p)))
+
+    data = rbind(data,node)
+  }
+
+  data=data[order(data$time),]
+  data$period <- rep(NA,nrow(data))
+
+  period.counter=1
+  for(i in 1:length(terminal)){
+    data$period[which(unique(data$id)[i]==data$id)] <- period.counter
+    period.counter=period.counter+1
+  }
+
+  data = data[,-which('id'==colnames(data))]
+
+  # Get node with time shifts
+  nodes.shift.time=which(tree$nS!=1)
+
+  shift <- c()
+  for(i in 1:length(nodes.shift.time)){
+    nSopt.p = allRes[[nodes.shift.time[[i]]]]$nS
+    results.p = allRes[[nodes.shift.time[[i]]]]$results
+
+    shift.time.p=cbind(c(results.p[[nSopt.p]]$tau))
+
+    for(j in 1:(nSopt.p-1)){
+
+      shift.time.p.unc=data.frame(tau=as.numeric(shift.time.p[j,]),
+                                  I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
+                                                            probs=c(0.025)),
+                                  I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
+                                                            probs=c(0.975)))
+      shift <- rbind(shift,
+                     shift.time.p.unc)
+    }
+  }
+
+  shift <- shift[order(shift$tau),]
+
+  return(list(summary=list(data=data,
+                           shift=shift),
+              res=allRes,tree=tree))
 }
+
 
 
 

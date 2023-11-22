@@ -5,3 +5,4 @@
 ^Meta$
 ^README\.Rmd$
 ^LICENSE\.md$
+^data-raw$

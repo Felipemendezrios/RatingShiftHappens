@@ -72,14 +72,6 @@ results=recursive.segmentation(obs, nSmax=nSmax.user)
 # Have a look at recursion tree
 results$tree
 
-# Visualize tree with data.tree package
-if(NROW(results$tree)>1){
-  tree <- data.tree::as.Node(results$tree[-1,c(3,1)],mode = "network")
-  plot(tree)
-} else { # No segmentation took place, make a dummy plot
-  tree <- data.tree::as.Node(data.frame(1,2),mode = "network")
-  plot(tree)
-}
 
 # Get terminal nodes
 terminal=which(results$tree$nS==1)
