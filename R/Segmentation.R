@@ -249,12 +249,27 @@ segmentation.engine <- function(obs,
     segments.MAP=simulation.MAP # Sub series = whole series
     times=time
     us=u
+
     tau.MAP=NULL # no shift time
+
+    data = data.frame(obs=obss,
+                      time=times,
+                      u=us,
+                      I95_lower=obss-qnorm(0.025)*us,
+                      I95_upper=obss-qnorm(0.975)*us,
+                      period = 1)
   } else {
-    tau.MAP <- mcmc.segm[which.max(mcmc.segm$LogPost),
-                         ((nS+1):(nS+nS-1))]
+
+    # Estimated shift time along with uncertainties
+    shift <- data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
+                                      ((nS+1):(nS+nS-1))],
+                        I95_lower=stats::quantile(mcmc.segm[,((nS+1):(nS+nS-1))],
+                                                  probs=c(0.025)),
+                        I95_upper=stats::quantile(mcmc.segm[,((nS+1):(nS+nS-1))],
+                                                  probs=c(0.975)))
+    tau.MAP <- shift$tau
     # Store sub series into a list
-    obss=segments.MAP=times=us=vector(mode='list',length=nS)
+    obss=segments.MAP=times=us=I95s_lower=I95s_upper=periods=vector(mode='list',length=nS)
     intervals.time.shift=c(time[1],tau.MAP,rev(time)[1]) # intervals defined by time shifts
 
     for(i in 1:nS){
@@ -266,10 +281,22 @@ segmentation.engine <- function(obs,
       segments.MAP[[i]]=simulation.MAP[position.ti.p:position.tf.p]
       times[[i]]=time[position.ti.p:position.tf.p]
       us[[i]]=u[position.ti.p:position.tf.p]
+      I95s_lower[[i]]=obss[[i]]-qnorm(0.025)*us[[i]]
+      I95s_upper[[i]]=obss[[i]]-qnorm(0.975)*us[[i]]
+      periods[[i]]=rep(i,length(obss[[i]]))
     }
+
+    data = data.frame(obs=unlist(obss),
+                      time=unlist(times),
+                      u=unlist(us),
+                      I95_lower=unlist(I95s_lower),
+                      I95_upper=unlist(I95s_upper),
+                      period = unlist(periods))
   }
 
-  return(list(tau=tau.MAP,
+  return(list(summary = list(data=data,
+                             shift=shift),
+              tau=tau.MAP,
               segments=segments.MAP,
               mcmc=mcmc.segm,
               data.p = list(obs.p=obss,time.p=times,u.p=us),
