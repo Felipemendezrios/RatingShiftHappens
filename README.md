@@ -225,7 +225,7 @@ variable:
 Segmentation procedure for a **unknown** given number of segments
 
 This is a basic example which shows you how to segment a variable with a
-**unknown** number of segments:
+**unknown** number of segments :
 
 ``` r
  # Set random generation
