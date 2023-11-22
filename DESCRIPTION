@@ -22,5 +22,6 @@ Imports:
 	RBaM
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    ggplot2
 VignetteBuilder: knitr
