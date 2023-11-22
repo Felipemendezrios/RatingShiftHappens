@@ -446,10 +446,13 @@ segmentation <- function(obs,
   DICs <- rep(NA,nSmax)
   for(i in (1:nSmax)){
     nS <- i
-    res[[i]] <- segmentation.engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
-    DICs [i] <- res[[i]]$DIC
+    if(length(obs)<nS){
+      DICs [i] <- NA
+    }else{
+      res[[i]] <- segmentation.engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
+      DICs [i] <- res[[i]]$DIC
+    }
   }
-
   return(list(results=res,nS=which.min(DICs)))
 }
 
