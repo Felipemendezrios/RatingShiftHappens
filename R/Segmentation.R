@@ -531,7 +531,12 @@ segmentation <- function(obs,
 #' # Have a look at recursion tree
 #' results$tree
 #'
+#' # Plot tree
+#' plotTree(results$tree)
 #'
+#' # Plot segmentation
+#' plotSegmentation(data=results$summary$data,
+#'                  shift=results$summary$shift)
 #' # Get terminal nodes
 #' terminal=which(results$tree$nS==1)
 #'
