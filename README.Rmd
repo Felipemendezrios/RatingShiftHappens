@@ -52,22 +52,22 @@ This basic example demonstrates the segmentation of annual maximum stages (H, m)
  res=segmentation.engine(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nS=2)
 
  # Data information
- head(res$summary$data)
- 
+ knitr::kable(head(res$summary$data),
+              align = 'c',row.names = F)
  # Shift information
- head(res$summary$shift)
- 
+ knitr::kable(head(res$summary$shift),
+              align = 'c',row.names = F)
  # Plot segmentation
  plotSegmentation(res$summary)
 ```
 
-# For more advanced details : 
+## For more advanced details : 
 
 MCMC sampling demonstrate all combinations of parameters estimated. 
 
 ```{r}
-MCMC = res$mcmc
-head(MCMC)
+knitr::kable(head(res$mcmc),align = 'c')
+
 ```
 
 A few functions are provided with the `RBaM` package to explore MCMC samples.
@@ -76,7 +76,6 @@ A few functions are provided with the `RBaM` package to explore MCMC samples.
   # Trace plot for each parameter, useful to assess convergence.
   plots=RBaM::tracePlot(res$mcmc)
   gridExtra::grid.arrange(grobs=plots,ncol=3)
-  
   # Density plot for each parameter
   plots=RBaM::densityPlot(res$mcmc)
   gridExtra::grid.arrange(grobs=plots,ncol=3)
@@ -113,13 +112,12 @@ This is a basic example which shows you how to segment the same dataset with an 
                          arrow=ggplot2::arrow(length=ggplot2::unit(0.5,'cm')),
                          color='BLACK',lwd=1, show.legend = F)+
    ggplot2::theme_bw()
- 
  # Data information
- head(res$results[[nSopt]]$summary$data)
- 
+ knitr::kable(head(res$results[[nSopt]]$summary$data),
+              align = 'c',row.names = F)
  # Shift information
- head(res$results[[nSopt]]$summary$shift)
- 
+ knitr::kable(head(res$results[[nSopt]]$summary$shift),
+              align = 'c',row.names = F)
  # Plot segmentation
  plotSegmentation(res$summary)
 ``` 
@@ -133,20 +131,18 @@ This is a basic example which shows you how to segment the data set with an **un
  results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
  
  # Data information
- head(results$summary$data)
- 
+ knitr::kable(head(results$summary$data),
+              align = 'c',row.names = F)
  # Shift information
- head( results$summary$shift)
- 
+ knitr::kable(head(results$summary$shift),
+              align = 'c',row.names = F)
  # Have a look at recursion tree
  results$tree
 
  # Visualize tree structure
  plotTree(results$tree)
-
  # Plot segmentation
  plotSegmentation(summary=results$summary)
-
 ```
 
 

@@ -51,41 +51,52 @@ the documentation available in `?RhoneRiver`.
  res=segmentation.engine(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nS=2)
 
  # Data information
- head(res$summary$data)
-#>   time  obs      u I95_lower I95_upper period
-#> 1 1816 5.69 0.4500  4.808016  6.571984      1
-#> 2 1817 4.56 0.4075  3.761315  5.358685      1
-#> 3 1818 4.72 0.4300  3.877215  5.562785      1
-#> 4 1819 5.08 0.4125  4.271515  5.888485      1
-#> 5 1820 5.12 0.4925  4.154718  6.085282      1
-#> 6 1821 5.40 0.3900  4.635614  6.164386      1
- 
+ knitr::kable(head(res$summary$data),
+              align = 'c',row.names = F)
+```
+
+| time | obs  |   u    | I95\_lower | I95\_upper | period |
+|:----:|:----:|:------:|:----------:|:----------:|:------:|
+| 1816 | 5.69 | 0.4500 |  4.808016  |  6.571984  |   1    |
+| 1817 | 4.56 | 0.4075 |  3.761315  |  5.358685  |   1    |
+| 1818 | 4.72 | 0.4300 |  3.877216  |  5.562785  |   1    |
+| 1819 | 5.08 | 0.4125 |  4.271515  |  5.888485  |   1    |
+| 1820 | 5.12 | 0.4925 |  4.154718  |  6.085282  |   1    |
+| 1821 | 5.40 | 0.3900 |  4.635614  |  6.164386  |   1    |
+
+``` r
  # Shift information
- head(res$summary$shift)
-#>          tau I95_lower I95_upper
-#> 2.5% 1969.12   1967.09   1971.35
- 
+ knitr::kable(head(res$summary$shift),
+              align = 'c',row.names = F)
+```
+
+|   tau   | I95\_lower | I95\_upper |
+|:-------:|:----------:|:----------:|
+| 1969.12 |  1967.09   |  1971.35   |
+
+``` r
  # Plot segmentation
  plotSegmentation(res$summary)
 ```
 
 <img src="man/readme/README-segmentation.engine-1.png" width="100%" />
 
-# For more advanced details :
+## For more advanced details :
 
 MCMC sampling demonstrate all combinations of parameters estimated.
 
 ``` r
-MCMC = res$mcmc
-head(MCMC)
-#>       mu1     mu2    tau1 structural_sd  LogPost
-#> 1 5.20155 7.83626 1967.03       1.07363 -309.191
-#> 2 5.33280 7.87847 1970.18       1.10196 -307.813
-#> 3 5.33280 7.82841 1970.42       1.00044 -309.262
-#> 4 5.34227 8.03573 1967.69       1.09610 -309.200
-#> 5 5.52388 7.24338 1967.76       1.14877 -314.065
-#> 6 5.24600 7.32321 1969.19       1.14107 -311.731
+knitr::kable(head(res$mcmc),align = 'c')
 ```
+
+|   mu1   |   mu2   |  tau1   | structural\_sd | LogPost  |
+|:-------:|:-------:|:-------:|:--------------:|:--------:|
+| 5.20155 | 7.83626 | 1967.03 |    1.07363     | -309.191 |
+| 5.33280 | 7.87847 | 1970.18 |    1.10196     | -307.813 |
+| 5.33280 | 7.82841 | 1970.42 |    1.00044     | -309.262 |
+| 5.34227 | 8.03573 | 1967.69 |    1.09610     | -309.200 |
+| 5.52388 | 7.24338 | 1967.76 |    1.14877     | -314.065 |
+| 5.24600 | 7.32321 | 1969.19 |    1.14107     | -311.731 |
 
 A few functions are provided with the `RBaM` package to explore MCMC
 samples.
@@ -99,7 +110,6 @@ samples.
 <img src="man/readme/README-unnamed-chunk-4-1.png" width="100%" />
 
 ``` r
-  
   # Density plot for each parameter
   plots=RBaM::densityPlot(res$mcmc)
   gridExtra::grid.arrange(grobs=plots,ncol=3)
@@ -146,22 +156,31 @@ with an **unknown** number of segments :
 <img src="man/readme/README-segmentation-1.png" width="100%" />
 
 ``` r
- 
  # Data information
- head(res$results[[nSopt]]$summary$data)
-#>   time  obs      u I95_lower I95_upper period
-#> 1 1816 5.69 0.4500  4.808016  6.571984      1
-#> 2 1817 4.56 0.4075  3.761315  5.358685      1
-#> 3 1818 4.72 0.4300  3.877215  5.562785      1
-#> 4 1819 5.08 0.4125  4.271515  5.888485      1
-#> 5 1820 5.12 0.4925  4.154718  6.085282      1
-#> 6 1821 5.40 0.3900  4.635614  6.164386      1
- 
+ knitr::kable(head(res$results[[nSopt]]$summary$data),
+              align = 'c',row.names = F)
+```
+
+| time | obs  |   u    | I95\_lower | I95\_upper | period |
+|:----:|:----:|:------:|:----------:|:----------:|:------:|
+| 1816 | 5.69 | 0.4500 |  4.808016  |  6.571984  |   1    |
+| 1817 | 4.56 | 0.4075 |  3.761315  |  5.358685  |   1    |
+| 1818 | 4.72 | 0.4300 |  3.877216  |  5.562785  |   1    |
+| 1819 | 5.08 | 0.4125 |  4.271515  |  5.888485  |   1    |
+| 1820 | 5.12 | 0.4925 |  4.154718  |  6.085282  |   1    |
+| 1821 | 5.40 | 0.3900 |  4.635614  |  6.164386  |   1    |
+
+``` r
  # Shift information
- head(res$results[[nSopt]]$summary$shift)
-#>          tau I95_lower I95_upper
-#> 2.5% 1969.12   1967.09   1971.35
- 
+ knitr::kable(head(res$results[[nSopt]]$summary$shift),
+              align = 'c',row.names = F)
+```
+
+|   tau   | I95\_lower | I95\_upper |
+|:-------:|:----------:|:----------:|
+| 1969.12 |  1967.09   |  1971.35   |
+
+``` r
  # Plot segmentation
  plotSegmentation(res$summary)
 ```
@@ -178,20 +197,30 @@ an **unknown** number of segments using a recursive process:
  results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
  
  # Data information
- head(results$summary$data)
-#>   time  obs      u I95_lower I95_upper period
-#> 1 1816 5.69 0.4500  4.808016  6.571984      1
-#> 2 1817 4.56 0.4075  3.761315  5.358685      1
-#> 3 1818 4.72 0.4300  3.877215  5.562785      1
-#> 4 1819 5.08 0.4125  4.271515  5.888485      1
-#> 5 1820 5.12 0.4925  4.154718  6.085282      1
-#> 6 1821 5.40 0.3900  4.635614  6.164386      1
- 
+ knitr::kable(head(results$summary$data),
+              align = 'c',row.names = F)
+```
+
+| time | obs  |   u    | I95\_lower | I95\_upper | period |
+|:----:|:----:|:------:|:----------:|:----------:|:------:|
+| 1816 | 5.69 | 0.4500 |  4.808016  |  6.571984  |   1    |
+| 1817 | 4.56 | 0.4075 |  3.761315  |  5.358685  |   1    |
+| 1818 | 4.72 | 0.4300 |  3.877216  |  5.562785  |   1    |
+| 1819 | 5.08 | 0.4125 |  4.271515  |  5.888485  |   1    |
+| 1820 | 5.12 | 0.4925 |  4.154718  |  6.085282  |   1    |
+| 1821 | 5.40 | 0.3900 |  4.635614  |  6.164386  |   1    |
+
+``` r
  # Shift information
- head( results$summary$shift)
-#>          tau I95_lower I95_upper
-#> 2.5% 1969.12   1967.09   1971.35
- 
+ knitr::kable(head(results$summary$shift),
+              align = 'c',row.names = F)
+```
+
+|   tau   | I95\_lower | I95\_upper |
+|:-------:|:----------:|:----------:|
+| 1969.12 |  1967.09   |  1971.35   |
+
+``` r
  # Have a look at recursion tree
  results$tree
 #>   indx level parent nS
