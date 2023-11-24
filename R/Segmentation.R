@@ -280,18 +280,26 @@ segmentation.engine <- function(obs,
     tau.MAP <- shift$tau
     # Store sub series into a list
     obss=segments.MAP=times=us=periods=vector(mode='list',length=nS)
-    intervals.time.shift=c(time[1],tau.MAP,rev(time)[1]) # intervals defined by time shifts
+    intervals.time.shift=c(-Inf,tau.MAP,Inf) # intervals defined by time shifts
+    # intervals.time.shift=c(time[1],tau.MAP,rev(time)[1]) # intervals defined by time shifts
+
+    # data_update=data
 
     for(i in 1:nS){
-
+      # position.ti.p <- which((data_update$time-intervals.time.shift[[i]])>=0)[1]
+      # position.tf.p <- rev(which((data_update$time-intervals.time.shift[[i+1]])<=0))[1]
       position.ti.p <- which((time-intervals.time.shift[[i]])>=0)[1]
-      position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<=0))[1]
-
+      position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<0))[1]
+      # obss[[i]]=data_update$obs[position.ti.p:position.tf.p]
       obss[[i]]=obs[position.ti.p:position.tf.p]
       segments.MAP[[i]]=simulation.MAP[position.ti.p:position.tf.p]
       times[[i]]=time[position.ti.p:position.tf.p]
+      # times[[i]]=data_update$time[position.ti.p:position.tf.p]
       us[[i]]=u[position.ti.p:position.tf.p]
+      # us[[i]]=data_update$u[position.ti.p:position.tf.p]
       periods[[i]]=rep(i,length(obss[[i]]))
+
+      # data_update <- data_update[-(position.ti.p:position.tf.p),]
     }
     data$period = unlist(periods)
   }
@@ -482,7 +490,9 @@ segmentation <- function(obs,
       DICs [i] <- res[[i]]$DIC
     }
   }
-  return(list(results=res,nS=which.min(DICs)))
+  nS=which.min(DICs)
+  summary<- res[[nS]]$summary
+  return(list(summary=summary,results=res,nS=nS))
 }
 
 #' Recursive segmentation
