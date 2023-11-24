@@ -4,12 +4,10 @@
 \alias{plotSegmentation}
 \title{Plot segmentation}
 \usage{
-plotSegmentation(data, shift)
+plotSegmentation(summary)
 }
 \arguments{
-\item{data}{list, summary data resulting from any segmentation function}
-
-\item{shift}{list, summary shift resulting from any segmentation function}
+\item{summary}{list, summary data resulting from any segmentation function}
 }
 \value{
 a ggplot
@@ -22,6 +20,5 @@ Plot the final segmentation displaying shift time along with uncertainties
 results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH)
 
 # plot recursive segmentation
-plotSegmentation(data=results$summary$data,
-                 shift=results$summary$shift)
+plotSegmentation(summary=results$summary)
 }
