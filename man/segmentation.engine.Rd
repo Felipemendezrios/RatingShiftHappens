@@ -38,6 +38,8 @@ segmentation.engine(
 \value{
 List with the following components :
 \enumerate{
+\item data: data frame, all data with their respective periods after segmentation
+\item shift: data frame, all detected shift time
 \item tau: real vector, estimated shift times
 \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 \item mcmc: data frame, MCMC simulation
@@ -49,121 +51,17 @@ List with the following components :
 Segmentation procedure for a \strong{known} given number of segments
 }
 \examples{
-# Set random generation
-set.seed(1)
-
-# Create observation vector
-obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
-
-# Assign a number of user-defined segments to be assessed
-nS.user=2
-
-# Run segmentation engine function
-res <- segmentation.engine(obs=obs,nS=nS.user)
-
-# Estimated shift time
-res$tau
-
-# intervals defined by time shifts
-if(nS.user!=1){
- intervals.time.shift=c(res$data.p$time[[1]][1],res$tau,rev(res$data.p$time[[nS.user]])[1])
-}else{
- intervals.time.shift=list(res$data.p$time[1],rev(res$data.p$time)[1])
-}
-
-# Maximum a posterior value per segment indexed by the list number
-res$segments
-
-# Uncertainty in shift time
-if(nS.user!=1){
-   Shift=res$mcmc$tau1
-   graphics::hist(Shift,
-                  main='Histogram of first shift')
-
-   uncertainty95.shift <- list()
-   for(i in 1:(nS.user-1)){
-    uncertainty95.shift[[i]] = stats::quantile(res$mcmc[,nS.user+i],probs=c(0.025,0.975))
-   }
-}
-
-
-# Uncertainty in segment estimation
-mu.seg.1.unc=res$mcmc$mu1
-graphics::hist(mu.seg.1.unc,
-               xlab='obs',
-               main='Histogram of first segment of observation')
-
-uncertainty95.segment <- list()
-for(i in 1:nS.user){
-   uncertainty95.segment [[i]] = stats::quantile(res$mcmc[,i],probs=c(0.025,0.975))
-}
-
-# Separate and assign information by identified stable period
-res$data.p
-# DIC estimation
-res$DIC
-
-# Setting plot
-
-# Transparency
-alpha <- 125
-
-# Set color plot
-color_customized_rect <- function(alpha){
-   color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
-                  rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
-                  rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
-                  rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
-                  rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
-   return(color)
-}
-
-# Assign period to data
-obs_segmented <- data.frame()
-
-# Conditional to separate non segmentation case
-if(typeof(res$data.p$obs.p)=='list'){
-  for(i in 1:length(res$data.p$obs.p)){
-   obs_segmented_temp=cbind(obs=res$data.p$obs.p[[i]],period=i)
-   obs_segmented=rbind(obs_segmented,obs_segmented_temp)
-  }
-}else{
- obs_segmented=data.frame(obs=res$data.p$obs.p,period=1)
-}
-
-# Plot observations
-plot(x=obs_segmented$obs,
-     col=factor(obs_segmented$period),
-     pch=16,
-     main='Final segmentation',
-     ylab='obs',
-     xlab='time')
-
-# Plot segments
-for(i in 1:nS.user){
-  segments(x0=intervals.time.shift[[i]],
-           x1=intervals.time.shift[[i+1]],
-           y0=res$segments[[i]],
-           y1=res$segments[[i]],
-           col='blue')
-  rect(xleft=intervals.time.shift[[i]],
-       xright=intervals.time.shift[[i+1]],
-       ybottom=uncertainty95.segment[[i]][1],
-       ytop=uncertainty95.segment[[i]][2],
-       col= rgb(0,0,255,max=255,alpha=125,names='blue'),
-       border = 'transparent')
-}
-
-# Plot shifts
-if(nS.user!=1){
- for(i in 1:(nS.user-1)){
-  abline(v=res$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
-  rect(xleft=uncertainty95.shift[[i]][1],
-       xright=rev(uncertainty95.shift[[i]])[1],
-       ybottom=min(obs)*2,
-       ytop=max(obs)*2,
-       col= color_customized_rect(125)[[i]],
-       border = 'transparent')
-  }
-}
+# Run segmentation engine function at two segments
+# for data set : RhoneRiver (further details on ?RhoneRiver)
+res=segmentation.engine(obs=RhoneRiver$H,
+                        time=RhoneRiver$Year,
+                        u=RhoneRiver$uH,nS=2)
+# Data information
+knitr::kable(head(res$summary$data),
+             align = 'c',row.names = FALSE)
+# Shift information
+knitr::kable(head(res$summary$shift),
+             align = 'c',row.names = FALSE)
+# Plot segmentation
+plotSegmentation(res$summary)
 }

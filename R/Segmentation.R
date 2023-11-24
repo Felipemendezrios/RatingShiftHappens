@@ -14,6 +14,8 @@
 #'
 #' @return List with the following components :
 #' \enumerate{
+#'   \item data: data frame, all data with their respective periods after segmentation
+#'   \item shift: data frame, all detected shift time
 #'   \item tau: real vector, estimated shift times
 #'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
@@ -21,123 +23,19 @@
 #'   \item DIC: real, DIC estimation
 #' }
 #' @examples
-#' # Set random generation
-#' set.seed(1)
-#'
-#' # Create observation vector
-#' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
-#'
-#' # Assign a number of user-defined segments to be assessed
-#' nS.user=2
-#'
-#' # Run segmentation engine function
-#' res <- segmentation.engine(obs=obs,nS=nS.user)
-#'
-#' # Estimated shift time
-#' res$tau
-#'
-#' # intervals defined by time shifts
-#' if(nS.user!=1){
-#'  intervals.time.shift=c(res$data.p$time[[1]][1],res$tau,rev(res$data.p$time[[nS.user]])[1])
-#' }else{
-#'  intervals.time.shift=list(res$data.p$time[1],rev(res$data.p$time)[1])
-#' }
-#'
-#' # Maximum a posterior value per segment indexed by the list number
-#' res$segments
-#'
-#' # Uncertainty in shift time
-#' if(nS.user!=1){
-#'    Shift=res$mcmc$tau1
-#'    graphics::hist(Shift,
-#'                   main='Histogram of first shift')
-#'
-#'    uncertainty95.shift <- list()
-#'    for(i in 1:(nS.user-1)){
-#'     uncertainty95.shift[[i]] = stats::quantile(res$mcmc[,nS.user+i],probs=c(0.025,0.975))
-#'    }
-#' }
-#'
-#'
-#' # Uncertainty in segment estimation
-#' mu.seg.1.unc=res$mcmc$mu1
-#' graphics::hist(mu.seg.1.unc,
-#'                xlab='obs',
-#'                main='Histogram of first segment of observation')
-#'
-#' uncertainty95.segment <- list()
-#' for(i in 1:nS.user){
-#'    uncertainty95.segment [[i]] = stats::quantile(res$mcmc[,i],probs=c(0.025,0.975))
-#' }
-#'
-#' # Separate and assign information by identified stable period
-#' res$data.p
-#' # DIC estimation
-#' res$DIC
-#'
-#' # Setting plot
-#'
-#' # Transparency
-#' alpha <- 125
-#'
-#' # Set color plot
-#' color_customized_rect <- function(alpha){
-#'    color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
-#'                   rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
-#'                   rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
-#'                   rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
-#'                   rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
-#'    return(color)
-#' }
-#'
-#' # Assign period to data
-#' obs_segmented <- data.frame()
-#'
-#' # Conditional to separate non segmentation case
-#' if(typeof(res$data.p$obs.p)=='list'){
-#'   for(i in 1:length(res$data.p$obs.p)){
-#'    obs_segmented_temp=cbind(obs=res$data.p$obs.p[[i]],period=i)
-#'    obs_segmented=rbind(obs_segmented,obs_segmented_temp)
-#'   }
-#' }else{
-#'  obs_segmented=data.frame(obs=res$data.p$obs.p,period=1)
-#' }
-#'
-#' # Plot observations
-#' plot(x=obs_segmented$obs,
-#'      col=factor(obs_segmented$period),
-#'      pch=16,
-#'      main='Final segmentation',
-#'      ylab='obs',
-#'      xlab='time')
-#'
-#' # Plot segments
-#' for(i in 1:nS.user){
-#'   segments(x0=intervals.time.shift[[i]],
-#'            x1=intervals.time.shift[[i+1]],
-#'            y0=res$segments[[i]],
-#'            y1=res$segments[[i]],
-#'            col='blue')
-#'   rect(xleft=intervals.time.shift[[i]],
-#'        xright=intervals.time.shift[[i+1]],
-#'        ybottom=uncertainty95.segment[[i]][1],
-#'        ytop=uncertainty95.segment[[i]][2],
-#'        col= rgb(0,0,255,max=255,alpha=125,names='blue'),
-#'        border = 'transparent')
-#' }
-#'
-#' # Plot shifts
-#' if(nS.user!=1){
-#'  for(i in 1:(nS.user-1)){
-#'   abline(v=res$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
-#'   rect(xleft=uncertainty95.shift[[i]][1],
-#'        xright=rev(uncertainty95.shift[[i]])[1],
-#'        ybottom=min(obs)*2,
-#'        ytop=max(obs)*2,
-#'        col= color_customized_rect(125)[[i]],
-#'        border = 'transparent')
-#'   }
-#' }
+#' # Run segmentation engine function at two segments
+#' # for data set : RhoneRiver (further details on ?RhoneRiver)
+#' res=segmentation.engine(obs=RhoneRiver$H,
+#'                         time=RhoneRiver$Year,
+#'                         u=RhoneRiver$uH,nS=2)
+#' # Data information
+#' knitr::kable(head(res$summary$data),
+#'              align = 'c',row.names = FALSE)
+#' # Shift information
+#' knitr::kable(head(res$summary$shift),
+#'              align = 'c',row.names = FALSE)
+#' # Plot segmentation
+#' plotSegmentation(res$summary)
 #' @export
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom stats quantile sd
@@ -151,7 +49,6 @@ segmentation.engine <- function(obs,
                                 burn=0.5,
                                 nSlim=max(nCycles/10,1),
                                 temp.folder=file.path(tempdir(),'BaM')){
-
 
   if(length(obs)<nS){
     stop('Number of observations is lower than the number of segments',call.=FALSE)
@@ -292,7 +189,6 @@ segmentation.engine <- function(obs,
       us[[i]]=u[position.ti.p:position.tf.p]
       periods[[i]]=rep(i,length(obss[[i]]))
     }
-
     data$period = unlist(periods)
   }
 
@@ -304,10 +200,9 @@ segmentation.engine <- function(obs,
               data.p = list(obs.p=obss,time.p=times,u.p=us),
               DIC=mcmc.DIC[1,2]))
 }
-
 #' Segmentation
 #'
-#' Segmentation procedure for a \strong{unknown} given number of segments
+#' Segmentation procedure for an \strong{unknown} given number of segments
 #'
 #' @param obs real vector, observations
 #' @param time real vector, time
@@ -321,6 +216,8 @@ segmentation.engine <- function(obs,
 #'
 #' @return List with the following components :
 #' \enumerate{
+#'   \item data: data frame, all data with their respective periods after segmentation
+#'   \item shift: data frame, all detected shift time
 #'   \item tau: real vector, estimated shift times
 #'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
@@ -329,131 +226,27 @@ segmentation.engine <- function(obs,
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #' }
 #' @examples
-#' # Set random generation
-#' set.seed(1)
+#' # Run segmentation engine function at two segments
+#' res=segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
 #'
-#' # Create observation vector
-#' obs=c(rnorm(25,mean=0,sd=1),rnorm(25,mean=2,sd=1))
+#' # Get lower DIC value and optimal number of segments (to define optimal solution)
+#' DIC.df = data.frame(nS=c(1:3),DIC=c(res$results[[1]]$DIC,res$results[[2]]$DIC,res$results[[3]]$DIC))
+#' nSopt=res$nS
 #'
-#' # Assign a maximum number of user-defined segments to be assessed
-#' nSmax.user=3
-#'
-#' # Run segmentation function
-#' res <- segmentation(obs=obs,nSmax=nSmax.user)
-#'
-#' # Optimal number of segments nSopt
-#' nSopt <- res$nS
-#' nSopt
-#'
-#' # Estimated shift time
-#' res$results[[nSopt]]$tau
-#'
-#' # intervals defined by time shifts
-#' if(nSopt!=1){
-#'  intervals.time.shift=c(res$results[[nSopt]]$data.p$time[[1]][1],
-#'                         res$results[[nSopt]]$tau,
-#'                         rev(res$results[[nSopt]]$data.p$time[[nSopt]])[1])
-#' }else{
-#'  intervals.time.shift=list(res$results[[nSopt]]$data.p$time[1],
-#'                            rev(res$results[[nSopt]]$data.p$time)[1])
-#' }
-#'
-#' # Maximum a posterior value per segment indexed by the list number
-#' res$results[[nSopt]]$segments
-#'
-#' # Uncertainty in shift time
-#' if(nSopt!=1){
-#'    Shift=res$results[[nSopt]]$mcmc$tau1
-#'    graphics::hist(Shift,
-#'                   main='Histogram of first shift')
-#'
-#'    uncertainty95.shift <- list()
-#'    for(i in 1:(nSopt-1)){
-#'     uncertainty95.shift[[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,nSopt+i],
-#'                                                probs=c(0.025,0.975))
-#'    }
-#' }
-#'
-#' # Uncertainty in segment estimation
-#' mu.seg.1.unc=res$results[[nSopt]]$mcmc$mu1
-#' graphics::hist(mu.seg.1.unc,
-#'                xlab='obs',
-#'                main='Histogram of first segment of observation')
-#'
-#' uncertainty95.segment <- list()
-#' for(i in 1:nSopt){
-#'    uncertainty95.segment [[i]] = stats::quantile(res$results[[nSopt]]$mcmc[,i],
-#'                                                  probs=c(0.025,0.975))
-#' }
-#' # Separate and assign information by identified stable period
-#' res$results[[nSopt]]$data.p
-#'
-#' # DIC estimation
-#' res$results[[nSopt]]$DIC
-#'
-#' # Setting plot
-#'
-#' # Transparency
-#' alpha <- 125
-#'
-#' # Set color plot
-#' color_customized_rect <- function(alpha){
-#'    color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
-#'                   rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
-#'                   rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
-#'                   rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
-#'                   rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
-#'    return(color)
-#' }
-#'
-#' # Assign period to data
-#' obs_segmented <- data.frame()
-#'
-#' # Conditional to separate non segmentation case
-#' if(typeof(res$results[[nSopt]]$data.p$obs.p)=='list'){
-#'   for(i in 1:length(res$results[[nSopt]]$data.p$obs.p)){
-#'    obs_segmented_temp=cbind(obs=res$results[[nSopt]]$data.p$obs.p[[i]],period=i)
-#'    obs_segmented=rbind(obs_segmented,obs_segmented_temp)
-#'   }
-#' }else{
-#'  obs_segmented=data.frame(obs=res$results[[nSopt]]$data.p$obs.p,period=1)
-#' }
-#'
-#' # Plot observations
-#' plot(x=obs_segmented$obs,
-#'      col=factor(obs_segmented$period),
-#'      pch=16,
-#'      main='Final segmentation',
-#'      ylab='obs',
-#'      xlab='time')
-#'
-#' # Plot segments
-#' for(i in 1:nSopt){
-#'   segments(x0=intervals.time.shift[[i]],
-#'            x1=intervals.time.shift[[i+1]],
-#'            y0=res$results[[nSopt]]$segments[[i]],
-#'            y1=res$results[[nSopt]]$segments[[i]],
-#'            col='blue')
-#'   rect(xleft=intervals.time.shift[[i]],
-#'        xright=intervals.time.shift[[i+1]],
-#'        ybottom=uncertainty95.segment[[i]][1],
-#'        ytop=uncertainty95.segment[[i]][2],
-#'        col= rgb(0,0,255,max=255,alpha=125,names='blue'),
-#'        border = 'transparent')
-#' }
-#'
-#' # Plot shifts
-#' if(nSopt!=1){
-#'  for(i in 1:(nSopt-1)){
-#'   abline(v=res$results[[nSopt]]$tau[i],col=color_customized_rect(255)[[i]], lwd=2)
-#'   rect(xleft=uncertainty95.shift[[i]][1],
-#'        xright=rev(uncertainty95.shift[[i]])[1],
-#'        ybottom=min(obs)*2,
-#'        ytop=max(obs)*2,
-#'        col= color_customized_rect(125)[[i]],
-#'        border = 'transparent')
-#'   }
-#' }
+#' ggplot2::ggplot(DIC.df,ggplot2::aes(x=nS,y=DIC,col=factor(nS)))+
+#'   ggplot2::geom_point(size=3,show.legend = FALSE)+
+#'   ggplot2::geom_segment(ggplot2::aes(x=nSopt,y=min(DIC)*1.03,xend=nSopt,yend=min(DIC)*1.005),
+#'                         arrow=ggplot2::arrow(length=ggplot2::unit(0.5,'cm')),
+#'                         color='BLACK',lwd=1, show.legend = FALSE)+
+#'   ggplot2::theme_bw()
+#' # Data information
+#' knitr::kable(head(res$results[[nSopt]]$summary$data),
+#'              align = 'c',row.names = FALSE)
+#' # Shift information
+#' knitr::kable(head(res$results[[nSopt]]$summary$shift),
+#'              align = 'c',row.names = FALSE)
+#' # Plot segmentation
+#' plotSegmentation(res$summary)
 #' @export
 segmentation <- function(obs,
                          time=1:length(obs),
@@ -470,7 +263,6 @@ segmentation <- function(obs,
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
   }
 
-
   res=vector(mode = 'list',length = nSmax)
   DICs <- rep(NA,nSmax)
   for(i in (1:nSmax)){
@@ -486,10 +278,9 @@ segmentation <- function(obs,
   summary<- res[[nS]]$summary
   return(list(summary=summary,results=res,nS=nS))
 }
-
 #' Recursive segmentation
 #'
-#' Recursive segmentation procedure for a \strong{unknown} given number of segments
+#' Recursive segmentation procedure for an \strong{unknown} number of segments
 #'
 #' @param obs real vector, observations
 #' @param time real vector, time
@@ -503,6 +294,8 @@ segmentation <- function(obs,
 #'
 #' @return List with the following components :
 #' \enumerate{
+#'   \item data: data frame, all data with their respective periods after segmentation
+#'   \item shift: data frame, all detected shift time
 #'   \item tau: real vector, estimated shift times
 #'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
@@ -512,169 +305,22 @@ segmentation <- function(obs,
 #'   \item tree : data frame, table for tree structure after segmentation
 #' }
 #' @examples
-#'
-#' # Set random generation
-#' set.seed(1)
-#'
-#' # Create series to be segmented
-#' obs=c(rnorm(30,mean=0.5,sd=1),
-#'       rnorm(30,mean=1.5,sd=1),
-#'       rnorm(30,mean=1,sd=1),
-#'       rnorm(30,mean=2,sd=1))
-#'
-#' time=1:length(obs)
-#'
-#' # Assign a maximum number of user-defined segments to be assessed
-#' nSmax.user=3
-#'
 #' # Apply recursive segmentation
-#' results=recursive.segmentation(obs, nSmax=nSmax.user)
+#' results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
 #'
+#' # Data information
+#' knitr::kable(head(results$summary$data),
+#'              align = 'c',row.names = FALSE)
+#' # Shift information
+#' knitr::kable(head(results$summary$shift),
+#'              align = 'c',row.names = FALSE)
 #' # Have a look at recursion tree
 #' results$tree
 #'
-#' # Plot tree
+#' # Visualize tree structure
 #' plotTree(results$tree)
-#'
 #' # Plot segmentation
-#' plotSegmentation(data=results$summary$data,
-#'                  shift=results$summary$shift)
-#' # Get terminal nodes
-#' terminal=which(results$tree$nS==1)
-#'
-#' # Get node with time shifts
-#' nodes.shift.time=which(results$tree$nS!=1)
-#'
-#' nodes.shift.time
-#'
-#' # Estimated shift time along with uncertainties
-#' shift.time.list <- c()
-#' for(i in 1:length(nodes.shift.time)){
-#'   nSopt.p = results$res[[nodes.shift.time[[i]]]]$nS
-#'   results.p=results$res[[nodes.shift.time[[i]]]]$results
-#'   # shift.time.p=results.p[[nSopt.p]]$tau
-#'   shift.time.p=cbind(c(results.p[[nSopt.p]]$tau))
-#'
-#'   for(j in 1:(nSopt.p-1)){
-#'
-#'     shift.time.p.unc=data.frame(tau=as.numeric(shift.time.p[j,]),
-#'                                 u2.5=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
-#'                                                      probs=c(0.025)),
-#'                                 u97.5=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
-#'                                                       probs=c(0.975)))
-#'     shift.time.list <- rbind(shift.time.list,
-#'                              shift.time.p.unc)
-#'   }
-#' }
-#'
-#' all.shift.time <- shift.time.list[order(shift.time.list$tau),]
-#' all.shift.time
-#'
-#' # intervals defined by time shifts
-#' intervals.time.shift=c(results$res[[1]]$results[[1]]$data.p$time.p[1],
-#'                        all.shift.time$tau,
-#'                        rev(results$res[[1]]$results[[1]]$data.p$time.p)[1])
-#'
-#' # Get stable periods by adding information as period, segment,
-#' data.stable <- c()
-#' for(i in 1:length(terminal)){
-#'   data.stable.p=results$res[[terminal[i]]]$results[[1]]   #Save data from stable period
-#'
-#'   node = data.frame(obs=data.stable.p$data.p$obs.p,
-#'                     time=data.stable.p$data.p$time.p,
-#'                     u=data.stable.p$data.p$u.p,
-#'                     period = rep(i,length(data.stable.p$data.p$obs.p)))
-#'   data.stable = rbind(data.stable,node)
-#' }
-#'
-#' # Setting plot
-#'
-#' # Transparency
-#' alpha <- 125
-#'
-#' # Set color plot
-#' color_customized_rect <- function(alpha){
-#'   color <-  list(rgb(0, 255, 170, max = 255, alpha = alpha, names ='green'),
-#'                  rgb(0, 221, 255, max = 255, alpha = alpha, names='sky blue'),
-#'                  rgb(255, 0, 255, max = 255, alpha = alpha, names='purple'),
-#'                  rgb(255, 157, 0, max = 255, alpha = alpha, names='orange'),
-#'                  rgb(255, 0, 212, max = 255, alpha = alpha, names='magenta' ))
-#'   return(color)
-#' }
-#'
-#' # Plot observations
-#' plot(x=data.stable$time,
-#'      y=data.stable$obs,
-#'      col=data.stable$period,
-#'      xlab='time',
-#'      ylab='obs',
-#'      main='Final segmentation'
-#' )
-#'
-#' # Plot shifts
-#' for(i in 1:nrow(all.shift.time)){
-#'   abline(v=all.shift.time$tau[i],
-#'          col=color_customized_rect(255)[[i]])
-#'   rect(xleft=all.shift.time$u2.5[[i]],
-#'        xright=all.shift.time$u97.5[[i]],
-#'        ybottom=min(obs)*2,
-#'        ytop=max(obs)*2,
-#'        col= color_customized_rect(50)[[i]],
-#'        border = 'transparent')
-#' }
-#'
-#' # Pre-treatment data to extract segments from corresponding node
-#' all.global.data <- c()
-#' for(i in 1:length(nodes.shift.time)){
-#'   nSopt.p = results$res[[nodes.shift.time[[i]]]]$nS
-#'   results.p=results$res[[nodes.shift.time[[i]]]]$results
-#'
-#' relation.parent.children.p=results$tree[which(results$tree$parent==nodes.shift.time[[i]]),]
-#'   id.segment.p=which(relation.parent.children.p$nS==1)
-#'
-#'   for(j in 1:length(id.segment.p)){
-#'     segments.p=results.p[[nSopt.p]]$segments[[id.segment.p[[j]]]]
-#'     obs.p=results.p[[nSopt.p]]$data.p$obs.p[[id.segment.p[[j]]]]
-#'     time.p=results.p[[nSopt.p]]$data.p$time.p[[id.segment.p[[j]]]]
-#'     u.p=results.p[[nSopt.p]]$data.p$u.p[[id.segment.p[[j]]]]
-#'     unc.segment.p=stats::quantile(results.p[[nSopt.p]]$mcmc[,id.segment.p[[j]]],
-#'                                   probs=c(0.025,0.975))
-#'
-#'
-#'     data.p.temp=data.frame(mu=segments.p,
-#'                            obs=obs.p,
-#'                            u=u.p,
-#'                            time=time.p,
-#'                            u2.5=rep(unc.segment.p[1],length(segments.p)),
-#'                            u97.5=rep(unc.segment.p[2],length(segments.p)))
-#'
-#'     all.global.data=rbind(all.global.data,data.p.temp)
-#'   }
-#' }
-#'
-#' all.global.data=all.global.data[order(all.global.data$time),]
-#'
-#' final.data.segmented=unname((split(all.global.data,all.global.data$mu)))
-#'
-#' # Plot segments
-#' for(i in 1:(nrow(all.shift.time)+1)){
-#'   text(final.data.segmented[[i]]$time,
-#'        final.data.segmented[[i]]$obs,
-#'        terminal[i],pos=3,
-#'        cex=0.8,
-#'        col='black')
-#'   segments(x0=intervals.time.shift[[i]],
-#'            x1=intervals.time.shift[[i+1]],
-#'            y0=final.data.segmented[[i]]$mu,
-#'            y1=final.data.segmented[[i]]$mu,
-#'            col='blue')
-#'   rect(xleft=intervals.time.shift[[i]],
-#'        xright=intervals.time.shift[[i+1]],
-#'        ybottom=final.data.segmented[[i]]$u2.5,
-#'        ytop=final.data.segmented[[i]]$u97.5,
-#'        col= rgb(0,0,255,max=255,alpha=5,names='blue'),
-#'        border = 'transparent')
-#' }
+#' plotSegmentation(summary=results$summary)
 #' @export
 recursive.segmentation <- function(obs,
                                    time=1:length(obs),
