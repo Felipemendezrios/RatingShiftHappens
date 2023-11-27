@@ -74,6 +74,11 @@ plotSegmentation <- function(summary) {
 
   data=summary$data
   shift=summary$shift
+
+  # Add some colors to the palette for observations
+  colourCount_obs = length(unique(data$period))
+  getPalette_obs =  grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Dark2"))
+
   # Plot observations by period
   g=ggplot(data)+
     geom_point(aes(x=time,
@@ -88,26 +93,29 @@ plotSegmentation <- function(summary) {
     labs(y='Observation',
          col='Period',
          title = 'Segmentation')+
-    scale_color_brewer(palette = 'Dark2')+
+    scale_color_manual(values = getPalette_obs(colourCount_obs))+
     theme_bw()+
     theme(plot.title = element_text(hjust=0.5,
                                     face='bold',
                                     size=15),
           legend.title.align=0.5)
 
+  # Add some colors to the palette for observations
+  colourCount_tau = length(unique(shift$tau))
+  getPalette_tau = grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "Pastel1"))
   # Plot shift times
   g=g+
     geom_vline(xintercept = shift$tau,alpha=0.8)+
-    coord_cartesian(ylim = c(min(data$obs),max(data$obs)))+
+    coord_cartesian(ylim = c(min(data$I95_lower),max(data$I95_upper)))+
     geom_rect(data = shift,
               aes(xmin = I95_lower,
                   xmax = I95_upper,
                   ymin = -Inf,
                   ymax = Inf,
                   fill=(factor(tau))),
-              alpha=0.4)+
+              alpha=0.6)+
     labs(fill='Shift time')+
-    scale_fill_brewer(palette='Pastel1',
+    scale_fill_manual(values=getPalette_tau(colourCount_tau),
                       labels=round(shift$tau,2))
 
   return(g)
