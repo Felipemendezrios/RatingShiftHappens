@@ -14,11 +14,11 @@ An object of class \code{data.frame} with 202 rows and 7 columns.
 RhoneRiver
 }
 \description{
-A data frame containing annual maximum stages (H, m) et discharges (Q, m3/s)
-for the Rhone River at Beaucaire, France, along with the associated uncertainties
-(expressed as standard deviations) uH and uQ.
+A data frame containing annual maximum stages (H, in meters) et discharges
+(Q, in cubic meters per second) for the Rhone River at Beaucaire, France,
+along with the associated uncertainties expressed as standard deviations (uH and uQ).
 Details on the reconstruction of of these long series can be found in the article
 by Lucas et al. (2023) referenced below.
-Note that years 1968, 1969 and 1970 are missing and are not in the data frame.
+Note that years 1968, 1969 and 1970 are missing and are not included in the data frame.
 }
 \keyword{datasets}
