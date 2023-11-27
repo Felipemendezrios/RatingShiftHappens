@@ -1,3 +1,3 @@
-RhoneRiver=read.table('RhoneRiver.txt',header=T,sep=';')
+RhoneRiver=read.table('data-raw/RhoneRiver.txt',header=T,sep=';')
 RhoneRiver$Date=as.Date(RhoneRiver$Date)
-save(RhoneRiver,file='../data/RhoneRiver.RData')
+save(RhoneRiver,file='data/RhoneRiver.RData')
