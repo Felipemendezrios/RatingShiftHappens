@@ -21,7 +21,7 @@ ArdecheRiver
 \description{
 A data frame containing annual minimum stages (H, in meters) for the Ardèche River
 at Meyras, France, along with by associated random uncertainties from 1988 until 2022.
-Assumption: uncertainties follow a normal distribution with a mean of 0.15 meters
-and a standard deviation of 0.05 meters.
+Assumption: uncertainties follow a normal distribution with a mean of 0.08 meters
+and a standard deviation of 0.04 meters.
 }
 \keyword{datasets}

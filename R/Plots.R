@@ -19,7 +19,7 @@ plotTree <- function(tree){
   DF=tree
   n=NROW(DF)
   # Add columns for x/y's of nodes and arrows
-  DF$y=-1*DF$level
+  DF$y=-1*DF$level+rnorm(n,0,0.2)
   DF$x=0*DF$y
   DF$xstart=DF$xend=DF$ystart=DF$yend=NA*DF$y
   DF$isTerminal=FALSE
@@ -44,12 +44,14 @@ plotTree <- function(tree){
     DF$isTerminal[1]=TRUE
   }
 
+  DF$fontface='plain';DF$fontface[DF$isTerminal]='bold'
   # plot
   g=ggplot(DF)+
     geom_segment(aes(x=xstart,y=ystart,xend=xend,yend=yend),
                  arrow=arrow(type='closed',length=unit(0.03, "npc")))+
-    geom_label(aes(x,y,label=indx,fill=isTerminal),size=5,color='white')+
-    scale_fill_manual(values=c('royalblue3','red3'))+
+    geom_label(aes(x,y,label=indx,fill=as.factor(parent),fontface=fontface,size=isTerminal),color='black',alpha=0.8)+
+    scale_fill_brewer('Parent node',palette='Set1')+
+    scale_size_manual('Terminal node',values=c(4,6))+
     theme_void()
   return(g)
 }
