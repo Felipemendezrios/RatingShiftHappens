@@ -116,9 +116,14 @@ segmentation.engine <- function(obs,
   cook_temp=RBaM::mcmcCooking(burn=burn,
                         nSlim=nSlim)
 
+  remnantInit=stats::sd(obs)
+  if(is.na(remnantInit)){ # happens when nObs=1
+    remnantInit=abs(mean(obs))
+  }
+  if(remnantInit==0){remnantInit=1}
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Constant",
                                          par = list(RBaM::parameter(name="gamma1",
-                                                              init=stats::sd(obs) ,
+                                                              init=remnantInit,
                                                               prior.dist = "FlatPrior+"))))
 
   # Run BaM executable
