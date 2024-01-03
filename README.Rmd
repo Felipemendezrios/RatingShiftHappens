@@ -1,9 +1,11 @@
 ---
 title: "Rating Shift Happens"
-subtitle: "Documentation"
 author: "Felipe MENDEZ and Benjamin RENARD (INRAE, RiverLy and RECOVER)."
 date: "December 2023"
-output: github_document
+output:
+  html_document:
+    df_print: paged
+subtitle: Documentation
 ---
 
 ```{r, include = FALSE}
@@ -41,7 +43,7 @@ You can install the development version of [RatingShiftHappens](https://github.c
 library(RatingShiftHappens)
 ```
 
-Functions will be explained more precisely below along with a example.
+Functions will be explained more precisely below along with an example.
 
 ##  Segmentation procedure for a *known* given number of segments
 
@@ -96,7 +98,7 @@ In this example, the focus will be on exploring the uncertainty associated with 
  
 ##  Segmentation procedure for an *unknown* number of segments
 
-This is a basic example which shows you how to segment the same dataset with an **unknown** number of segments :
+This is a basic example, which shows you how to segment the same dataset with an **unknown** number of segments :
 
 ```{r segmentation}
  # Run segmentation engine function at two segments
@@ -124,7 +126,7 @@ This is a basic example which shows you how to segment the same dataset with an 
 
 ## Recursive segmentation procedure for an *unknown*  number of segments
 
-This is a basic example which shows you how to segment the data set with an **unknown** number of segments using a recursive process:
+This is a basic example, which shows you how to segment the data set with an **unknown** number of segments using a recursive process:
 
 ```{r}
  # Apply recursive segmentation
