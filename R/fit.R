@@ -86,10 +86,7 @@ fitRC_loess<-function(time,H,Q,uQ){
 #' @param priors real list, prior information of each parameter
 #' @param remnant real vector, remnant model information
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @return real data frame
 fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
   stop("fitRC_BaRatin has not yet been implemented")
 }
@@ -98,17 +95,14 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 
 #' fit
 #'
-#' @param time
-#' @param H
-#' @param Q
-#' @param uQ
-#' @param funk
-#' @param ...
+#' @param time real vector, time
+#' @param H real vector, stage
+#' @param Q real vector, discharge
+#' @param uQ real vector, uncertainty in discharge (as a standard deviation)
+#' @param funk rating curve model
+#' @param ... input variable of each model
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @return value
 fitRC <- function(time,H,Q,uQ=0,funk=fitRC_loess,...){
 
   if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ))){

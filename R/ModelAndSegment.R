@@ -28,7 +28,23 @@
 #' @export
 #'
 #' @examples
-recurvise.ModelAndSegmentation <- function(H,
+#' # Apply recursive segmentation
+#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,Q=RhoneRiver$Q,time=RhoneRiver$Time,uQ=RhoneRiver$uQ,nSmax=2)
+#'
+#' # Data information
+#' knitr::kable(head(results$summary$data),
+#'              align = 'c',row.names = FALSE)
+#' # Shift information
+#' knitr::kable(head(results$summary$shift),
+#'              align = 'c',row.names = FALSE)
+#' # Have a look at recursion tree
+#' results$tree
+#'
+#' # Visualize tree structure
+#' plotTree(results$tree)
+#' # Plot segmentation
+#' plotSegmentation(summary=results$summary)
+recursive.ModelAndSegmentation <- function(H,
                                            Q,
                                            time=1:length(H),
                                            uQ=0*Q,
