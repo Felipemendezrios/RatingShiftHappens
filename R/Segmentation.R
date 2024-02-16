@@ -276,7 +276,7 @@ segmentation <- function(obs,
       warning(paste0('NA was returned because the number of observations (',length(obs),
                      ') is lower than the number of segments (',nS,')'))
       DICs [i] <- NA
-    }else if(trunc(length(obs)/nS)>=nMin){
+    }else if(trunc(length(obs)/nS)<=nMin){
       warning(paste0('NA was returned because the number of observations (',length(obs),
                      ') cannot be evenly divided among the number of segments (',nS,'),
                      especially considering the specified minimum number of observations (',nMin,
