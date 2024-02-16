@@ -14,23 +14,32 @@ recurvise.ModelAndSegmentation <- function(H,
   tree=data.frame() # store tree structure (parents - children relationship)
   p=1 # Auxiliary counter needed to keep track of children / parents indices
   level=0 # Recursion level. The tree is created level-by-level rather than branch-by-branch
-  X=list(obs) # List of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
-  TIME=list(time) # List of corresponding times
-  U=list(u) # List of corresponding uncertainties
   indices=c(1) # Vector containing the indices of each node - same size as X
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
   continue=TRUE # Logical determining whether recursion should continue
 
+  residualsData <- list(fitRC(time=time,H=H,Q=Q,uQ=uQ,funk=fitRC_loess))
+
+  if(is.null(residualsData)){
+    stop('There is not enough data to run the segmentation model')
+  }
+  residuals=list(residualsData[[1]]$Q_res) # List of all nodes (each corresponding to a subseries of x) to be segmented at this level. Start with a unique node corresponding to the whole series
+  TIME=list(residualsData[[1]]$time) # List of corresponding times
+  u_residuals=list(residualsData[[1]]$uQ_sim) # List of corresponding uncertainties
+
+
   while(continue){
     level=level+1 # Increment recursion level
-    nX=length(X) # Number of nodes at this level
-    keepgoing=rep(NA,nX) # Should recursion continue for each node?
+    n.residuals=length(residuals) # Number of nodes at this level
+    keepgoing=rep(NA,n.residuals) # Should recursion continue for each node?
     newX=newTIME=newU=newIndices=newParents=c() # Will be used to update subseries, indices and parents at the end of each recursion level
     m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
-    for(j in 1:nX){ # Loop on each node
+    for(j in 1:n.residuals){ # Loop on each node
       k=k+1 # Increment main counter
-      partial.segmentation=segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
-                                        nSmax,nMin,nCycles,burn,nSlim,temp.folder) # Apply segmentation to subseries stored in node X[[j]]
+      partial.segmentation=segmentation(obs=residuals[[j]],
+                                        time=TIME[[j]],
+                                        u=u_residuals[[j]],
+                                        nSmax,nMin,nCycles,burn,nSlim,temp.folder) # Apply segmentation to subseries stored in node residuals[[j]]
       # Save results for this node
       allRes[[k]]=partial.segmentation
       # Save optimal number of segments
