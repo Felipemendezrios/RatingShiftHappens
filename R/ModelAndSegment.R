@@ -1,3 +1,33 @@
+#' Recursive modelling  and segmentation
+#'
+#' Recursive procedure for an \strong{unknown} number of segments, updating the rating curve at each iteration before segmentation
+#'
+#' @param H real vector, stage
+#' @param Q real vector, discharge
+#' @param time real vector, time
+#' @param uQ real vector, uncertainty in discharge (as a standard deviation)
+#' @param nSmax integer, maximum number of segments to assess
+#' @param nMin integer, minimum number of observations by segment
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles.
+#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim integer, MCMC slim step
+#' @param temp.folder directory, temporary directory to write computations
+#'
+#' @return List with the following components :
+#' \enumerate{
+#'   \item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
+#'   \item shift: data frame, all detected shift time
+#'   \item tau: real vector, estimated shift times
+#'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
+#'   \item mcmc: data frame, MCMC simulation
+#'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
+#'   \item DIC: real, DIC estimation
+#'   \item nS: integer, optimal number of segments following DIC criterion
+#'   \item tree : data frame, table for tree structure after segmentation
+#' }
+#' @export
+#'
+#' @examples
 recurvise.ModelAndSegmentation <- function(H,
                                            Q,
                                            time=1:length(H),

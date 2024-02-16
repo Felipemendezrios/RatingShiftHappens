@@ -19,7 +19,7 @@ plotTree <- function(tree){
   DF=tree
   n=NROW(DF)
   # Add columns for x/y's of nodes and arrows
-  DF$y=-1*DF$level+rnorm(n,0,0.2)
+  DF$y=-1*DF$level+stats::rnorm(n,0,0.2)
   DF$x=0*DF$y
   DF$xstart=DF$xend=DF$ystart=DF$yend=NA*DF$y
   DF$isTerminal=FALSE
