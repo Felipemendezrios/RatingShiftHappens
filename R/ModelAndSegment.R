@@ -36,14 +36,20 @@ recurvise.ModelAndSegmentation <- function(H,
     m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
     for(j in 1:n.residuals){ # Loop on each node
       k=k+1 # Increment main counter
-      partial.segmentation=segmentation(obs=residuals[[j]],
-                                        time=TIME[[j]],
-                                        u=u_residuals[[j]],
-                                        nSmax,nMin,nCycles,burn,nSlim,temp.folder) # Apply segmentation to subseries stored in node residuals[[j]]
-      # Save results for this node
-      allRes[[k]]=partial.segmentation
-      # Save optimal number of segments
-      nSopt=partial.segmentation$nS
+      # When the residual cannot be computed by any limitation of the rating curve model, hence terminal node.
+      if(any(is.na(residuals[[j]]))){
+        nSopt=1
+        ##
+      }else{
+        partial.segmentation=segmentation(obs=residuals[[j]],
+                                          time=TIME[[j]],
+                                          u=u_residuals[[j]],
+                                          nSmax,nMin,nCycles,burn,nSlim,temp.folder) # Apply segmentation to subseries stored in node residuals[[j]]
+        # Save results for this node
+        allRes[[k]]=partial.segmentation
+        # Save optimal number of segments
+        nSopt=partial.segmentation$nS
+      }
       # Update recursion tree
       tree=rbind(tree,data.frame(indx=k,level=level,parent=parents[j],nS=nSopt))
       # This was the trickiest part: keeping track of indices and parents
