@@ -66,9 +66,14 @@ recurvise.ModelAndSegmentation <- function(H,
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           # Update rating curve estimation
           residualsData[[p]] <- fitRC(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,funk=fitRC_loess)
+          if(any(is.na(residualsData[[p]]))){
+            new_residuals[[m]]=NA # Save ith segment (on a total of nS)
+            new_u_residuals[[m]]=NA # Save corresponding uncertainty
+          }else{
           # update residual of new rating curve
           new_residuals[[m]]=residualsData[[p]]$Q_res # Save ith segment (on a total of nS)
           new_u_residuals[[m]]=residualsData[[p]]$uQ_sim # Save corresponding uncertainty
+          }
         }
       }
     }
