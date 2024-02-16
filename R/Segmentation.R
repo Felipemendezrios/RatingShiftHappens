@@ -273,6 +273,8 @@ segmentation <- function(obs,
   for(i in (1:nSmax)){
     nS <- i
     if(length(obs)<nS){
+      warning(paste0('NA returned because the number of observations (',length(obs),
+                     ') is lower than the number of segments (',nS,')'))
       DICs [i] <- NA
     }else{
       res[[i]] <- segmentation.engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
