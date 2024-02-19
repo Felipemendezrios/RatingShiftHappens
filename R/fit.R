@@ -93,28 +93,3 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 
 
 
-#' fit
-#'
-#' @param time real vector, time
-#' @param H real vector, stage
-#' @param Q real vector, discharge
-#' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#' @param funk rating curve model
-#' @param ... input variable of each model
-#'
-#' @return value
-fitRC <- function(time,H,Q,uQ=0,funk=fitRC_loess,...){
-
-  if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ))){
-    stop('Missing values not allowed in time, stage, discharge or uncertainty')
-  }
-
-  check <- check_vector_lengths(time,H,Q,uQ)
-  if(is.null(check)){
-    stop('time, hauteur, discharge or uncertainty do not have the same length')
-  }
-  return(results = funk(time,H,Q,uQ,...))
-}
-
-
-

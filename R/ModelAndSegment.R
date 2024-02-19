@@ -12,7 +12,12 @@
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
+#' @param funk the function for estimating the rating curve to be applied: see ‘Details’
+#' @param ... optional arguments to funk
 #'
+#' @details
+#' Some functions for estimating the rating curve are available in this package. Use ?GetCatalog() to discover the supported functions
+
 #' @return List with the following components :
 #' \enumerate{
 #'   \item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
@@ -53,7 +58,8 @@ recursive.ModelAndSegmentation <- function(H,
                                            nCycles=100,
                                            burn=0.5,
                                            nSlim=max(nCycles/10,1),
-                                           temp.folder=file.path(tempdir(),'BaM')){
+                                           temp.folder=file.path(tempdir(),'BaM'),
+                                           funk=fitRC_loess,...){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
@@ -64,7 +70,16 @@ recursive.ModelAndSegmentation <- function(H,
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
   continue=TRUE # Logical determining whether recursion should continue
 
-  residualsData <- list(fitRC(time=time,H=H,Q=Q,uQ=uQ,funk=fitRC_loess)) # initialize first residual data to be segmented
+  if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ))){
+    stop('Missing values not allowed in time, stage, discharge or uncertainty')
+  }
+
+  check <- check_vector_lengths(time,H,Q,uQ)
+  if(is.null(check)){
+    stop('time, hauteur, discharge or uncertainty do not have the same length')
+  }
+
+  residualsData <- list(funk(time=time,H=H,Q=Q,uQ=uQ)) # initialize first residual data to be segmented
 
   if(is.null(residualsData)){
     stop('There is not enough data to run the segmentation model')
@@ -111,7 +126,7 @@ recursive.ModelAndSegmentation <- function(H,
           NewQ=residualsData[[newParents[m]]]$Q_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           # Update rating curve estimation
-          residualsData[[p]] <- fitRC(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,funk=fitRC_loess)
+          residualsData[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ)
           if(any(is.na(residualsData[[p]]))){
             new_residuals[[m]]=NA # Save ith segment (on a total of nS)
             new_u_residuals[[m]]=NA # Save corresponding uncertainty
