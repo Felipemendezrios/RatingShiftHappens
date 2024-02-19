@@ -10,21 +10,40 @@
 #' @source \url{https://doi.org/10.1016/j.jhydrol.2023.129840}
 "RhoneRiver"
 
-#' Annual minimum stage record of the Ardèche River at Meyras, France
+#' Stage record of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
 #'
-#' A data frame containing annual minimum stages (H, in meters) for the Ardèche River
-#' at Meyras, France, along with by associated random uncertainties from 1988 until 2022.
-#' Assumption: uncertainties follow a normal distribution with a mean of 0.08 meters
-#' and a standard deviation of 0.04 meters.
+#' A data frame containing stages (H, in meters) for the Ardèche River
+#' at Meyras, France, from 07/11/2001 until 29/10/2018
 #'
 #' @format
 #' \describe{
-#'   \item{Year}{Year}
+#'   \item{Date}{Date time}
 #'   \item{H}{Stage record}
-#'   \item{uH}{Uncertainty expressed as standard deviation (Random realisation)}
 #' }
-#' Details from stage record available in :
-#' @source\url{https://hydro.eaufrance.fr/stationhydro/V500403001/series}
-"ArdecheRiver"
+#' More information about dataset available in :
+#' @source\url{https://www.theses.fr/2021GRALU006}
+"ArdecheRiverMeyrasStage"
 
+#' Gauging of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
+#'
+#' A data frame containing stages (H, in meters) and discharges ADCP measurements
+#' (Q, in cubic meters per second) for the Ardèche River at Meyras, France, along with
+#' along with the associated uncertainties expressed as standard deviations (uQ) from 2001 until 2018
+#'
+#' @format
+#' \describe{
+#'   \item{Day}{Day}
+#'   \item{Month}{Month}
+#'   \item{Year}{Year}
+#'   \item{Hour}{Hour}
+#'   \item{Minute}{Minute}
+#'   \item{Second}{Second}
+#'   \item{Date}{Date time}
+#'   \item{H}{Stage record}
+#'   \item{Q}{Discharge ADCP measurement}
+#'   \item{uQ}{Uncertainty expressed as standard deviation}
+#' }
+#' More information about dataset available in :
+#' @source\url{https://www.theses.fr/2021GRALU006}
+"ArdecheRiverMeyrasGaugings"
 
