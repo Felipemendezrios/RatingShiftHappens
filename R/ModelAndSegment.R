@@ -16,7 +16,7 @@
 #' @param ... optional arguments to funk
 #'
 #' @details
-#' Some functions for estimating the rating curve are available in this package. Use ?GetCatalog() to discover the supported functions
+#' Some functions for estimating the rating curve are available in this package. Use `?GetCatalog()` to discover the supported functions
 
 #' @return List with the following components :
 #' \enumerate{
