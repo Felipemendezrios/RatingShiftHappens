@@ -11,9 +11,9 @@ DateTimeString <- paste(DateString, TimeString, sep = " ")
 
 ArdecheRiverMeyrasGaugingsDate$Date <-  as.POSIXct(DateTimeString, format = '%d/%m/%Y %H:%M:%S')
 
-ArdecheRiverMeyrasGaugingsDF=data.frame(ArdecheRiverMeyrasGaugingsDate,
+ArdecheRiverMeyrasGaugings=data.frame(ArdecheRiverMeyrasGaugingsDate,
                                         H=ArdecheRiverMeyrasGaugingsTemp$H,
                                         Q=ArdecheRiverMeyrasGaugingsTemp$Q,
                                         uQ=ArdecheRiverMeyrasGaugingsTemp$Q*ArdecheRiverMeyrasGaugingsTemp$Qsigma/100
                                         )
-save(ArdecheRiverMeyrasGaugingsDF,file='data/ArdecheRiverMeyrasGaugingsDF.RData')
+save(ArdecheRiverMeyrasGaugings,file='data/ArdecheRiverMeyrasGaugings.RData')
