@@ -19,7 +19,7 @@ segmentation(
 \arguments{
 \item{obs}{real vector, observations}
 
-\item{time}{real vector, time}
+\item{time}{real vector, time in POSIXct, string or numeric format}
 
 \item{u}{real vector, uncertainty in observations (as a standard deviation)}
 
@@ -39,8 +39,8 @@ segmentation(
 List with the following components :
 \enumerate{
 \item data: data frame, all data with their respective periods after segmentation
-\item shift: data frame, all detected shift time
-\item tau: real vector, estimated shift times
+\item shift: data frame, all detected shift time in numeric or POSIXct format in UTC
+\item tau: real vector, estimated shift times in numeric or POSIXct format in UTC
 \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 \item mcmc: data frame, MCMC simulation
 \item data.p: list, separate and assign information by identified stable period indexed by the list number
