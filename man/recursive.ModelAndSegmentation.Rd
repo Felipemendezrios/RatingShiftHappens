@@ -24,7 +24,7 @@ recursive.ModelAndSegmentation(
 
 \item{Q}{real vector, discharge}
 
-\item{time}{real vector, time}
+\item{time}{vector, time in POSIXct, string or numeric format}
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 
@@ -66,7 +66,10 @@ Some functions for estimating the rating curve are available in this package. Us
 }
 \examples{
 # Apply recursive segmentation
-results=recursive.ModelAndSegmentation(H=RhoneRiver$H,Q=RhoneRiver$Q,time=RhoneRiver$Time,uQ=RhoneRiver$uQ,nSmax=2)
+results=recursive.ModelAndSegmentation(H=RhoneRiver$H,Q=RhoneRiver$Q,
+                                       time=RhoneRiver$Time,
+                                       uQ=RhoneRiver$uQ,
+                                       nSmax=2)
 
 # Data information
 knitr::kable(head(results$summary$data),

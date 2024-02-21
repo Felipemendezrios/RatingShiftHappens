@@ -4,7 +4,7 @@
 #'
 #' @param H real vector, stage
 #' @param Q real vector, discharge
-#' @param time real vector, time
+#' @param time vector, time in POSIXct, string or numeric format
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param nSmax integer, maximum number of segments to assess
 #' @param nMin integer, minimum number of observations by segment
@@ -34,7 +34,10 @@
 #'
 #' @examples
 #' # Apply recursive segmentation
-#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,Q=RhoneRiver$Q,time=RhoneRiver$Time,uQ=RhoneRiver$uQ,nSmax=2)
+#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,Q=RhoneRiver$Q,
+#'                                        time=RhoneRiver$Time,
+#'                                        uQ=RhoneRiver$uQ,
+#'                                        nSmax=2)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),
@@ -79,7 +82,7 @@ recursive.ModelAndSegmentation <- function(H,
     stop('time, hauteur, discharge or uncertainty do not have the same length')
   }
 
-  residualsData <- list(funk(time=time,H=H,Q=Q,uQ=uQ)) # initialize first residual data to be segmented
+    residualsData <- list(funk(time=time,H=H,Q=Q,uQ=uQ)) # initialize first residual data to be segmented
 
   if(is.null(residualsData)){
     stop('There is not enough data to run the segmentation model')
@@ -184,11 +187,11 @@ recursive.ModelAndSegmentation <- function(H,
     nSopt.p = allRes[[nodes.shift.time[[i]]]]$nS
     results.p = allRes[[nodes.shift.time[[i]]]]$results
 
-    shift.time.p=cbind(c(results.p[[nSopt.p]]$tau))
+    shift.time.p=data.frame(c(results.p[[nSopt.p]]$tau))
 
     for(j in 1:(nSopt.p-1)){
 
-      shift.time.p.unc=data.frame(tau=as.numeric(shift.time.p[j,]),
+      shift.time.p.unc=data.frame(tau=shift.time.p[j,],
                                   I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
                                                             probs=c(0.025)),
                                   I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
@@ -197,8 +200,15 @@ recursive.ModelAndSegmentation <- function(H,
                      shift.time.p.unc)
     }
   }
-
+  rownames(shift) <- NULL
   shift <- shift[order(shift$tau),]
+
+  # Transform uncertainty on the shift in POSIXct format
+  if(all(is.numeric(shift$tau)!=TRUE)){
+    shift <- data.frame(lapply(shift, function(column) {
+      as.POSIXct(column, origin = "1970-01-01", tz = "UTC")
+    }))
+  }
 
   return(list(summary=list(data=data,
                            shift=shift),
