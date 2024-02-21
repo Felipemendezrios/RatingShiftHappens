@@ -116,9 +116,17 @@ plotSegmentation <- function(summary) {
                   ymax = Inf,
                   fill=(factor(tau))),
               alpha=0.6)+
-    labs(fill='Shift time')+
-    scale_fill_manual(values=getPalette_tau(colourCount_tau),
-                      labels=round(shift$tau,2))
+    labs(fill='Shift time')
+
+  if(is.numeric(shift$tau)){
+    g=g+
+      scale_fill_manual(values=getPalette_tau(colourCount_tau),
+                        labels=round(shift$tau,2))
+  }else{
+    g=g+
+      scale_fill_manual(values=getPalette_tau(colourCount_tau),
+                        labels=round(shift$tau,units='days'))
+  }
 
   return(g)
 }
