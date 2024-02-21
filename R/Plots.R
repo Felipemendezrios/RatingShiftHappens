@@ -159,9 +159,13 @@ plotModelAndSegmentation <- function(summary) {
 
   # Add some colors to the palette for observations
   colourCount_obs = length(unique(data$period))
-  getPalette_obs =  grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Dark2"))
+  getPalette_obs =  scales::viridis_pal(option='D')
 
-  # Plot observations by period
+  # Add some colors to the palette for shift
+  colourCount_tau = length(unique(shift$tau))
+  getPalette_tau = scales::viridis_pal(option = "C")
+
+  # Plot RC by period
   plotRC=ggplot(data)+
     geom_point(aes(x=H,
                    y=Q,
@@ -183,12 +187,21 @@ plotModelAndSegmentation <- function(summary) {
                                     size=15),
           legend.title.align=0.5)
 
-  # Add some colors to the palette for observations
-  colourCount_tau = length(unique(shift$tau))
-  getPalette_tau = grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "Pastel1"))
+  # Plot shift times
+  PlotStageSegmentation=ggplot(data)+
+    geom_vline(xintercept = shift$tau,alpha=0.8)+
+    coord_cartesian(ylim = c(min(data$H),max(data$H)))+
+    geom_rect(data = shift,
+              aes(xmin = I95_lower,
+                  xmax = I95_upper,
+                  ymin = -Inf,
+                  ymax = Inf,
+                  fill=(factor(tau))),
+              alpha=0.6)+
+    labs(fill='Shift time')
 
   # Plot observations by period
-  PlotStageSegmentation=ggplot(data)+
+  PlotStageSegmentation=PlotStageSegmentation+
     geom_point(aes(x=time,
                    y=H,
                    col=factor(period)))+
@@ -203,18 +216,6 @@ plotModelAndSegmentation <- function(summary) {
                                     size=15),
           legend.title.align=0.5)
 
-  # Plot shift times
-  PlotStageSegmentation=PlotStageSegmentation+
-    geom_vline(xintercept = shift$tau,alpha=0.8)+
-    coord_cartesian(ylim = c(min(data$H),max(data$H)))+
-    geom_rect(data = shift,
-              aes(xmin = I95_lower,
-                  xmax = I95_upper,
-                  ymin = -Inf,
-                  ymax = Inf,
-                  fill=(factor(tau))),
-              alpha=0.6)+
-    labs(fill='Shift time')
 
   if(is.numeric(shift$tau)){
     PlotStageSegmentation=PlotStageSegmentation+
