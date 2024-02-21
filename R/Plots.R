@@ -79,10 +79,27 @@ plotSegmentation <- function(summary) {
 
   # Add some colors to the palette for observations
   colourCount_obs = length(unique(data$period))
-  getPalette_obs =  grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Dark2"))
+  getPalette_obs =  scales::viridis_pal(option='D')
+
+  # Add some colors to the palette for shift
+  colourCount_tau = length(unique(shift$tau))
+  getPalette_tau = scales::viridis_pal(option = "C")
+
+  # Plot shift times
+  g=ggplot(data)+
+    geom_vline(xintercept = shift$tau,alpha=0.8)+
+    coord_cartesian(ylim = c(min(data$I95_lower),max(data$I95_upper)))+
+    geom_rect(data = shift,
+              aes(xmin = I95_lower,
+                  xmax = I95_upper,
+                  ymin = -Inf,
+                  ymax = Inf,
+                  fill=(factor(tau))),
+              alpha=0.4)+
+    labs(fill='Shift time')
 
   # Plot observations by period
-  g=ggplot(data)+
+  g=g+
     geom_point(aes(x=time,
                    y=obs,
                    col=factor(period)))+
@@ -101,22 +118,6 @@ plotSegmentation <- function(summary) {
                                     face='bold',
                                     size=15),
           legend.title.align=0.5)
-
-  # Add some colors to the palette for observations
-  colourCount_tau = length(unique(shift$tau))
-  getPalette_tau = grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "Pastel1"))
-  # Plot shift times
-  g=g+
-    geom_vline(xintercept = shift$tau,alpha=0.8)+
-    coord_cartesian(ylim = c(min(data$I95_lower),max(data$I95_upper)))+
-    geom_rect(data = shift,
-              aes(xmin = I95_lower,
-                  xmax = I95_upper,
-                  ymin = -Inf,
-                  ymax = Inf,
-                  fill=(factor(tau))),
-              alpha=0.6)+
-    labs(fill='Shift time')
 
   if(is.numeric(shift$tau)){
     g=g+
