@@ -131,3 +131,100 @@ plotSegmentation <- function(summary) {
   return(g)
 }
 
+#' Plot segmentation with the updated rating curve
+#'
+#' Plot the final segmentation with the updated rating curve,
+#' displaying shift time along with uncertainties
+#'
+#' @param summary list, summary data resulting from model and segmentation function
+#'
+#' @return a ggplot
+#'
+#' @examples
+#' # Apply recursive segmentation
+#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
+#'                                        Q=RhoneRiver$Q,
+#'                                        time=RhoneRiver$Year,
+#'                                        uQ=RhoneRiver$uH)
+#'
+#' # plot recursive segmentation
+#' plotModelAndSegmentation(summary=results$summary)
+#' @export
+#' @import  ggplot2
+plotModelAndSegmentation <- function(summary) {
+
+  data=summary$data
+  shift=summary$shift
+
+  # Add some colors to the palette for observations
+  colourCount_obs = length(unique(data$period))
+  getPalette_obs =  grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Dark2"))
+
+  # Plot observations by period
+  plotRC=ggplot(data)+
+    geom_point(aes(x=H,
+                   y=Q,
+                   col=factor(period)))+
+    geom_errorbar(aes(x=H,
+                      y=Q,
+                      ymin=I95_lower,
+                      ymax=I95_upper,
+                      col=factor(period)),
+                  width=0.1)+
+    labs(x='Stage (m)',
+         y='Discharge m3/s',
+         col='Period',
+         title = 'Rating curve and segmentation')+
+    scale_color_manual(values = getPalette_obs(colourCount_obs))+
+    theme_bw()+
+    theme(plot.title = element_text(hjust=0.5,
+                                    face='bold',
+                                    size=15),
+          legend.title.align=0.5)
+
+  # Add some colors to the palette for observations
+  colourCount_tau = length(unique(shift$tau))
+  getPalette_tau = grDevices::colorRampPalette(RColorBrewer::brewer.pal(9, "Pastel1"))
+
+  # Plot observations by period
+  PlotStageSegmentation=ggplot(data)+
+    geom_point(aes(x=time,
+                   y=H,
+                   col=factor(period)))+
+    labs(x='Time',
+         y='Stage m',
+         col='Period',
+         title = 'Stage record and segmentation')+
+    scale_color_manual(values = getPalette_obs(colourCount_obs))+
+    theme_bw()+
+    theme(plot.title = element_text(hjust=0.5,
+                                    face='bold',
+                                    size=15),
+          legend.title.align=0.5)
+
+  # Plot shift times
+  PlotStageSegmentation=PlotStageSegmentation+
+    geom_vline(xintercept = shift$tau,alpha=0.8)+
+    coord_cartesian(ylim = c(min(data$H),max(data$H)))+
+    geom_rect(data = shift,
+              aes(xmin = I95_lower,
+                  xmax = I95_upper,
+                  ymin = -Inf,
+                  ymax = Inf,
+                  fill=(factor(tau))),
+              alpha=0.6)+
+    labs(fill='Shift time')
+
+  if(is.numeric(shift$tau)){
+    PlotStageSegmentation=PlotStageSegmentation+
+      scale_fill_manual(values=getPalette_tau(colourCount_tau),
+                        labels=round(shift$tau,2))
+  }else{
+    PlotStageSegmentation=PlotStageSegmentation+
+      scale_fill_manual(values=getPalette_tau(colourCount_tau),
+                        labels=round(shift$tau,units='days'))
+  }
+
+  return(list(plotRC=plotRC,
+              PlotStageSegmentation=PlotStageSegmentation))
+}
