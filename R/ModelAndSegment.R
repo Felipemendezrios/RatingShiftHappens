@@ -133,6 +133,14 @@ recursive.ModelAndSegmentation <- function(H,
           if(any(is.na(residualsData[[p]]))){
             new_residuals[[m]]=NA # Save ith segment (on a total of nS)
             new_u_residuals[[m]]=NA # Save corresponding uncertainty
+            residualsData[[p]] =data.frame(time=newTIME[[m]],     # Save data of terminal
+                                           H=NewH,
+                                           Q_obs=NewQ,
+                                           Q_sim=NA,
+                                           Q_res=NA,
+                                           uQ_obs=NewuQ,
+                                           uQ_sim=NA
+                                           )
           }else{
           # update residual of new rating curve
           new_residuals[[m]]=residualsData[[p]]$Q_res # Save ith segment (on a total of nS)
@@ -153,18 +161,17 @@ recursive.ModelAndSegmentation <- function(H,
   # Get terminal nodes
   terminal=which(tree$nS==1)
 
-  # Get stable periods by adding information as period, segment,
+  # Get stable periods by adding information about information to be returned
   data <- c()
   for(i in 1:length(terminal)){
-    data.stable.p=allRes[[terminal[i]]]$results[[1]]   #Save data from stable period
-
-    node = data.frame(time=data.stable.p$data.p$time.p,
-                      obs=data.stable.p$data.p$obs.p,
-                      u=data.stable.p$data.p$u.p,
-                      I95_lower=data.stable.p$data.p$obs.p+stats::qnorm(0.025)*data.stable.p$data.p$u.p,
-                      I95_upper=data.stable.p$data.p$obs.p+stats::qnorm(0.975)*data.stable.p$data.p$u.p,
-                      id = rep(i,length(data.stable.p$data.p$obs.p)))
-
+    data.stable.p=residualsData[[terminal[[i]]]] # Save data from stable period
+    node = data.frame(time=data.stable.p$time,
+                      H=data.stable.p$H,
+                      Q=data.stable.p$Q_obs,
+                      uQ=data.stable.p$uQ_obs,
+                      I95_lower=data.stable.p$Q_obs+stats::qnorm(0.025)*data.stable.p$uQ_obs,
+                      I95_upper=data.stable.p$Q_obs+stats::qnorm(0.975)*data.stable.p$uQ_obs,
+                      id = rep(i,length(data.stable.p$Q_obs)))
     data = rbind(data,node)
   }
 
