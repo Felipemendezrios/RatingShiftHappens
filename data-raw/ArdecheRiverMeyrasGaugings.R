@@ -9,7 +9,7 @@ DateString <- paste(ArdecheRiverMeyrasGaugingsDate$Day, ArdecheRiverMeyrasGaugin
 TimeString <- paste(ArdecheRiverMeyrasGaugingsDate$Hour, ArdecheRiverMeyrasGaugingsDate$Minute, ArdecheRiverMeyrasGaugingsDate$Second, sep = ":")
 DateTimeString <- paste(DateString, TimeString, sep = " ")
 
-ArdecheRiverMeyrasGaugingsDate$Date <-  as.POSIXct(DateTimeString, format = '%d/%m/%Y %H:%M:%S')
+ArdecheRiverMeyrasGaugingsDate$Date <-  as.POSIXct(DateTimeString, format = '%d/%m/%Y %H:%M:%S' , tz='UTC')
 
 ArdecheRiverMeyrasGaugings=data.frame(ArdecheRiverMeyrasGaugingsDate,
                                         H=ArdecheRiverMeyrasGaugingsTemp$H,

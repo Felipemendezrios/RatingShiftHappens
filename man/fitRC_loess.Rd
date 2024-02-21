@@ -42,7 +42,8 @@ plot(fit$H, fit$Q_obs, ylim = range(c(fit$Q_obs - fit$uQ_obs, fit$Q_obs + fit$uQ
      xlab = "H", ylab = "Q_obs")
 
 # Add error bars following uQ_obs
-arrows(fit$H, fit$Q_obs - fit$uQ_obs, fit$H, fit$Q_obs + fit$uQ_obs, angle = 90, code = 3, length = 0.1)
+arrows(fit$H, fit$Q_obs - fit$uQ_obs, fit$H, fit$Q_obs + fit$uQ_obs, angle = 90,
+       code = 3, length = 0.1)
 
 # Loess model regression
 lines(x=fit$H,y=fit$Q_sim, col="blue",lty=3, lwd=2)
@@ -50,6 +51,7 @@ lines(x=fit$H,y=fit$Q_sim, col="blue",lty=3, lwd=2)
 # plot residuals
 plot(x=fit$time,y=fit$Q_res, ylim = range(c(fit$Q_res - fit$uQ_obs, fit$Q_res + fit$uQ_obs)),
      xlab='H', ylab='Residual')
-arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90, code = 3, length = 0.1)
+arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
+       code = 3, length = 0.1)
 abline(h=0, col='red')
 }
