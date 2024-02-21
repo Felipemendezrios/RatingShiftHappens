@@ -139,7 +139,11 @@ plotSegmentation <- function(summary) {
 #'
 #' @param summary list, summary data resulting from model and segmentation function
 #'
-#' @return a ggplot
+#' @return  List with the following components :
+#' \enumerate{
+#'   \item plotRC=plotRC: ggplot, rating curve after segmentation
+#'   \item PlotStageSegmentation: ggplot, stage record and shift times
+#' }
 #'
 #' @examples
 #' # Apply recursive segmentation

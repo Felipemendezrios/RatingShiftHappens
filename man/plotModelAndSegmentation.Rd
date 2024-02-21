@@ -10,7 +10,11 @@ plotModelAndSegmentation(summary)
 \item{summary}{list, summary data resulting from model and segmentation function}
 }
 \value{
-a ggplot
+List with the following components :
+\enumerate{
+\item plotRC=plotRC: ggplot, rating curve after segmentation
+\item PlotStageSegmentation: ggplot, stage record and shift times
+}
 }
 \description{
 Plot the final segmentation with the updated rating curve,
