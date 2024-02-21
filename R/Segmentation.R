@@ -3,7 +3,7 @@
 #' Segmentation procedure for a \strong{known} given number of segments
 #'
 #' @param obs real vector, observations
-#' @param time real vector, time
+#' @param time vector, time in POSIXct, string or numeric format
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nS integer, number of segments
 #' @param nMin integer, minimum number of observations by segment
@@ -15,8 +15,8 @@
 #' @return List with the following components :
 #' \enumerate{
 #'   \item data: data frame, all data with their respective periods after segmentation
-#'   \item shift: data frame, all detected shift time
-#'   \item tau: real vector, estimated shift times
+#'   \item shift: data frame, all detected shift time in numeric or POSIXct format in UTC
+#'   \item tau: real vector, estimated shift times in numeric or POSIXct format in UTC
 #'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
@@ -58,6 +58,12 @@ segmentation.engine <- function(obs,
   }
   if(nS<=0){
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
+  }
+  # Check time format
+  numeric.check=TRUE
+  if(!is.numeric(time)){
+    time <- DateFormatTransform(time)
+    numeric.check=FALSE
   }
 
   # sort data frame case time not ascending
@@ -146,6 +152,9 @@ segmentation.engine <- function(obs,
 
   simulation.MAP <- resid.segm$Y1_sim
 
+  if(numeric.check!=TRUE){
+    time = as.POSIXct(time, origin = "1970-01-01", tz = "UTC")
+  }
   data = data.frame(time=time,
                     obs=obs,
                     u=u,
@@ -176,10 +185,18 @@ segmentation.engine <- function(obs,
         shift <- rbind(shift,
                        shift.time.p.unc)
     }
-
+    rownames(shift) <- NULL
     shift <- shift[order(shift$tau),]
 
+    if(numeric.check!=TRUE &  all(shift$tau!= 0)){
+      # Transform all time in POSIXct format
+      shift <- data.frame(lapply(shift, function(column) {
+        as.POSIXct(column, origin = "1970-01-01", tz = "UTC")
+      }))
+
+    }
     tau.MAP <- shift$tau
+
     # Store sub series into a list
     obss=segments.MAP=times=us=periods=vector(mode='list',length=nS)
     intervals.time.shift=c(-Inf,tau.MAP,Inf) # intervals defined by time shifts
@@ -210,7 +227,7 @@ segmentation.engine <- function(obs,
 #' Segmentation procedure for an \strong{unknown} given number of segments
 #'
 #' @param obs real vector, observations
-#' @param time real vector, time
+#' @param time real vector, time in POSIXct, string or numeric format
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nSmax integer, maximum number of segments to assess
 #' @param nMin integer, minimum number of observations by segment
@@ -222,8 +239,8 @@ segmentation.engine <- function(obs,
 #' @return List with the following components :
 #' \enumerate{
 #'   \item data: data frame, all data with their respective periods after segmentation
-#'   \item shift: data frame, all detected shift time
-#'   \item tau: real vector, estimated shift times
+#'   \item shift: data frame, all detected shift time in numeric or POSIXct format in UTC
+#'   \item tau: real vector, estimated shift times in numeric or POSIXct format in UTC
 #'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
@@ -296,7 +313,7 @@ segmentation <- function(obs,
 #' Recursive segmentation procedure for an \strong{unknown} number of segments
 #'
 #' @param obs real vector, observations
-#' @param time real vector, time
+#' @param time real vector, time in POSIXct, string or numeric format
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @param nSmax integer, maximum number of segments to assess
 #' @param nMin integer, minimum number of observations by segment
@@ -308,8 +325,8 @@ segmentation <- function(obs,
 #' @return List with the following components :
 #' \enumerate{
 #'   \item data: data frame, all data with their respective periods after segmentation
-#'   \item shift: data frame, all detected shift time
-#'   \item tau: real vector, estimated shift times
+#'   \item shift: data frame, all detected shift time in numeric or POSIXct format in UTC
+#'   \item tau: real vector, estimated shift times in numeric or POSIXct format in UTC
 #'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
@@ -433,11 +450,11 @@ recursive.segmentation <- function(obs,
     nSopt.p = allRes[[nodes.shift.time[[i]]]]$nS
     results.p = allRes[[nodes.shift.time[[i]]]]$results
 
-    shift.time.p=cbind(c(results.p[[nSopt.p]]$tau))
+    shift.time.p=data.frame(c(results.p[[nSopt.p]]$tau))
 
     for(j in 1:(nSopt.p-1)){
 
-      shift.time.p.unc=data.frame(tau=as.numeric(shift.time.p[j,]),
+      shift.time.p.unc=data.frame(tau=shift.time.p[j,],
                                   I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
                                                             probs=c(0.025)),
                                   I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
@@ -447,7 +464,15 @@ recursive.segmentation <- function(obs,
     }
   }
 
+  rownames(shift) <- NULL
   shift <- shift[order(shift$tau),]
+
+  # Transform uncertainty on the shift in POSIXct format
+  if(all(is.numeric(shift$tau)!=TRUE)){
+    shift <- data.frame(lapply(shift, function(column) {
+      as.POSIXct(column, origin = "1970-01-01", tz = "UTC")
+    }))
+  }
 
   return(list(summary=list(data=data,
                            shift=shift),
