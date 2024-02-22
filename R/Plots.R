@@ -255,7 +255,8 @@ plotModelAndSegmentation <- function(summary) {
                                                shift=shift))
 
   plotresidual=plotresidual+
-    guides(col=FALSE)
+    guides(col=FALSE)+
+    ylab('Residual (m3/s)')
 
   return(list(plotRC=plotRC,
               PlotStageSegmentation=PlotStageSegmentation,
