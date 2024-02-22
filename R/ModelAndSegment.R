@@ -169,8 +169,13 @@ recursive.ModelAndSegmentation <- function(H,
                       H=data.stable.p$H,
                       Q=data.stable.p$Q_obs,
                       uQ=data.stable.p$uQ_obs,
-                      I95_lower=data.stable.p$Q_obs+stats::qnorm(0.025)*data.stable.p$uQ_obs,
-                      I95_upper=data.stable.p$Q_obs+stats::qnorm(0.975)*data.stable.p$uQ_obs,
+                      Q_I95_lower=data.stable.p$Q_obs+stats::qnorm(0.025)*data.stable.p$uQ_obs,
+                      Q_I95_upper=data.stable.p$Q_obs+stats::qnorm(0.975)*data.stable.p$uQ_obs,
+                      Qsim=data.stable.p$Q_sim,
+                      uQ_sim=data.stable.p$uQ_sim,
+                      Qsim_I95_lower=data.stable.p$Q_sim+stats::qnorm(0.025)*data.stable.p$uQ_sim,
+                      Qsim_I95_upper=data.stable.p$Q_sim+stats::qnorm(0.975)*data.stable.p$uQ_sim,
+                      Qres=data.stable.p$Q_res,
                       id = rep(i,length(data.stable.p$Q_obs)))
     data = rbind(data,node)
   }
