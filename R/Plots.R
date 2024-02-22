@@ -141,20 +141,33 @@ plotSegmentation <- function(summary) {
 #'
 #' @return  List with the following components :
 #' \enumerate{
-#'   \item plotRC=plotRC: ggplot, rating curve after segmentation
+#'   \item plotRC: ggplot, rating curve after segmentation
+#'   \item plotRCLog= ggplot, rating curve in log scale after segmentation
 #'   \item PlotStageSegmentation: ggplot, stage record and shift times
 #'   \item plotresidual: ggplot, residual segmentation
 #' }
 #'
 #' @examples
-#' # Apply recursive segmentation
+#' # Apply recursive model and segmentation function
 #' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
 #'                                        Q=RhoneRiver$Q,
 #'                                        time=RhoneRiver$Year,
 #'                                        uQ=RhoneRiver$uH)
 #'
-#' # plot recursive segmentation
-#' plotModelAndSegmentation(summary=results$summary)
+#' # plot recursive model and segmentation function
+#' plots=plotModelAndSegmentation(summary=results$summary)
+#'
+#' # Rating curve
+#' plots$plotRC
+#'
+#' # Rating curve in log scale
+#' plots$plotRCLog
+#'
+#' # Plot stage record and shift estimated
+#' plots$PlotStageSegmentation
+#'
+#' # Plot final residual
+#' plots$plotresidual
 #' @export
 #' @import  ggplot2
 plotModelAndSegmentation <- function(summary) {
@@ -203,6 +216,10 @@ plotModelAndSegmentation <- function(summary) {
                                     face='bold',
                                     size=15),
           legend.title.align=0.5)
+
+  # Plot RC by period in log scale
+  plotRCLog=plotRC+coord_trans(y='log10')
+
 
   # Plot shift times
   PlotStageSegmentation=ggplot(data)+
@@ -259,6 +276,7 @@ plotModelAndSegmentation <- function(summary) {
     ylab('Residual (m3/s)')
 
   return(list(plotRC=plotRC,
+              plotRCLog=plotRCLog,
               PlotStageSegmentation=PlotStageSegmentation,
               plotresidual=plotresidual))
 }

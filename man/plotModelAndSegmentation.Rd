@@ -12,8 +12,10 @@ plotModelAndSegmentation(summary)
 \value{
 List with the following components :
 \enumerate{
-\item plotRC=plotRC: ggplot, rating curve after segmentation
+\item plotRC: ggplot, rating curve after segmentation
+\item plotRCLog= ggplot, rating curve in log scale after segmentation
 \item PlotStageSegmentation: ggplot, stage record and shift times
+\item plotresidual: ggplot, residual segmentation
 }
 }
 \description{
@@ -21,12 +23,24 @@ Plot the final segmentation with the updated rating curve,
 displaying shift time along with uncertainties
 }
 \examples{
-# Apply recursive segmentation
+# Apply recursive model and segmentation function
 results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
                                        Q=RhoneRiver$Q,
                                        time=RhoneRiver$Year,
                                        uQ=RhoneRiver$uH)
 
-# plot recursive segmentation
-plotModelAndSegmentation(summary=results$summary)
+# plot recursive model and segmentation function
+plots=plotModelAndSegmentation(summary=results$summary)
+
+# Rating curve
+plots$plotRC
+
+# Rating curve in log scale
+plots$plotRCLog
+
+# Plot stage record and shift estimated
+plots$PlotStageSegmentation
+
+# Plot final residual
+plots$plotresidual
 }
