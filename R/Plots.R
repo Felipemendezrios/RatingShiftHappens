@@ -143,6 +143,7 @@ plotSegmentation <- function(summary) {
 #' \enumerate{
 #'   \item plotRC=plotRC: ggplot, rating curve after segmentation
 #'   \item PlotStageSegmentation: ggplot, stage record and shift times
+#'   \item plotresidual: ggplot, residual segmentation
 #' }
 #'
 #' @examples
@@ -162,29 +163,41 @@ plotModelAndSegmentation <- function(summary) {
   shift=summary$shift
 
   # Add some colors to the palette for observations
-  colourCount_obs = length(unique(data$period))
-  getPalette_obs =  scales::viridis_pal(option='D')
+  colourCount_period = length(unique(data$period))
+  getPalette_period =  scales::viridis_pal(option='D')
 
   # Add some colors to the palette for shift
   colourCount_tau = length(unique(shift$tau))
   getPalette_tau = scales::viridis_pal(option = "C")
 
   # Plot RC by period
-  plotRC=ggplot(data)+
+  plotRC= ggplot(data)+
+    geom_ribbon(aes(x=H,
+                    ymin=Qsim_I95_lower,
+                    ymax=Qsim_I95_upper,
+                    fill=factor(period)),
+                alpha=0.5,
+                na.rm = FALSE,
+                show.legend = FALSE)+
+    geom_line(aes(x=H,
+                  y=Qsim,
+                  col=factor(period)),
+              alpha=0.7)+
+    geom_errorbar(aes(x=H,
+                      y=Q,
+                      ymin=Q_I95_lower,
+                      ymax=Q_I95_upper,
+                      col=factor(period)),
+                  width=0.1)+
     geom_point(aes(x=H,
                    y=Q,
                    col=factor(period)))+
-    geom_errorbar(aes(x=H,
-                      y=Q,
-                      ymin=I95_lower,
-                      ymax=I95_upper,
-                      col=factor(period)),
-                  width=0.1)+
     labs(x='Stage (m)',
          y='Discharge m3/s',
          col='Period',
          title = 'Rating curve and segmentation')+
-    scale_color_manual(values = getPalette_obs(colourCount_obs))+
+    scale_color_manual(values = getPalette_period(colourCount_period))+
+    scale_fill_manual(values = getPalette_period(colourCount_period))+
     theme_bw()+
     theme(plot.title = element_text(hjust=0.5,
                                     face='bold',
@@ -201,19 +214,20 @@ plotModelAndSegmentation <- function(summary) {
                   ymin = -Inf,
                   ymax = Inf,
                   fill=(factor(tau))),
-              alpha=0.6)+
+              alpha=0.4)+
     labs(fill='Shift time')
 
   # Plot observations by period
   PlotStageSegmentation=PlotStageSegmentation+
     geom_point(aes(x=time,
                    y=H,
-                   col=factor(period)))+
+                   col=factor(period)),
+               show.legend = FALSE)+
     labs(x='Time',
          y='Stage m',
          col='Period',
          title = 'Stage record and segmentation')+
-    scale_color_manual(values = getPalette_obs(colourCount_obs))+
+    scale_color_manual(values = getPalette_period(colourCount_period))+
     theme_bw()+
     theme(plot.title = element_text(hjust=0.5,
                                     face='bold',
@@ -231,6 +245,19 @@ plotModelAndSegmentation <- function(summary) {
                         labels=round(shift$tau,units='days'))
   }
 
+  # Plot residuals
+  plotresidual=plotSegmentation(summary = list(data=data.frame(time=data$time,
+                                                               obs=data$Qres,
+                                                               u=NA,
+                                                               I95_lower=(data$Q_I95_lower-data$Qsim),
+                                                               I95_upper=(data$Q_I95_upper-data$Qsim),
+                                                               period=data$period),
+                                               shift=shift))
+
+  plotresidual=plotresidual+
+    guides(col=FALSE)
+
   return(list(plotRC=plotRC,
-              PlotStageSegmentation=PlotStageSegmentation))
+              PlotStageSegmentation=PlotStageSegmentation,
+              plotresidual=plotresidual))
 }
