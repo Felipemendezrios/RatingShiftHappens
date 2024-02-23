@@ -34,10 +34,10 @@
 #'
 #' @examples
 #' # Apply recursive segmentation
-#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,Q=RhoneRiver$Q,
-#'                                        time=RhoneRiver$Time,
-#'                                        uQ=RhoneRiver$uQ,
-#'                                        nSmax=2)
+#' results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
+#'                                        time=ArdecheRiverMeyrasGaugings$Date,
+#'                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
+#'                                        nSmax=2,nMin=10)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),
@@ -89,7 +89,7 @@ recursive.ModelAndSegmentation <- function(H,
   }
   residuals=list(residualsData[[1]]$Q_res) # List of all nodes (each corresponding to a subseries of residual) to be segmented at this level. Start with a unique node corresponding to the whole series
   TIME=list(residualsData[[1]]$time) # List of corresponding times
-  u_residuals=list(residualsData[[1]]$uQ_sim) # List of corresponding uncertainties
+  u_residuals=list(sqrt(residualsData[[1]]$uQ_sim^2+residualsData[[1]]$uQ_obs^2)) # List of corresponding uncertainties
 
 
   while(continue){
@@ -144,7 +144,7 @@ recursive.ModelAndSegmentation <- function(H,
           }else{
           # update residual of new rating curve
           new_residuals[[m]]=residualsData[[p]]$Q_res # Save ith segment (on a total of nS)
-          new_u_residuals[[m]]=residualsData[[p]]$uQ_sim # Save corresponding uncertainty
+          new_u_residuals[[m]]=sqrt(residualsData[[p]]$uQ_sim^2+residualsData[[p]]$uQ_obs^2) # Save corresponding uncertainty
           }
         }
       }
