@@ -59,7 +59,7 @@ segmentation.engine <- function(obs,
   if(nS<=0){
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
   }
-  if(trunc(length(obs)/nS)<=nMin){
+  if(trunc(length(obs)/nS)<nMin){
     stop(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
                    ') and the number of segments (',nS,')'))
   }
@@ -297,7 +297,7 @@ segmentation <- function(obs,
       warning(paste0('NA was returned because the number of observations (',length(obs),
                      ') is lower than the number of segments (',nS,')'))
       DICs [i] <- NA
-    }else if(trunc(length(obs)/nS)<=nMin){
+    }else if(trunc(length(obs)/nS)<nMin){
       warning(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
                      ') and the number of segments (',nS,')'))
       DICs [i] <- NA
