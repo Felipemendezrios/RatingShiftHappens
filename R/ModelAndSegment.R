@@ -217,8 +217,10 @@ recursive.ModelAndSegmentation <- function(H,
 
   # Transform uncertainty on the shift in POSIXct format
   if(all(is.numeric(shift$tau)!=TRUE)){
-    shift <- data.frame(lapply(shift, function(column) {
-      as.POSIXct(column, origin = "1970-01-01", tz = "UTC")
+    shift[,c(2,3)] <- data.frame(lapply(shift[,c(2,3)], function(column) {
+      NumericFormatTransform(numeric.date = column,
+                             class = class(data$time)[1],
+                             origin.date = min(data$time))
     }))
   }
 
