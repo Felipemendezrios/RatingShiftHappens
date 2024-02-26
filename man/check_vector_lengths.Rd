@@ -3,6 +3,9 @@
 \name{check_vector_lengths}
 \alias{check_vector_lengths}
 \title{Check size vectors}
+\source{
+\url{https://www.simonqueenborough.info/R/basic/lessons/lapply_and_sapply.html}
+}
 \usage{
 check_vector_lengths(...)
 }

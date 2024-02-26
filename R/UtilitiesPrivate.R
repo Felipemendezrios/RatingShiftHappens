@@ -4,6 +4,7 @@
 #' @param ... real vectors
 #'
 #' @return logical, return null if the vectors have not the same length
+#' @source \url{https://www.simonqueenborough.info/R/basic/lessons/lapply_and_sapply.html}
 check_vector_lengths <- function(...) {
   lengths <- sapply(list(...), length)
   if (length(unique(lengths)) != 1){
