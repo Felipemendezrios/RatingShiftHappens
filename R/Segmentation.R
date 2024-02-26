@@ -63,18 +63,22 @@ segmentation.engine <- function(obs,
     stop(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
                    ') and the number of segments (',nS,')'))
   }
-  # Check time format
-  numeric.check=TRUE
-  if(!is.numeric(time)){
-    time <- DateFormatTransform(time)
-    numeric.check=FALSE
-  }
-
   # sort data frame case time not ascending
   DF.order <- data.frame(obs=obs,
                          time=time,
                          u=u)
   DF.order.f <- DF.order[order(DF.order$time),]
+
+  # Check time format
+  numeric.check=TRUE
+  # Save class of time from input data
+  class.time <- class(time)[1]
+  if(!is.numeric(DF.order.f$time)){
+    DateTransformed <- DateFormatTransform(date=DF.order.f$time)
+    DF.order.f$time <- DateTransformed$time
+    origin.date <- DateTransformed$origin
+    numeric.check=FALSE
+  }
 
   obs <- DF.order.f$obs
   time <- DF.order.f$time
@@ -157,7 +161,9 @@ segmentation.engine <- function(obs,
   simulation.MAP <- resid.segm$Y1_sim
 
   if(numeric.check!=TRUE){
-    time = as.POSIXct(time, origin = "1970-01-01", tz = "UTC")
+    time = NumericFormatTransform(numeric.date = time,
+                                  class = class.time,
+                                  origin.date = origin.date)
   }
   data = data.frame(time=time,
                     obs=obs,
@@ -195,7 +201,9 @@ segmentation.engine <- function(obs,
     if(numeric.check!=TRUE &  all(shift$tau!= 0)){
       # Transform all time in POSIXct format
       shift <- data.frame(lapply(shift, function(column) {
-        as.POSIXct(column, origin = "1970-01-01", tz = "UTC")
+        NumericFormatTransform(numeric.date = column,
+                               class = class.time,
+                               origin.date = origin.date)
       }))
 
     }
@@ -471,8 +479,10 @@ recursive.segmentation <- function(obs,
 
   # Transform uncertainty on the shift in POSIXct format
   if(all(is.numeric(shift$tau)!=TRUE)){
-    shift <- data.frame(lapply(shift, function(column) {
-      as.POSIXct(column, origin = "1970-01-01", tz = "UTC")
+    shift[,c(2,3)] <- data.frame(lapply(shift[,c(2,3)], function(column) {
+      NumericFormatTransform(numeric.date = column,
+                             class = class(data$time)[1],
+                             origin.date = min(data$time))
     }))
   }
 
