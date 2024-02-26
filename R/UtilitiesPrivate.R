@@ -4,10 +4,6 @@
 #' @param ... real vectors
 #'
 #' @return logical, return null if the vectors have not the same length
-#'
-#' @examples
-#' check_vector_lengths(RhoneRiver$Time,RhoneRiver$H,RhoneRiver$Q,RhoneRiver$uQ)
-#' check_vector_lengths(RhoneRiver$Time,RhoneRiver$H,RhoneRiver$Q,RhoneRiver$uQ[-1])
 check_vector_lengths <- function(...) {
   lengths <- sapply(list(...), length)
   if (length(unique(lengths)) != 1){
@@ -15,4 +11,22 @@ check_vector_lengths <- function(...) {
   }else{
     return('ok')
   }
+}
+
+#' Transform numeric format
+#'
+#' Numeric date to input format of time
+#'
+#' @param numeric.date real vector, numeric date
+#' @param class string value, class of a vector (character, POSIXct, Date)
+#' @param origin.date value, origin date in character, POSIXct or Date format
+#'
+#' @return numeric date to input format of time
+NumericFormatTransform <- function(numeric.date,class,origin.date){
+  original.format.date=switch(class,
+                              'Date'=origin.date+numeric.date,
+                              'POSIXct' = origin.date+numeric.date*86400,
+                              'character' = origin.date+numeric.date*86400
+  )
+  return(original.format.date)
 }
