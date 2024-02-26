@@ -2,7 +2,6 @@
 
 export(DateFormatTransform)
 export(GetCatalog)
-export(check_vector_lengths)
 export(fitRC_loess)
 export(plotModelAndSegmentation)
 export(plotSegmentation)

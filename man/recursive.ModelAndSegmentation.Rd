@@ -66,10 +66,10 @@ Some functions for estimating the rating curve are available in this package. Us
 }
 \examples{
 # Apply recursive segmentation
-results=recursive.ModelAndSegmentation(H=RhoneRiver$H,Q=RhoneRiver$Q,
-                                       time=RhoneRiver$Time,
-                                       uQ=RhoneRiver$uQ,
-                                       nSmax=2)
+results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
+                                       time=ArdecheRiverMeyrasGaugings$Date,
+                                       uQ=ArdecheRiverMeyrasGaugings$uQ,
+                                       nSmax=2,nMin=10)
 
 # Data information
 knitr::kable(head(results$summary$data),
