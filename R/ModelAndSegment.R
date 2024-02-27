@@ -76,6 +76,10 @@ recursive.ModelAndSegmentation <- function(H,
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
   continue=TRUE # Logical determining whether recursion should continue
 
+  if(any(Q<0)){
+    stop('Dishcarge cannot be negative, verify information')
+  }
+
   if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ))){
     stop('Missing values not allowed in time, stage, discharge or uncertainty')
   }
@@ -195,36 +199,40 @@ recursive.ModelAndSegmentation <- function(H,
   data = data[,-which('id'==colnames(data))]
 
   # Get node with time shifts
-  nodes.shift.time=which(tree$nS!=1)
+  if(any(which(tree$nS!=1))){
+    nodes.shift.time=which(tree$nS!=1)
 
-  shift <- c()
-  for(i in 1:length(nodes.shift.time)){
-    nSopt.p = allRes[[nodes.shift.time[[i]]]]$nS
-    results.p = allRes[[nodes.shift.time[[i]]]]$results
+    shift <- c()
+    for(i in 1:length(nodes.shift.time)){
+      nSopt.p = allRes[[nodes.shift.time[[i]]]]$nS
+      results.p = allRes[[nodes.shift.time[[i]]]]$results
 
-    shift.time.p=data.frame(c(results.p[[nSopt.p]]$tau))
+      shift.time.p=data.frame(c(results.p[[nSopt.p]]$tau))
 
-    for(j in 1:(nSopt.p-1)){
+      for(j in 1:(nSopt.p-1)){
 
-      shift.time.p.unc=data.frame(tau=shift.time.p[j,],
-                                  I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
-                                                            probs=c(0.025)),
-                                  I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
-                                                            probs=c(0.975)))
-      shift <- rbind(shift,
-                     shift.time.p.unc)
+        shift.time.p.unc=data.frame(tau=shift.time.p[j,],
+                                    I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
+                                                              probs=c(0.025)),
+                                    I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
+                                                              probs=c(0.975)))
+        shift <- rbind(shift,
+                       shift.time.p.unc)
+      }
     }
-  }
-  rownames(shift) <- NULL
-  shift <- shift[order(shift$tau),]
+    rownames(shift) <- NULL
+    shift <- shift[order(shift$tau),]
 
-  # Transform uncertainty on the shift in POSIXct format
-  if(all(is.numeric(shift$tau)!=TRUE)){
-    shift[,c(2,3)] <- data.frame(lapply(shift[,c(2,3)], function(column) {
-      NumericFormatTransform(numeric.date = column,
-                             class = class(data$time)[1],
-                             origin.date = min(data$time))
-    }))
+    # Transform uncertainty on the shift in POSIXct format
+    if(all(is.numeric(shift$tau)!=TRUE)){
+      shift[,c(2,3)] <- data.frame(lapply(shift[,c(2,3)], function(column) {
+        NumericFormatTransform(numeric.date = column,
+                               class = class(data$time)[1],
+                               origin.date = min(data$time))
+      }))
+    }
+  }else{
+    shift=NULL
   }
 
   return(list(summary=list(data=data,
