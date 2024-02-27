@@ -15,12 +15,3 @@ ggplot, residual segmentation
 \description{
 Plot residuals after using \code{recursive.ModelAndSegmentation} function, along with associated uncertainties
 }
-\examples{
-# Apply recursive model and segmentation function
-results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
-                                       Q=RhoneRiver$Q,
-                                       time=RhoneRiver$Year,
-                                       uQ=RhoneRiver$uH)
-
-plotresidualModelAndSegmentation(summary=results$summary)
-}

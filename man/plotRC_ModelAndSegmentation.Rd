@@ -17,12 +17,3 @@ ggplot, rating curve after segmentation
 \description{
 Plot of all the rating curve after using \code{recursive.ModelAndSegmentation} function, along with associated uncertainties
 }
-\examples{
-results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
-                                       Q=RhoneRiver$Q,
-                                       time=RhoneRiver$Year,
-                                       uQ=RhoneRiver$uH)
-
-plotRC_ModelAndSegmentation(summary=results$summary)
-plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE)
-}

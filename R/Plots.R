@@ -71,7 +71,6 @@ plotTree <- function(tree){
 #' # plot recursive segmentation
 #' plotSegmentation(summary=results$summary)
 #' @export
-#' @import  ggplot2
 plotSegmentation <- function(summary) {
 
   data=summary$data
@@ -140,20 +139,28 @@ plotSegmentation <- function(summary) {
 #' @param logscale logical, `TRUE`= log scale, `FALSE` = normal scale
 #' @return ggplot, rating curve after segmentation
 #' @export
-#'
-#' @examples
-#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
-#'                                        Q=RhoneRiver$Q,
-#'                                        time=RhoneRiver$Year,
-#'                                        uQ=RhoneRiver$uH)
-#'
-#' plotRC_ModelAndSegmentation(summary=results$summary)
-#' plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE)
 plotRC_ModelAndSegmentation <- function(summary,logscale=FALSE) {
   data=summary$data
-  # Remove negative values of discharge
-  if(any(data$I95_lower<0)){
-    data$I95_lower[which(data$I95_lower<0)]=0
+  # Remove negative values of discharge simulation
+  if(any(which(data$Qsim_I95_lower<=0))){
+    if(logscale==TRUE){
+      data=data[which(data$Qsim_I95_lower>0),]
+      warning(paste0('Log scale does not accept negative values or zero.
+                     Line ',which(data$Qsim_I95_lower<=0),'are deleted from discharge simulation'))
+    }else{
+      data$Qsim_I95_lower[which(data$Qsim_I95_lower<0)]=0
+    }
+  }
+
+  # Remove negative values of discharge measurements
+  if(any(which(data$Q_I95_lower<=0))){
+    if(logscale==TRUE){
+      data=data[which(data$Q_I95_lower>0),]
+      warning(paste0('Log scale does not accept negative values or zero.
+                     Line ',which(data$Q_I95_lower<=0),'are deleted from observations because of lower uncertainty'))
+    }else{
+      data$Q_I95_lower[which(data$Q_I95_lower<0)]=0
+    }
   }
 
   # Add some colors to the palette for observations
@@ -213,16 +220,7 @@ plotRC_ModelAndSegmentation <- function(summary,logscale=FALSE) {
 #'
 #' @return ggplot, stage record and shift times
 #' @export
-#'
-#' @examples
-#' # Apply recursive model and segmentation function
-#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
-#'                                        Q=RhoneRiver$Q,
-#'                                        time=RhoneRiver$Year,
-#'                                        uQ=RhoneRiver$uH)
-#'
-#' PlotStageSegmentation(summary=results$summary)
-PlotStageSegmentation <- function(summary){
+plotStageSegmentation <- function(summary){
 
   data=summary$data
   shift=summary$shift
@@ -234,7 +232,7 @@ PlotStageSegmentation <- function(summary){
   colourCount_tau = length(unique(shift$tau))
   getPalette_tau = scales::viridis_pal(option = "C")
 
-  PlotStageSegmentation=ggplot(data)+
+  plotStageSegmentation=ggplot(data)+
     geom_vline(xintercept = shift$tau,alpha=0.8)+
     coord_cartesian(ylim = c(min(data$H),max(data$H)))+
     geom_rect(data = shift,
@@ -261,16 +259,16 @@ PlotStageSegmentation <- function(summary){
           legend.title.align=0.5)
 
    if(is.numeric(shift$tau)){
-    PlotStageSegmentation=PlotStageSegmentation+
+    plotStageSegmentation=plotStageSegmentation+
       scale_fill_manual(values=getPalette_tau(colourCount_tau),
                         labels=round(shift$tau,2))
   }else{
-    PlotStageSegmentation=PlotStageSegmentation+
+    plotStageSegmentation=plotStageSegmentation+
       scale_fill_manual(values=getPalette_tau(colourCount_tau),
                         labels=round(shift$tau,units='days'))
   }
 
-  return(PlotStageSegmentation)
+  return(plotStageSegmentation)
 }
 
 #' Plot residuals with updating rating curve
@@ -281,15 +279,6 @@ PlotStageSegmentation <- function(summary){
 #'
 #' @return ggplot, residual segmentation
 #' @export
-#'
-#' @examples
-#' # Apply recursive model and segmentation function
-#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
-#'                                        Q=RhoneRiver$Q,
-#'                                        time=RhoneRiver$Year,
-#'                                        uQ=RhoneRiver$uH)
-#'
-#' plotresidualModelAndSegmentation(summary=results$summary)
 plotresidualModelAndSegmentation <- function(summary){
 
   data=summary$data
