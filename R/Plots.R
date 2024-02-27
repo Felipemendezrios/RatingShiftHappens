@@ -233,7 +233,7 @@ plotStageSegmentation <- function(summary){
 
   plotStageSegmentation=ggplot(data)
   if(!is.null(shift)){
-    plotStageSegmentation=plotStageSegmentation++geom_vline(xintercept = shift$tau,alpha=0.8)+
+    plotStageSegmentation=plotStageSegmentation+geom_vline(xintercept = shift$tau,alpha=0.8)+
       geom_rect(data = shift,
                 aes(xmin = I95_lower,
                     xmax = I95_upper,
