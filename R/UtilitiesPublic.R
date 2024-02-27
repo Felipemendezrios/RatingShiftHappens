@@ -56,4 +56,40 @@ DateFormatTransform <- function(date){
               time=as.numeric(difftime(date_UTC, min(date_UTC), units = "days"))))
 }
 
+#' Replace negative and/or zero values to NA or a specified value
+#'
+#' @param data_frame data frame, data to be checked and replaced
+#' @param columns string, exact names of the columns from data frame
+#' @param consider_zero logical, if `TRUE` zero values will be replace by NA. Otherwise, zero values are not be replaced.
+#' @param replace NA or real value, data will be replace when condition are not accepted
+#'
+#' @return data frame transformed with NA values
+#' @export
+#'
+#' @examples
+#'
+#' sample_data <- data.frame(
+#' A = c(1, -2, 0, 4),
+#' B = c(-3, 5, 0, -1),
+#' C = c(0, 2, -7, 6) )
+#'
+#' # Display the original data frame
+#' print(sample_data)
+#'
+#' # Function call with consider_zero = TRUE
+#' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = TRUE)
+#'
+#' # Function call with consider_zero = FALSE
+#' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = FALSE)
+replace_negatives_or_zero_values <- function(data_frame, columns, consider_zero = TRUE, replace=NA) {
+  if(!is.na(replace)&&!is.numeric(replace))stop('replace must be NA or a numeric value')
+  result <- apply(data_frame[, columns, drop = FALSE], 2, function(x) {
+    if (consider_zero) {
+      ifelse(x <= 0, replace, x)
+    } else {
+      ifelse(x < 0, replace, x)
+    }
+  })
+  return(result)
+}
 

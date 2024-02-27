@@ -140,27 +140,26 @@ plotSegmentation <- function(summary) {
 #' @return ggplot, rating curve after segmentation
 #' @export
 plotRC_ModelAndSegmentation <- function(summary,logscale=FALSE) {
-  data=summary$data
-  # Remove negative values of discharge simulation
-  if(any(which(data$Qsim_I95_lower<=0))){
-    if(logscale==TRUE){
-      data=data[which(data$Qsim_I95_lower>0),]
-      warning(paste0('Log scale does not accept negative values or zero.
-                     Line ',which(data$Qsim_I95_lower<=0),'are deleted from discharge simulation'))
-    }else{
-      data$Qsim_I95_lower[which(data$Qsim_I95_lower<0)]=0
-    }
-  }
 
-  # Remove negative values of discharge measurements
-  if(any(which(data$Q_I95_lower<=0))){
+  data=summary$data
+
+  # Check negative and or zero values in discharge
+  columns_to_check = c('Q_I95_lower','Q_I95_upper','Qsim','Qsim_I95_lower','Qsim_I95_upper')
+  if(any(data<=0)){
     if(logscale==TRUE){
-      data=data[which(data$Q_I95_lower>0),]
-      warning(paste0('Log scale does not accept negative values or zero.
-                     Line ',which(data$Q_I95_lower<=0),'are deleted from observations because of lower uncertainty'))
+      warning(paste0('Rating curve presented in log scale does not accept negative values and zero. Some values have been replace by NA'))
+      DF_remplacement = replace_negatives_or_zero_values(data_frame = data,
+                                                         columns = columns_to_check,
+                                                         consider_zero = TRUE,
+                                                         replace = NA )
     }else{
-      data$Q_I95_lower[which(data$Q_I95_lower<0)]=0
+      warning(paste0('Rating curve does not accept negative values zero. Some values have been replace by zero'))
+      DF_remplacement = replace_negatives_or_zero_values(data_frame = data,
+                                                         columns = columns_to_check,
+                                                         consider_zero = FALSE,
+                                                         replace = 0 )
     }
+    data[,match(columns_to_check,colnames(data))]=DF_remplacement
   }
 
   # Add some colors to the palette for observations
@@ -168,7 +167,7 @@ plotRC_ModelAndSegmentation <- function(summary,logscale=FALSE) {
   getPalette_period =  scales::viridis_pal(option='D')
 
   # Plot RC by period
-  plotRC= ggplot(data)+
+  plotRC=ggplot(data)+
     geom_ribbon(aes(x=H,
                     ymin=Qsim_I95_lower,
                     ymax=Qsim_I95_upper,
@@ -232,16 +231,31 @@ plotStageSegmentation <- function(summary){
   colourCount_tau = length(unique(shift$tau))
   getPalette_tau = scales::viridis_pal(option = "C")
 
-  plotStageSegmentation=ggplot(data)+
-    geom_vline(xintercept = shift$tau,alpha=0.8)+
+  plotStageSegmentation=ggplot(data)
+  if(!is.null(shift)){
+    plotStageSegmentation=plotStageSegmentation++geom_vline(xintercept = shift$tau,alpha=0.8)+
+      geom_rect(data = shift,
+                aes(xmin = I95_lower,
+                    xmax = I95_upper,
+                    ymin = -Inf,
+                    ymax = Inf,
+                    fill=(factor(tau))),
+                alpha=0.4)+
+      labs(fill='Shift time')
+
+    if(is.numeric(shift$tau)){
+      plotStageSegmentation=plotStageSegmentation+
+        scale_fill_manual(values=getPalette_tau(colourCount_tau),
+                          labels=round(shift$tau,2))
+    }else{
+      plotStageSegmentation=plotStageSegmentation+
+        scale_fill_manual(values=getPalette_tau(colourCount_tau),
+                          labels=round(shift$tau,units='days'))
+    }
+  }
+
+  plotStageSegmentation=plotStageSegmentation+
     coord_cartesian(ylim = c(min(data$H),max(data$H)))+
-    geom_rect(data = shift,
-              aes(xmin = I95_lower,
-                  xmax = I95_upper,
-                  ymin = -Inf,
-                  ymax = Inf,
-                  fill=(factor(tau))),
-              alpha=0.4)+
     geom_point(aes(x=time,
                    y=H,
                    col=factor(period)),
@@ -249,7 +263,6 @@ plotStageSegmentation <- function(summary){
     labs(x='Time',
          y='Stage m',
          col='Period',
-         fill='Shift time',
          title = 'Stage record and segmentation')+
     scale_color_manual(values = getPalette_period(colourCount_period))+
     theme_bw()+
@@ -257,16 +270,6 @@ plotStageSegmentation <- function(summary){
                                     face='bold',
                                     size=15),
           legend.title.align=0.5)
-
-   if(is.numeric(shift$tau)){
-    plotStageSegmentation=plotStageSegmentation+
-      scale_fill_manual(values=getPalette_tau(colourCount_tau),
-                        labels=round(shift$tau,2))
-  }else{
-    plotStageSegmentation=plotStageSegmentation+
-      scale_fill_manual(values=getPalette_tau(colourCount_tau),
-                        labels=round(shift$tau,units='days'))
-  }
 
   return(plotStageSegmentation)
 }
@@ -283,6 +286,8 @@ plotresidualModelAndSegmentation <- function(summary){
 
   data=summary$data
   shift=summary$shift
+
+  if(is.null(shift))stop('Any shift time detected')
 
   plotresidual=plotSegmentation(summary = list(data=data.frame(time=data$time,
                                                                obs=data$Qres,
