@@ -2,10 +2,12 @@
 
 export(DateFormatTransform)
 export(GetCatalog)
+export(PlotStageSegmentation)
 export(fitRC_loess)
-export(plotModelAndSegmentation)
+export(plotRC_ModelAndSegmentation)
 export(plotSegmentation)
 export(plotTree)
+export(plotresidualModelAndSegmentation)
 export(recursive.ModelAndSegmentation)
 export(recursive.segmentation)
 export(segmentation)

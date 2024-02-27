@@ -51,7 +51,10 @@
 #' # Visualize tree structure
 #' plotTree(results$tree)
 #' # Plot segmentation
-#' plotModelAndSegmentation(summary=results$summary)
+#' plotRC_ModelAndSegmentation(summary=results$summary)
+#' plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE)
+#' plotStageSegmentation(summary=results$summary)
+#' plotresidualModelAndSegmentation(summary=results$summary)
 recursive.ModelAndSegmentation <- function(H,
                                            Q,
                                            time=1:length(H),

@@ -132,56 +132,33 @@ plotSegmentation <- function(summary) {
   return(g)
 }
 
-#' Plot segmentation with the updated rating curve
+#' Plot Rating curve after segmentation
 #'
-#' Plot the final segmentation with the updated rating curve,
-#' displaying shift time along with uncertainties
+#' Plot of all the rating curve after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
 #'
-#' @param summary list, summary data resulting from model and segmentation function
-#'
-#' @return  List with the following components :
-#' \enumerate{
-#'   \item plotRC: ggplot, rating curve after segmentation
-#'   \item plotRCLog= ggplot, rating curve in log scale after segmentation
-#'   \item PlotStageSegmentation: ggplot, stage record and shift times
-#'   \item plotresidual: ggplot, residual segmentation
-#' }
+#' @param summary list, summary data resulting from `recursive.ModelAndSegmentation` function
+#' @param logscale logical, `TRUE`= log scale, `FALSE` = normal scale
+#' @return ggplot, rating curve after segmentation
+#' @export
 #'
 #' @examples
-#' # Apply recursive model and segmentation function
 #' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
 #'                                        Q=RhoneRiver$Q,
 #'                                        time=RhoneRiver$Year,
 #'                                        uQ=RhoneRiver$uH)
 #'
-#' # plot recursive model and segmentation function
-#' plots=plotModelAndSegmentation(summary=results$summary)
-#'
-#' # Rating curve
-#' plots$plotRC
-#'
-#' # Rating curve in log scale
-#' plots$plotRCLog
-#'
-#' # Plot stage record and shift estimated
-#' plots$PlotStageSegmentation
-#'
-#' # Plot final residual
-#' plots$plotresidual
-#' @export
-#' @import  ggplot2
-plotModelAndSegmentation <- function(summary) {
-
+#' plotRC_ModelAndSegmentation(summary=results$summary)
+#' plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE)
+plotRC_ModelAndSegmentation <- function(summary,logscale=FALSE) {
   data=summary$data
-  shift=summary$shift
+  # Remove negative values of discharge
+  if(any(data$I95_lower<0)){
+    data$I95_lower[which(data$I95_lower<0)]=0
+  }
 
   # Add some colors to the palette for observations
   colourCount_period = length(unique(data$period))
   getPalette_period =  scales::viridis_pal(option='D')
-
-  # Add some colors to the palette for shift
-  colourCount_tau = length(unique(shift$tau))
-  getPalette_tau = scales::viridis_pal(option = "C")
 
   # Plot RC by period
   plotRC= ggplot(data)+
@@ -221,11 +198,42 @@ plotModelAndSegmentation <- function(summary) {
                                     size=15),
           legend.title.align=0.5)
 
-  # Plot RC by period in log scale
-  plotRCLog=plotRC+coord_trans(y='log10')
+  if(logscale==TRUE){
+    plotRC=plotRC+coord_trans(y='log10')
+  }
+  return(plotRC)
+}
 
 
-  # Plot shift times
+#' Plot shift times
+#'
+#' Plot shift times after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#'
+#' @param summary list, summary data resulting from model and segmentation function
+#'
+#' @return ggplot, stage record and shift times
+#' @export
+#'
+#' @examples
+#' # Apply recursive model and segmentation function
+#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
+#'                                        Q=RhoneRiver$Q,
+#'                                        time=RhoneRiver$Year,
+#'                                        uQ=RhoneRiver$uH)
+#'
+#' PlotStageSegmentation(summary=results$summary)
+PlotStageSegmentation <- function(summary){
+
+  data=summary$data
+  shift=summary$shift
+  # Add some colors to the palette for observations
+  colourCount_period = length(unique(data$period))
+  getPalette_period =  scales::viridis_pal(option='D')
+
+  # Add some colors to the palette for shift
+  colourCount_tau = length(unique(shift$tau))
+  getPalette_tau = scales::viridis_pal(option = "C")
+
   PlotStageSegmentation=ggplot(data)+
     geom_vline(xintercept = shift$tau,alpha=0.8)+
     coord_cartesian(ylim = c(min(data$H),max(data$H)))+
@@ -236,10 +244,6 @@ plotModelAndSegmentation <- function(summary) {
                   ymax = Inf,
                   fill=(factor(tau))),
               alpha=0.4)+
-    labs(fill='Shift time')
-
-  # Plot observations by period
-  PlotStageSegmentation=PlotStageSegmentation+
     geom_point(aes(x=time,
                    y=H,
                    col=factor(period)),
@@ -247,6 +251,7 @@ plotModelAndSegmentation <- function(summary) {
     labs(x='Time',
          y='Stage m',
          col='Period',
+         fill='Shift time',
          title = 'Stage record and segmentation')+
     scale_color_manual(values = getPalette_period(colourCount_period))+
     theme_bw()+
@@ -255,8 +260,7 @@ plotModelAndSegmentation <- function(summary) {
                                     size=15),
           legend.title.align=0.5)
 
-
-  if(is.numeric(shift$tau)){
+   if(is.numeric(shift$tau)){
     PlotStageSegmentation=PlotStageSegmentation+
       scale_fill_manual(values=getPalette_tau(colourCount_tau),
                         labels=round(shift$tau,2))
@@ -266,7 +270,31 @@ plotModelAndSegmentation <- function(summary) {
                         labels=round(shift$tau,units='days'))
   }
 
-  # Plot residuals
+  return(PlotStageSegmentation)
+}
+
+#' Plot residuals with updating rating curve
+#'
+#' Plot residuals after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#'
+#' @param summary list, summary data resulting from model and segmentation function
+#'
+#' @return ggplot, residual segmentation
+#' @export
+#'
+#' @examples
+#' # Apply recursive model and segmentation function
+#' results=recursive.ModelAndSegmentation(H=RhoneRiver$H,
+#'                                        Q=RhoneRiver$Q,
+#'                                        time=RhoneRiver$Year,
+#'                                        uQ=RhoneRiver$uH)
+#'
+#' plotresidualModelAndSegmentation(summary=results$summary)
+plotresidualModelAndSegmentation <- function(summary){
+
+  data=summary$data
+  shift=summary$shift
+
   plotresidual=plotSegmentation(summary = list(data=data.frame(time=data$time,
                                                                obs=data$Qres,
                                                                u=NA,
@@ -279,8 +307,5 @@ plotModelAndSegmentation <- function(summary) {
     guides(col=FALSE)+
     ylab('Residual (m3/s)')
 
-  return(list(plotRC=plotRC,
-              plotRCLog=plotRCLog,
-              PlotStageSegmentation=PlotStageSegmentation,
-              plotresidual=plotresidual))
+  return(plotresidual)
 }
