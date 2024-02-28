@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fitRC_loess}
 \alias{fitRC_loess}
-\title{fit rating curve LOESS model}
+\title{Fit rating curve LOESS model}
 \usage{
 fitRC_loess(time, H, Q, uQ)
 }
@@ -16,8 +16,10 @@ fitRC_loess(time, H, Q, uQ)
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 }
 \value{
-data frame with the following components :
+list with the following components :
 \enumerate{
+\item ResultsResiduals : data frame, results after fitting curve
+\itemize{
 \item time: real value, time
 \item H: real value, stage
 \item Q_obs: real value, discharge observed
@@ -25,6 +27,7 @@ data frame with the following components :
 \item Q_res: real value, residual between discharge observed and simulated
 \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
+}
 }
 }
 \description{
@@ -35,7 +38,8 @@ LOESS model used to estimate a simple rating curve
 subset = RhoneRiver[1:20,]
 
 # LOESS regression to estimate a simple rating curve
-fit=fitRC_loess(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+fit.funk=fitRC_loess(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+fit=fit.funk$ResultsResiduals
 
 # plot rating curve with model results
 plot(fit$H, fit$Q_obs, ylim = range(c(fit$Q_obs - fit$uQ_obs, fit$Q_obs + fit$uQ_obs)),

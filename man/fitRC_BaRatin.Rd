@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fitRC_BaRatin}
 \alias{fitRC_BaRatin}
-\title{BaRatin model}
+\title{Fit rating curve using BaRatin model}
 \usage{
 fitRC_BaRatin(time, H, Q, uQ, matrix, priors, remnant)
 }
@@ -22,7 +22,7 @@ fitRC_BaRatin(time, H, Q, uQ, matrix, priors, remnant)
 \item{remnant}{real vector, remnant model information}
 }
 \value{
-real data frame
+Not yet
 }
 \description{
 Rating curve estimated by using BaRatin approach

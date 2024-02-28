@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fitRC_LinearInterpolation}
 \alias{fitRC_LinearInterpolation}
-\title{fit rating curve using a linear interpolation}
+\title{Fit rating curve using a linear interpolation}
 \usage{
 fitRC_LinearInterpolation(time, H, Q, uQ)
 }
@@ -16,8 +16,10 @@ fitRC_LinearInterpolation(time, H, Q, uQ)
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 }
 \value{
-data frame with the following components :
+List with the following components :
 \enumerate{
+\item ResultsResiduals : data frame, results after fitting curve
+\itemize{
 \item time: real value, time
 \item H: real value, stage
 \item Q_obs: real value, discharge observed
@@ -26,16 +28,26 @@ data frame with the following components :
 \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 }
+\item parameters : data frame, parameters of the linear interpolation expressed \deqn{Q(h)= a \cdot H + b}
+\itemize{
+\item a : real value, parameter of the linear interpolation
+\item b : real value, parameter of the linear interpolation
+}
+}
 }
 \description{
-Linear interpolation used to estimate a simple rating curve
+Linear interpolation used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot H + b}
 }
 \examples{
 # Dataset
 subset = RhoneRiver[1:20,]
 
-# LOESS regression to estimate a simple rating curve
-fit=fitRC_LinearInterpolation(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+# Linear interpolation to estimate a simple rating curve
+fit.funk=fitRC_LinearInterpolation(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+fit=fit.funk$ResultsResiduals
+
+# Parameters of the linear regression
+fit.funk$parameters
 
 # plot rating curve with model results
 plot(fit$H, fit$Q_obs, ylim = range(c(fit$Q_obs - fit$uQ_obs, fit$Q_obs + fit$uQ_obs)),
@@ -45,7 +57,7 @@ plot(fit$H, fit$Q_obs, ylim = range(c(fit$Q_obs - fit$uQ_obs, fit$Q_obs + fit$uQ
 arrows(fit$H, fit$Q_obs - fit$uQ_obs, fit$H, fit$Q_obs + fit$uQ_obs, angle = 90,
        code = 3, length = 0.1)
 
-# Loess model regression
+# Linear interpolation
 lines(x=fit$H,y=fit$Q_sim, col="blue",lty=3, lwd=2)
 
 # plot residuals
