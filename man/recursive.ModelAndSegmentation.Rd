@@ -15,7 +15,7 @@ recursive.ModelAndSegmentation(
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
-  funk = fitRC_loess,
+  funk = fitRC_LinearInterpolation,
   ...
 )
 }
@@ -69,7 +69,7 @@ Some functions for estimating the rating curve are available in this package. Us
 results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
                                        time=ArdecheRiverMeyrasGaugings$Date,
                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                       nSmax=2,nMin=10)
+                                       nSmax=4,nMin=1, funk=fitRC_exponential)
 
 # Data information
 knitr::kable(head(results$summary$data),
