@@ -3,6 +3,7 @@
 export(DateFormatTransform)
 export(GetCatalog)
 export(fitRC_LinearInterpolation)
+export(fitRC_exponential)
 export(fitRC_loess)
 export(plotRC_ModelAndSegmentation)
 export(plotSegmentation)
