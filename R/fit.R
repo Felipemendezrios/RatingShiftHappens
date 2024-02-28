@@ -19,6 +19,10 @@
 #'        \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 #'        \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 #'        }
+#'   \item parameters : data.frame
+#'   \itemize{
+#'        \item NULL, because parameters cannot be estimated
+#'        }
 #' }
 #' @export
 #'
@@ -49,9 +53,9 @@
 #' abline(h=0, col='red')
 fitRC_loess<-function(time,H,Q,uQ){
   if(length(time)<=2){ # because second degree polynomial by default (loess function)
-    warning('NULL was returned because it not possible to perform LOESS regression with only two points.
+    warning('NA was returned because it not possible to perform LOESS regression with only two points.
     A second degree polynomial requires at least three points for prediction')
-    return(NA)
+    return(list(NA,NA))
   }
   data=data.frame(time=time,H=H,Q=Q)
 
@@ -76,7 +80,8 @@ fitRC_loess<-function(time,H,Q,uQ){
                               uQ_obs=uQ,
                               uQ_sim=residual_sd
   )
-  return(list(ResultsResiduals=ResultsResiduals))
+  return(list(ResultsResiduals=ResultsResiduals,
+              parameters=NULL))
 }
 
 
@@ -156,8 +161,8 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 #' abline(h=0, col='red')
 fitRC_LinearInterpolation <- function(time,H,Q,uQ){
   if(length(time)<=2){ # because second degree polynomial by default (loess function)
-    warning('NULL was returned because it not possible to perform linear interpolation with fewer than two points.')
-    return(NA)
+    warning('NA was returned because it not possible to perform linear interpolation with fewer than two points.')
+    return(list(NA,NA))
   }
   data=data.frame(time=time,H=H,Q=Q)
 
@@ -254,9 +259,9 @@ fitRC_LinearInterpolation <- function(time,H,Q,uQ){
 #' abline(h=0, col='red')
 fitRC_exponential <- function(time,H,Q,uQ){
   if(length(time)<=2){
-    warning('NULL was returned because it not possible to perform exponentiel regression with only two points.
+    warning('NA was returned because it not possible to perform exponentiel regression with only two points.
     A second degree polynomial requires at least three points for prediction')
-    return(NA)
+    return(list(NA,NA))
   }
   data=data.frame(time=time,H=H,Q=Q)
 
