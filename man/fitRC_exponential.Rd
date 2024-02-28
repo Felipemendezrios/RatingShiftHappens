@@ -30,8 +30,8 @@ List with the following components :
 }
 \item parameters : data frame, parameters of the exponential regression expressed \deqn{Q(h)=Q0 \cdot \exp(mu \cdot H)}
 \itemize{
-\item Q0 : real value, parameter of exponential model regression
-\item mu : real value, parameter of exponential model regression
+\item a : real value, parameter of exponential model regression
+\item b : real value, parameter of exponential model regression
 }
 }
 }

@@ -4,7 +4,7 @@
 #'
 #' @param printOnly Logical, should the catalog be returned or only printed?
 #' @return If \code{printOnly==FALSE}, a list with the following fields:
-#' \describe{
+#' \enumerate{
 #'   \item models: available models
 #' }
 #' @examples

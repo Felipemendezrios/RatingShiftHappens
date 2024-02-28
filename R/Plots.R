@@ -219,7 +219,7 @@ plotRC_ModelAndSegmentation <- function(summary,logscale=FALSE) {
 #'
 #' @return ggplot, stage record and shift times
 #' @export
-plotStageSegmentation <- function(summary){
+plotStage_ModelAndSegmentation <- function(summary){
 
   data=summary$data
   shift=summary$shift
@@ -282,7 +282,7 @@ plotStageSegmentation <- function(summary){
 #'
 #' @return ggplot, residual segmentation
 #' @export
-plotresidualModelAndSegmentation <- function(summary){
+plotResidual_ModelAndSegmentation <- function(summary){
 
   data=summary$data
   shift=summary$shift

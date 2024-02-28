@@ -221,8 +221,8 @@ fitRC_LinearInterpolation <- function(time,H,Q,uQ){
 #'        }
 #'   \item parameters : data frame, parameters of the exponential regression expressed \deqn{Q(h)=Q0 \cdot \exp(mu \cdot H)}
 #'   \itemize{
-#'        \item Q0 : real value, parameter of exponential model regression
-#'        \item mu : real value, parameter of exponential model regression
+#'        \item a : real value, parameter of exponential model regression
+#'        \item b : real value, parameter of exponential model regression
 #'        }
 #' }
 #' @export
@@ -305,7 +305,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
                               uQ_obs=uQ,
                               uQ_sim=residual_sd
                               )
-  parameters=data.frame(Q0=Q0,mu=mu)
+  parameters=data.frame(a=Q0,b=mu)
 
   return(list(ResultsResiduals=ResultsResiduals,
               parameters=parameters))

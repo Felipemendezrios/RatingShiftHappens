@@ -11,7 +11,7 @@ GetCatalog(printOnly = FALSE)
 }
 \value{
 If \code{printOnly==FALSE}, a list with the following fields:
-\describe{
+\enumerate{
 \item models: available models
 }
 }
