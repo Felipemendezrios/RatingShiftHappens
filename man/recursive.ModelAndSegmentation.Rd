@@ -69,7 +69,8 @@ List with the following components :
 Recursive procedure for an \strong{unknown} number of segments, updating the rating curve at each iteration before segmentation
 }
 \details{
-Some functions for estimating the rating curve are available in this package. Use \code{?GetCatalog()} to discover the supported functions
+Some functions for estimating the rating curve are available in this package.
+Use \code{GetCatalog()$models} to discover the supported models. More information in \code{?GetCatalog()}.
 }
 \examples{
 # Apply recursive segmentation

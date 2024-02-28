@@ -6,6 +6,7 @@
 #' @return If \code{printOnly==FALSE}, a list with the following fields:
 #' \enumerate{
 #'   \item models: available models
+#'   \item Equations: available equations
 #' }
 #' @examples
 #' catalog <- GetCatalog()
@@ -17,10 +18,18 @@ GetCatalog<-function(printOnly=FALSE){
            'fitRC_BaRatin',
            'fitRC_exponential',
            'fitRC_LinearInterpolation')
+
+  Equations=c('Loess_Equation',
+              'BaRatin_Equation',
+              'Exponential_Equation',
+              'LinearInterpolation_Equation')
   if(printOnly){
     message('MODELS:')
     print(models)
+    message('Equations:')
+    print(Equations)
   } else{
-    return(list(models=models))
+    return(list(models=models,
+                Equations=Equations))
   }
 }

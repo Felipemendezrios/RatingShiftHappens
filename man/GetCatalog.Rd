@@ -13,6 +13,7 @@ GetCatalog(printOnly = FALSE)
 If \code{printOnly==FALSE}, a list with the following fields:
 \enumerate{
 \item models: available models
+\item Equations: available equations
 }
 }
 \description{

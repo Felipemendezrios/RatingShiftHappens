@@ -16,7 +16,8 @@
 #' @param ... optional arguments to funk
 #'
 #' @details
-#' Some functions for estimating the rating curve are available in this package. Use `?GetCatalog()` to discover the supported functions
+#' Some functions for estimating the rating curve are available in this package.
+#' Use `GetCatalog()$models` to discover the supported models. More information in `?GetCatalog()`.
 #' @return List with the following components :
 #' \enumerate{
 #'   \item summary: list, summarize the information to present to the user
@@ -164,7 +165,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            uQ_obs=NewuQ,
                                            uQ_sim=NA
                                            )
-            param.equation.p[[p]] =rbind(rep(NA,ncol(param.equation.p[[1]])))
+            param.equation.p[[p]] = data.frame(rbind(rep(NA,ncol(param.equation.p[[1]]))))
             colnames(param.equation.p[[p]]) <- colnames(param.equation.p[[1]])
           }else{
           # update residual of new rating curve
@@ -207,7 +208,7 @@ recursive.ModelAndSegmentation <- function(H,
 
     # Get parameters of rating curve
     param.equation = rbind(param.equation,
-                           as.vector(param.equation.p[[terminal[[i]]]]))
+                           param.equation.p[[terminal[[i]]]])
   }
 
   data=data[order(data$time),]
@@ -218,6 +219,8 @@ recursive.ModelAndSegmentation <- function(H,
     data$period[which(unique(data$id)[i]==data$id)] <- period.counter
     period.counter=period.counter+1
   }
+
+  rownames(param.equation) <- NULL
 
   data = data[,-which('id'==colnames(data))]
 
