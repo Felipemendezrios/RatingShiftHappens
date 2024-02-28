@@ -28,6 +28,10 @@ list with the following components :
 \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 }
+\item parameters : data.frame
+\itemize{
+\item NULL, because parameters cannot be estimated
+}
 }
 }
 \description{
