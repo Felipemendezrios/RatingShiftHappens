@@ -12,7 +12,7 @@ GetCatalog(printOnly = FALSE)
 \value{
 If \code{printOnly==FALSE}, a list with the following fields:
 \describe{
-\item{models}{available models}
+\item models: available models
 }
 }
 \description{
