@@ -47,15 +47,22 @@ recursive.ModelAndSegmentation(
 \value{
 List with the following components :
 \enumerate{
+\item summary: list, summarize the information to present to the user
+\itemize{
 \item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
 \item shift: data frame, all detected shift time
+\item param.equation: data frame, parameters estimation
+}
+\item res: list, provide all the information of the periods from tree structure
+\itemize{
 \item tau: real vector, estimated shift times
 \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 \item mcmc: data frame, MCMC simulation
 \item data.p: list, separate and assign information by identified stable period indexed by the list number
 \item DIC: real, DIC estimation
 \item nS: integer, optimal number of segments following DIC criterion
-\item tree : data frame, table for tree structure after segmentation
+}
+\item tree: data frame, provide tree structure
 }
 }
 \description{
@@ -69,14 +76,19 @@ Some functions for estimating the rating curve are available in this package. Us
 results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
                                        time=ArdecheRiverMeyrasGaugings$Date,
                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                       nSmax=4,nMin=1, funk=fitRC_exponential)
+                                       nSmax=2,nMin=2,funk=fitRC_exponential)
 
 # Data information
 knitr::kable(head(results$summary$data),
              align = 'c',row.names = FALSE)
+
 # Shift information
 knitr::kable(head(results$summary$shift),
              align = 'c',row.names = FALSE)
+
+# Parameters estimation of the rating curve
+results$summary$param.equation
+
 # Have a look at recursion tree
 results$tree
 

@@ -17,18 +17,24 @@
 #'
 #' @details
 #' Some functions for estimating the rating curve are available in this package. Use `?GetCatalog()` to discover the supported functions
-
 #' @return List with the following components :
 #' \enumerate{
-#'   \item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
-#'   \item shift: data frame, all detected shift time
-#'   \item tau: real vector, estimated shift times
-#'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
-#'   \item mcmc: data frame, MCMC simulation
-#'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
-#'   \item DIC: real, DIC estimation
-#'   \item nS: integer, optimal number of segments following DIC criterion
-#'   \item tree : data frame, table for tree structure after segmentation
+#'   \item summary: list, summarize the information to present to the user
+#'   \itemize{
+#'       \item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
+#'       \item shift: data frame, all detected shift time
+#'       \item param.equation: data frame, parameters estimation
+#'       }
+#'    \item res: list, provide all the information of the periods from tree structure
+#'    \itemize{
+#'       \item tau: real vector, estimated shift times
+#'       \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
+#'       \item mcmc: data frame, MCMC simulation
+#'       \item data.p: list, separate and assign information by identified stable period indexed by the list number
+#'       \item DIC: real, DIC estimation
+#'       \item nS: integer, optimal number of segments following DIC criterion
+#'    }
+#'    \item tree: data frame, provide tree structure
 #' }
 #' @export
 #'
@@ -37,14 +43,19 @@
 #' results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
 #'                                        time=ArdecheRiverMeyrasGaugings$Date,
 #'                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
-#'                                        nSmax=2,nMin=10)
+#'                                        nSmax=2,nMin=2,funk=fitRC_exponential)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),
 #'              align = 'c',row.names = FALSE)
+#'
 #' # Shift information
 #' knitr::kable(head(results$summary$shift),
 #'              align = 'c',row.names = FALSE)
+#'
+#' # Parameters estimation of the rating curve
+#' results$summary$param.equation
+#'
 #' # Have a look at recursion tree
 #' results$tree
 #'
@@ -65,7 +76,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            burn=0.5,
                                            nSlim=max(nCycles/10,1),
                                            temp.folder=file.path(tempdir(),'BaM'),
-                                           funk=fitRC_loess,...){
+                                           funk=fitRC_LinearInterpolation,...){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
@@ -89,9 +100,11 @@ recursive.ModelAndSegmentation <- function(H,
     stop('time, hauteur, discharge or uncertainty do not have the same length')
   }
 
-    residualsData <- list(funk(time=time,H=H,Q=Q,uQ=uQ)) # initialize first residual data to be segmented
+  residualsData.all <- funk(time=time,H=H,Q=Q,uQ=uQ) # initialize first residual data to be segmented
+  residualsData <- list(residualsData.all[[1]])
+  param.equation.p <- list(residualsData.all[[2]])
 
-  if(is.null(residualsData)){
+  if(any(is.na(residualsData[[1]]))){
     stop('There is not enough data to run the segmentation model')
   }
   residuals=list(residualsData[[1]]$Q_res) # List of all nodes (each corresponding to a subseries of residual) to be segmented at this level. Start with a unique node corresponding to the whole series
@@ -136,7 +149,10 @@ recursive.ModelAndSegmentation <- function(H,
           NewQ=residualsData[[newParents[m]]]$Q_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           # Update rating curve estimation
-          residualsData[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ)
+          residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ)
+          residualsData[[p]] <- residualsData.all[[p]][[1]]
+          param.equation.p[[p]] <- residualsData.all[[p]][[2]]
+
           if(any(is.na(residualsData[[p]]))){
             new_residuals[[m]]=NA # Save ith segment (on a total of nS)
             new_u_residuals[[m]]=NA # Save corresponding uncertainty
@@ -148,6 +164,8 @@ recursive.ModelAndSegmentation <- function(H,
                                            uQ_obs=NewuQ,
                                            uQ_sim=NA
                                            )
+            param.equation.p[[p]] =rbind(rep(NA,ncol(param.equation.p[[1]])))
+            colnames(param.equation.p[[p]]) <- colnames(param.equation.p[[1]])
           }else{
           # update residual of new rating curve
           new_residuals[[m]]=residualsData[[p]]$Q_res # Save ith segment (on a total of nS)
@@ -170,6 +188,7 @@ recursive.ModelAndSegmentation <- function(H,
 
   # Get stable periods by adding information about information to be returned
   data <- c()
+  param.equation <- c()
   for(i in 1:length(terminal)){
     data.stable.p=residualsData[[terminal[[i]]]] # Save data from stable period
     node = data.frame(time=data.stable.p$time,
@@ -185,6 +204,10 @@ recursive.ModelAndSegmentation <- function(H,
                       Qres=data.stable.p$Q_res,
                       id = rep(i,length(data.stable.p$Q_obs)))
     data = rbind(data,node)
+
+    # Get parameters of rating curve
+    param.equation = rbind(param.equation,
+                           as.vector(param.equation.p[[terminal[[i]]]]))
   }
 
   data=data[order(data$time),]
@@ -236,6 +259,7 @@ recursive.ModelAndSegmentation <- function(H,
   }
 
   return(list(summary=list(data=data,
-                           shift=shift),
+                           shift=shift,
+                           param.equation=param.equation),
               res=allRes,tree=tree))
 }
