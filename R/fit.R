@@ -81,7 +81,7 @@ fitRC_loess<-function(time,H,Q,uQ){
                               uQ_sim=residual_sd
   )
   return(list(ResultsResiduals=ResultsResiduals,
-              parameters=NULL))
+              parameters=data.frame(a=NA,b=NA,c=NA)))
 }
 
 
@@ -192,7 +192,7 @@ fitRC_LinearInterpolation <- function(time,H,Q,uQ){
                               uQ_sim=residual_sd
                               )
 
-  parameters=data.frame(a=a,b=b)
+  parameters=data.frame(a=a,b=b,c=NA)
 
   return(list(ResultsResiduals=ResultsResiduals,
               parameters=parameters))
@@ -305,7 +305,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
                               uQ_obs=uQ,
                               uQ_sim=residual_sd
                               )
-  parameters=data.frame(a=Q0,b=mu)
+  parameters=data.frame(a=Q0,b=mu,c=NA)
 
   return(list(ResultsResiduals=ResultsResiduals,
               parameters=parameters))
