@@ -1,0 +1,44 @@
+#' Equation of LOESS regression
+#'
+#' @return NULL
+#' @export
+Loess_Equation<-function(){
+  return(NULL)
+}
+
+#' Equation of Linear interpolation \deqn{Q(h)= a \cdot H + b}
+#'
+#' @param H real value, stage
+#' @param a real value, slope
+#' @param b real value, intercept
+#'
+#' @return equation, \deqn{Q(h)= a \cdot H + b}
+#' @export
+LinearInterpolation_Equation <- function(H,a,b){
+  a*H+b
+}
+
+#' Equation of exponential regression \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+#'
+#' @param H real value, stage
+#' @param a real value, initial state
+#' @param b real value, growth constant
+#'
+#' @return equation, \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+#' @export
+Exponential_Equation <- function(H,a,b){
+  a*exp(b*H)
+}
+
+#' Equation of BaRatin model
+#'
+#' @param H real value, stage
+#' @param a real value, coefficient describing geometry characteristics
+#' @param b real value, offset
+#' @param c real value, exponent
+#'
+#' @return equation, \deqn{Q(h)=a \cdot (H - b)^ c}
+#' @export
+BaRatin_Equation <- function(H,a,b,c){
+  a*(H-b)^c
+}
