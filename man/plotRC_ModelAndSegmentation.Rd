@@ -4,16 +4,38 @@
 \alias{plotRC_ModelAndSegmentation}
 \title{Plot Rating curve after segmentation}
 \usage{
-plotRC_ModelAndSegmentation(summary, logscale = FALSE)
+plotRC_ModelAndSegmentation(
+  summary,
+  equation = LinearInterpolation_Equation,
+  Hmin_user = 0,
+  Hmax_user = 2,
+  H_step_discretization = 0.01,
+  autoscale = TRUE,
+  logscale = FALSE
+)
 }
 \arguments{
-\item{summary}{list, summary data resulting from \code{recursive.ModelAndSegmentation} function}
+\item{summary}{data.frame, summary data resulting from \code{recursive.ModelAndSegmentation} function saved in \code{summary$data}}
 
-\item{logscale}{logical, \code{TRUE}= log scale, \code{FALSE} = normal scale}
+\item{equation}{the equation to be considered for plotting : see ‘Details’}
+
+\item{Hmin_user}{real value, minimal stage record set by user for plotting in meters}
+
+\item{Hmax_user}{real value, minimal stage record set by user for plotting in meters}
+
+\item{H_step_discretization}{real positive non-zero value, time step of the discretization in meters}
+
+\item{autoscale}{logical, auto scale following data for plotting}
+
+\item{logscale}{logical, \code{TRUE}= log scale in discharge axis, \code{FALSE} = normal scale in discharge axis}
 }
 \value{
 ggplot, rating curve after segmentation
 }
 \description{
 Plot of all the rating curve after using \code{recursive.ModelAndSegmentation} function, along with associated uncertainties
+}
+\details{
+Some equations for estimating the rating curve are available in this package.
+Use \code{GetCatalog()$Equations} to discover the equations supported. More information in \code{?GetCatalog()}.
 }
