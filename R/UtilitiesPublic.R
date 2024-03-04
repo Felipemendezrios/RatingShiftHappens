@@ -82,8 +82,13 @@ DateFormatTransform <- function(date){
 #' # Function call with consider_zero = FALSE
 #' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = FALSE)
 replace_negatives_or_zero_values <- function(data_frame, columns, consider_zero = TRUE, replace=NA) {
+  columns.match = match(columns,colnames(data_frame))
+  columns.df <- columns.match[!is.na(columns.match)]
+
+  if(length(columns.df)==0)stop('Verify columns input. Names of the columns do not match with the columns names of the data frame')
+
   if(!is.na(replace)&&!is.numeric(replace))stop('replace must be NA or a numeric value')
-  result <- apply(data_frame[, columns, drop = FALSE], 2, function(x) {
+  result <- apply(data_frame[, columns.df, drop = FALSE], 2, function(x) {
     if (consider_zero) {
       ifelse(x <= 0, replace, x)
     } else {
