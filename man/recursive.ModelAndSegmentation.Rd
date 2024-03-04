@@ -95,9 +95,21 @@ results$tree
 
 # Visualize tree structure
 plotTree(results$tree)
-# Plot segmentation
-plotRC_ModelAndSegmentation(summary=results$summary)
-plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE)
+
+# Plot the rating curve after segmentation following a regression exponential
+plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation)
+
+# Plot the rating curves after segmentation with zoom user-defined
+plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 1, Hmax_user = 2, H_step_discretization = 0.01)
+
+# Plot the rating curves after segmentation in log scale
+plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation)
+
+# Plot the rating curves after segmentation in log scale with zoom
+plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 0.5, Hmax_user = 2, H_step_discretization = 0.01)
+
+# Plot shift times in stage record
 plotStage_ModelAndSegmentation(summary=results$summary)
-plotResidual_ModelAndSegmentation(summary=results$summary)
+
+# plotResidual_ModelAndSegmentation(summary=results$summary)
 }
