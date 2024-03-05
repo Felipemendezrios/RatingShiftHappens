@@ -114,7 +114,14 @@ recursive.ModelAndSegmentation <- function(H,
     stop('time, hauteur, discharge or uncertainty do not have the same length')
   }
 
-  residualsData.all <- funk(time=time,H=H,Q=Q,uQ=uQ) # initialize first residual data to be segmented
+  DF.order <- data.frame(H=H,
+                         time=time,
+                         Q=Q,
+                         uQ=uQ)
+
+  DF.order <- DF.order[order(DF.order$time),]
+
+  residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ) # initialize first residual data to be segmented
   residualsData <- list(residualsData.all[[1]])
   param.equation.p <- list(residualsData.all[[2]])
 
