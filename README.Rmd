@@ -3,7 +3,7 @@ title: "Rating Shift Happens"
 author: "Felipe MENDEZ and Benjamin RENARD (INRAE, RiverLy and RECOVER)."
 date: "December 2023"
 output:
-  html_document:
+  github_document:
     df_print: paged
 subtitle: Documentation
 ---
