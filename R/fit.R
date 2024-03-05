@@ -104,7 +104,7 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 
 #' Fit rating curve using a linear interpolation
 #'
-#' Linear interpolation used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot H + b}
+#' Linear interpolation used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot h + b}
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
@@ -123,7 +123,7 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 #'        \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 #'        \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 #'        }
-#'   \item parameters : data frame, parameters of the linear interpolation expressed \deqn{Q(h)= a \cdot H + b}
+#'   \item parameters : data frame, parameters of the linear interpolation expressed \deqn{Q(h)= a \cdot h + b}
 #'   \itemize{
 #'        \item a : real value, parameter of the linear interpolation
 #'        \item b : real value, parameter of the linear interpolation
@@ -200,7 +200,7 @@ fitRC_LinearInterpolation <- function(time,H,Q,uQ){
 
 #' Fit rating curve using an exponential regression
 #'
-#' Exponential regression expressed as \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+#' Exponential regression expressed as \deqn{Q(h)=a \cdot \exp(b \cdot h)}
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
@@ -219,7 +219,7 @@ fitRC_LinearInterpolation <- function(time,H,Q,uQ){
 #'        \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 #'        \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 #'        }
-#'   \item parameters : data frame, parameters of the exponential regression expressed \deqn{Q(h)=Q0 \cdot \exp(mu \cdot H)}
+#'   \item parameters : data frame, parameters of the exponential regression expressed \deqn{Q(h)=Q0 \cdot \exp(mu \cdot h)}
 #'   \itemize{
 #'        \item a : real value, parameter of exponential model regression
 #'        \item b : real value, parameter of exponential model regression
@@ -249,7 +249,7 @@ fitRC_LinearInterpolation <- function(time,H,Q,uQ){
 #'        code = 3, length = 0.1)
 #'
 #' # Exponential model regression
-#' curve(expr=fit.param$Q0*exp(fit.param$mu*x),from=min(fit$H),to=max(fit$H),col='blue',lwd=2,add=TRUE)
+#' curve(expr=fit.param$a*exp(fit.param$b*x),from=min(fit$H),to=max(fit$H),col='blue',lwd=2,add=TRUE)
 #'
 #' # plot residuals
 #' plot(x=fit$time,y=fit$Q_res, ylim = range(c(fit$Q_res - fit$uQ_obs, fit$Q_res + fit$uQ_obs)),

@@ -167,7 +167,7 @@ All these equations Q(h) allow for the proper transformation of stage to dischar
 
 Models can either be non-parametric, such as as `fitRC_loess`, which relies solely on data for calculation, or parametric, like `fitRC_BaRatin` with three parameters (a,b,c), integrating physics and geometry proprieties of the river in the estimation process. 
 
-Hereafter, the employed model will be an exponential regression (`fitRC_exponential`), estimating discharge using two parameters, denoted as 'a' and 'b', following this equation : \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+Hereafter, the employed model will be an exponential regression (`fitRC_exponential`), estimating discharge using two parameters, denoted as 'a' and 'b', following this equation : $Q(h) = ae^{(bh)}$
 
 ## Dataset
 

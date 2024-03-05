@@ -28,7 +28,7 @@ List with the following components :
 \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 }
-\item parameters : data frame, parameters of the linear interpolation expressed \deqn{Q(h)= a \cdot H + b}
+\item parameters : data frame, parameters of the linear interpolation expressed \deqn{Q(h)= a \cdot h + b}
 \itemize{
 \item a : real value, parameter of the linear interpolation
 \item b : real value, parameter of the linear interpolation
@@ -36,7 +36,7 @@ List with the following components :
 }
 }
 \description{
-Linear interpolation used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot H + b}
+Linear interpolation used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot h + b}
 }
 \examples{
 # Dataset

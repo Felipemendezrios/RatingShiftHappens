@@ -28,7 +28,7 @@ List with the following components :
 \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 }
-\item parameters : data frame, parameters of the exponential regression expressed \deqn{Q(h)=Q0 \cdot \exp(mu \cdot H)}
+\item parameters : data frame, parameters of the exponential regression expressed \deqn{Q(h)=Q0 \cdot \exp(mu \cdot h)}
 \itemize{
 \item a : real value, parameter of exponential model regression
 \item b : real value, parameter of exponential model regression
@@ -36,7 +36,7 @@ List with the following components :
 }
 }
 \description{
-Exponential regression expressed as \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+Exponential regression expressed as \deqn{Q(h)=a \cdot \exp(b \cdot h)}
 }
 \examples{
 # Dataset
@@ -60,7 +60,7 @@ arrows(fit$H, fit$Q_obs - fit$uQ_obs, fit$H, fit$Q_obs + fit$uQ_obs, angle = 90,
        code = 3, length = 0.1)
 
 # Exponential model regression
-curve(expr=fit.param$Q0*exp(fit.param$mu*x),from=min(fit$H),to=max(fit$H),col='blue',lwd=2,add=TRUE)
+curve(expr=fit.param$a*exp(fit.param$b*x),from=min(fit$H),to=max(fit$H),col='blue',lwd=2,add=TRUE)
 
 # plot residuals
 plot(x=fit$time,y=fit$Q_res, ylim = range(c(fit$Q_res - fit$uQ_obs, fit$Q_res + fit$uQ_obs)),
