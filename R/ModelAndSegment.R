@@ -40,7 +40,7 @@
 #' @export
 #'
 #' @examples
-#' # Apply recursive segmentation
+#' # Apply recursive model and segmentation
 #' results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
 #'                                        time=ArdecheRiverMeyrasGaugings$Date,
 #'                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
@@ -78,7 +78,8 @@
 #' # Plot shift times in stage record
 #' plotStage_ModelAndSegmentation(summary=results$summary)
 #'
-#'# plotResidual_ModelAndSegmentation(summary=results$summary)
+#' # Plot residual
+#' plotResidual_ModelAndSegmentation(summary=results$summary)
 recursive.ModelAndSegmentation <- function(H,
                                            Q,
                                            time=1:length(H),

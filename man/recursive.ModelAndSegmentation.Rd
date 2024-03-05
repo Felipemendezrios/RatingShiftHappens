@@ -73,7 +73,7 @@ Some functions for estimating the rating curve are available in this package.
 Use \code{GetCatalog()$models} to discover the supported models. More information in \code{?GetCatalog()}.
 }
 \examples{
-# Apply recursive segmentation
+# Apply recursive model and segmentation
 results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
                                        time=ArdecheRiverMeyrasGaugings$Date,
                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
@@ -111,5 +111,6 @@ plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exp
 # Plot shift times in stage record
 plotStage_ModelAndSegmentation(summary=results$summary)
 
-# plotResidual_ModelAndSegmentation(summary=results$summary)
+# Plot residual
+plotResidual_ModelAndSegmentation(summary=results$summary)
 }
