@@ -147,4 +147,86 @@ This is a basic example, which shows you how to segment the data set with an **u
  plotSegmentation(summary=results$summary)
 ```
 
+## Hydrometry field
+
+Detection and segmentation has only been performed for residual from a random variable thus far. However, in the field of hydrometry, 
+one of the objectives is to predict discharge from stage using a rating curve.
+
+## Fitting models
+
+Several fitting models with their equations are supported in the package. For more details, refer to `GetCatalog` to determine which model could be used to estimate the rating curve. 
+
+```{r}
+# Get model available to estimate the rating curve
+GetCatalog()$models
+
+# Get equation of each model
+GetCatalog()$Equations
+```
+All these equations Q(h) allow for the proper transformation of stage to discharge, following the specified assumption for each fitting model.
+
+Models can either be non-parametric, such as as `fitRC_loess`, which relies solely on data for calculation, or parametric, like `fitRC_BaRatin` with three parameters (a,b,c), integrating physics and geometry proprieties of the river in the estimation process. 
+
+Hereafter, the employed model will be an exponential regression (`fitRC_exponential`), estimating discharge using two parameters, denoted as 'a' and 'b', following this equation : \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+
+## Dataset
+
+The Ardèche hydrometric station at Meyras is introduced as a new dataset, further information in `?ArdecheRiverMeyrasGaugings`. The dataset includes stages (H, in meters) and discharge ADCP measurements (Q, in cubic meters per second) all accompanied by uncertainties. 
+
+```{r}
+head(ArdecheRiverMeyrasGaugings)
+```
+
+## Recursive model and segmentation procedure for an *unknown*  number of segments
+
+This function enables the modeling of the rating curve and ensures its continual update at each segmentation for an *unkown* number of segments. This approach leads to a better fit for the model as it is consistently updated with data from the current period.
+
+```{r}
+# Apply recursive model and segmentation
+results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
+                                       time=ArdecheRiverMeyrasGaugings$Date,
+                                       uQ=ArdecheRiverMeyrasGaugings$uQ,
+                                       nSmax=2,nMin=2,funk=fitRC_exponential)
+
+# Data information
+knitr::kable(head(results$summary$data),
+             align = 'c',row.names = FALSE)
+
+# Shift information
+knitr::kable(head(results$summary$shift),
+            align = 'c',row.names = FALSE)
+
+# Parameters estimation of the rating curve
+results$summary$param.equation
+
+# Have a look at recursion tree
+results$tree
+
+```
+
+Several plot functions are available to simplify graphical representation, aligning with the structure of specific functions integrated in the package: 
+
+```{r}
+# Visualize tree structure
+plotTree(results$tree)
+
+# Plot the rating curve after segmentation following a regression exponential
+plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation)
+
+# Plot the rating curves after segmentation with zoom user-defined
+plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 1, Hmax_user = 2, H_step_discretization = 0.01)
+
+# Plot the rating curves after segmentation in log scale
+plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation)
+
+# Plot the rating curves after segmentation in log scale with zoom
+plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 0.5, Hmax_user = 2, H_step_discretization = 0.01)
+
+# Plot shift times in stage record
+plotStage_ModelAndSegmentation(summary=results$summary)
+
+# Plot residual
+plotResidual_ModelAndSegmentation(summary=results$summary)
+
+```
 
