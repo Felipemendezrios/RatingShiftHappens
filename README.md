@@ -223,30 +223,23 @@ with an **unknown** number of segments using a recursive process:
 ``` r
  # Have a look at recursion tree
  results$tree
-```
-
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["indx"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["level"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["parent"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["nS"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"1","2":"1","3":"0","4":"2"},{"1":"2","2":"2","3":"1","4":"1"},{"1":"3","2":"2","3":"1","4":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
-
-``` r
+#>   indx level parent nS
+#> 1    1     1      0  2
+#> 2    2     2      1  1
+#> 3    3     2      1  1
 
  # Visualize tree structure
  plotTree(results$tree)
 ```
 
-<img src="man/readme/README-unnamed-chunk-6-1.png" width="100%" />
+<img src="man/readme/README-recursive.segmentation-1.png" width="100%" />
 
 ``` r
  # Plot segmentation
  plotSegmentation(summary=results$summary)
 ```
 
-<img src="man/readme/README-unnamed-chunk-6-2.png" width="100%" />
+<img src="man/readme/README-recursive.segmentation-2.png" width="100%" />
 
 ## Hydrometry field
 
@@ -292,16 +285,18 @@ dataset includes stages (H, in meters) and discharge ADCP measurements
 (Q, in cubic meters per second) all accompanied by uncertainties.
 
 ``` r
-head(ArdecheRiverMeyrasGaugings)
+knitr::kable(head(ArdecheRiverMeyrasGaugings),
+              align = 'c',row.names = F)
 ```
 
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Day"],"name":[1],"type":["int"],"align":["right"]},{"label":["Month"],"name":[2],"type":["int"],"align":["right"]},{"label":["Year"],"name":[3],"type":["int"],"align":["right"]},{"label":["Hour"],"name":[4],"type":["int"],"align":["right"]},{"label":["Minute"],"name":[5],"type":["int"],"align":["right"]},{"label":["Second"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Date"],"name":[7],"type":["dttm"],"align":["right"]},{"label":["H"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Q"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["uQ"],"name":[10],"type":["dbl"],"align":["right"]}],"data":[{"1":"7","2":"11","3":"2001","4":"16","5":"30","6":"0","7":"2001-11-07 16:30:00","8":"0.17","9":"1.520","10":"0.10640","_rn_":"1"},{"1":"4","2":"12","3":"2001","4":"14","5":"45","6":"0","7":"2001-12-04 14:45:00","8":"0.10","9":"0.727","10":"0.05089","_rn_":"2"},{"1":"10","2":"1","3":"2002","4":"14","5":"0","6":"0","7":"2002-01-10 14:00:00","8":"0.06","9":"0.500","10":"0.03500","_rn_":"3"},{"1":"13","2":"2","3":"2002","4":"16","5":"45","6":"0","7":"2002-02-13 16:45:00","8":"0.08","9":"1.110","10":"0.07770","_rn_":"4"},{"1":"23","2":"4","3":"2002","4":"17","5":"45","6":"0","7":"2002-04-23 17:45:00","8":"0.17","9":"1.740","10":"0.12180","_rn_":"5"},{"1":"2","2":"5","3":"2002","4":"13","5":"40","6":"0","7":"2002-05-02 13:40:00","8":"0.22","9":"2.370","10":"0.16590","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
+| Day | Month | Year | Hour | Minute | Second |        Date         |  H   |   Q   |   uQ    |
+|:---:|:-----:|:----:|:----:|:------:|:------:|:-------------------:|:----:|:-----:|:-------:|
+|  7  |  11   | 2001 |  16  |   30   |   0    | 2001-11-07 16:30:00 | 0.17 | 1.520 | 0.10640 |
+|  4  |  12   | 2001 |  14  |   45   |   0    | 2001-12-04 14:45:00 | 0.10 | 0.727 | 0.05089 |
+| 10  |   1   | 2002 |  14  |   0    |   0    | 2002-01-10 14:00:00 | 0.06 | 0.500 | 0.03500 |
+| 13  |   2   | 2002 |  16  |   45   |   0    | 2002-02-13 16:45:00 | 0.08 | 1.110 | 0.07770 |
+| 23  |   4   | 2002 |  17  |   45   |   0    | 2002-04-23 17:45:00 | 0.17 | 1.740 | 0.12180 |
+|  2  |   5   | 2002 |  13  |   40   |   0    | 2002-05-02 13:40:00 | 0.22 | 2.370 | 0.16590 |
 
 ## Recursive model and segmentation procedure for an *unknown* number of segments
 
@@ -346,29 +341,17 @@ knitr::kable(head(results$summary$shift),
 
 # Parameters estimation of the rating curve
 results$summary$param.equation
-```
-
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["a"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["b"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["c"],"name":[3],"type":["lgl"],"align":["right"]}],"data":[{"1":"2.891811","2":"1.801431","3":"NA"},{"1":"7.491781","2":"1.591981","3":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
-
-``` r
+#>          a        b  c
+#> 1 2.891811 1.801431 NA
+#> 2 7.491781 1.591981 NA
 
 # Have a look at recursion tree
 results$tree
+#>   indx level parent nS
+#> 1    1     1      0  2
+#> 2    2     2      1  1
+#> 3    3     2      1  1
 ```
-
-<div data-pagedtable="false">
-
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["indx"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["level"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["parent"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["nS"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"1","2":"1","3":"0","4":"2"},{"1":"2","2":"2","3":"1","4":"1"},{"1":"3","2":"2","3":"1","4":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-
-</div>
 
 Several plot functions are available to simplify graphical
 representation, aligning with the structure of specific functions
@@ -379,7 +362,7 @@ integrated in the package:
 plotTree(results$tree)
 ```
 
-<img src="man/readme/README-unnamed-chunk-10-1.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-8-1.png" width="100%" />
 
 ``` r
 
@@ -387,7 +370,7 @@ plotTree(results$tree)
 plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation)
 ```
 
-<img src="man/readme/README-unnamed-chunk-10-2.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-8-2.png" width="100%" />
 
 ``` r
 
@@ -395,7 +378,7 @@ plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equat
 plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 1, Hmax_user = 2, H_step_discretization = 0.01)
 ```
 
-<img src="man/readme/README-unnamed-chunk-10-3.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-8-3.png" width="100%" />
 
 ``` r
 
@@ -405,7 +388,7 @@ plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exp
 #> replace the existing one.
 ```
 
-<img src="man/readme/README-unnamed-chunk-10-4.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-8-4.png" width="100%" />
 
 ``` r
 
@@ -415,7 +398,7 @@ plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exp
 #> replace the existing one.
 ```
 
-<img src="man/readme/README-unnamed-chunk-10-5.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-8-5.png" width="100%" />
 
 ``` r
 
@@ -423,7 +406,7 @@ plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exp
 plotStage_ModelAndSegmentation(summary=results$summary)
 ```
 
-<img src="man/readme/README-unnamed-chunk-10-6.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-8-6.png" width="100%" />
 
 ``` r
 
@@ -431,4 +414,4 @@ plotStage_ModelAndSegmentation(summary=results$summary)
 plotResidual_ModelAndSegmentation(summary=results$summary)
 ```
 
-<img src="man/readme/README-unnamed-chunk-10-7.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-8-7.png" width="100%" />

@@ -4,7 +4,6 @@ author: "Felipe MENDEZ and Benjamin RENARD (INRAE, RiverLy and RECOVER)."
 date: "December 2023"
 output:
   github_document:
-    df_print: paged
 subtitle: Documentation
 ---
 
@@ -128,7 +127,7 @@ This is a basic example, which shows you how to segment the same dataset with an
 
 This is a basic example, which shows you how to segment the data set with an **unknown** number of segments using a recursive process:
 
-```{r}
+```{r recursive.segmentation}
  # Apply recursive segmentation
  results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
  
@@ -174,14 +173,15 @@ Hereafter, the employed model will be an exponential regression (`fitRC_exponent
 The Ardèche hydrometric station at Meyras is introduced as a new dataset, further information in `?ArdecheRiverMeyrasGaugings`. The dataset includes stages (H, in meters) and discharge ADCP measurements (Q, in cubic meters per second) all accompanied by uncertainties. 
 
 ```{r}
-head(ArdecheRiverMeyrasGaugings)
+knitr::kable(head(ArdecheRiverMeyrasGaugings),
+              align = 'c',row.names = F)
 ```
 
 ## Recursive model and segmentation procedure for an *unknown*  number of segments
 
 This function enables the modeling of the rating curve and ensures its continual update at each segmentation for an *unkown* number of segments. This approach leads to a better fit for the model as it is consistently updated with data from the current period.
 
-```{r}
+```{r recursive.ModelAndSegmentation}
 # Apply recursive model and segmentation
 results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
                                        time=ArdecheRiverMeyrasGaugings$Date,

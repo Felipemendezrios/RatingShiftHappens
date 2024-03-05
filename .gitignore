@@ -20,3 +20,4 @@ vignettes/*.pdf
 .Rbuildignore
 .gitattributes
 .git
+README.html
