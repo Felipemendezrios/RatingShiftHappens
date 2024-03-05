@@ -31,3 +31,35 @@ NumericFormatTransform <- function(numeric.date,class,origin.date){
   )
   return(original.format.date)
 }
+
+
+#' Check square matrix
+#'
+#' @param x matrix, hydraulic controls
+#'
+#' @return logical, return null if matrix is not square
+check_square_matrix <- function(x){
+  if(ncol(x)==nrow(x)){
+    return('ok')
+  }else{
+    return(NULL)
+  }
+}
+
+#' Check number of parameters depending of distribution
+#'
+#' @param distribution string, distribution
+#' @param prior real vector, prior information about parameter
+#'
+#' @return logical, return null if number of parameter does not match with specified distribution
+check_param_distribution <- function(distribution, prior){
+  if(distribution == 'uniform' && length(prior)==2){
+    return('ok')
+  }else if(distribution == 'LogNormal' && length(prior)==2){
+    return('ok')
+  }else if(distribution == 'Uniform' && length(prior)==3){
+    return('ok')
+  }else{
+    return(NULL)
+  }
+}
