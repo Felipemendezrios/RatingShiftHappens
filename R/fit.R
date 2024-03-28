@@ -81,30 +81,96 @@ fitRC_loess<-function(time,H,Q,uQ){
                               uQ_sim=residual_sd
   )
   return(list(ResultsResiduals=ResultsResiduals,
-              parameters=data.frame(a=NA,b=NA,c=NA)))
+              parameters=NA))
 }
 
 
-#' Fit rating curve using BaRatin model
+#' Fit rating curve using BaRatin model with fixed parameters
 #'
-#' Rating curve estimated by using BaRatin approach
+#' Rating curve estimated by using BaRatin approach with the parameter c fixed to 1.67 and only one hydraulic control type channel. The input data must be already ordered.
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#' @param matrix real data frame, hydraulic controls specified as bonnifait matrix
-#' @param priors real list, prior information of each parameter
-#' @param remnant real vector, remnant model information
+#' @param b.distr
+#' @param a.distr
+#' @param b.prior
+#' @param st_b.prior
+#' @param Bc.prior
+#' @param KS.prior
+#' @param S0.prior
+#' @param st_Bc.prior
+#' @param st_KS.prior
+#' @param st_S0.prior
+#' @param remnant.err.model
+#' @param g1.prior
+#' @param g2.prior
+#' @param g1.distr.type
+#' @param g2.distr.type
+#' @param hmax_Xtra
 #'
 #' @return Not yet
-fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
-  stop("fitRC_BaRatin has not yet been implemented")
+fitRC_BaRatin_simplifie=function(time,H,Q,uQ,
+                                 b.distr = 'Gaussian' ,a.distr = 'LogNormal',
+                                 b.prior, st_b.prior,
+                                 Bc.prior, KS.prior, S0.prior,
+                                 st_Bc.prior, st_KS.prior, st_S0.prior,
+                                 remnant.err.model = 'Linear',
+                                 g1.prior = c(0, 1000, 0.1) , g2.prior = c(0, 100, 0.1),
+                                 g1.distr.type='Uniform', g2.distr.type='Uniform',
+                                 hmax_Xtra=1.5*max(H)){
+  # Hardcoded variables
+  hyr_contr_matrix=matrix(c(1),nrow=1,ncol=1)
+  c = 1.67
+
+  if(is.null(check_square_matrix(hyr_contr_matrix)))stop('Matrix must be square. Try another hydraulic matrix control')
+  if(is.null(check_vector_lengths(hyr_contr_matrix,
+                                  b.prior, Bc.prior, KS.prior, S0.prior)))stop('Prior information of the parameters does not have the same length')
+  if(is.null(check_vector_lengths(hyr_contr_matrix,
+                                  st_b.prior,st_Bc.prior,st_KS.prior, st_S0.prior)))stop('Prior information of the parameters does not have the same length')
+
+  # How to handle uncertainty of the parameters? because depends on the distribution, number of parameters can vary
+  if(is.null(check_param_distribution(b.distr,st_b.prior)))stop('The number of the parameters does not match with the specified distribution for st_b.prior')
+  if(is.null(check_param_distribution(a.distr,st_Bc.prior)))stop('The number of the parameters does not match with the specified distribution for st_Bc.prior')
+  if(is.null(check_param_distribution(a.distr,st_KS.prior)))stop('The number of the parameters does not match with the specified distribution for st_KS.prior')
+  if(is.null(check_param_distribution(a.distr,st_S0.prior)))stop('The number of the parameters does not match with the specified distribution for st_S0.prior')
+  if(is.null(check_param_distribution(g1.distr.type,g1.prior)))stop('The number of the parameters does not match with the specified distribution for g1.prior')
+  if(is.null(check_param_distribution(g2.distr.type,g2.prior)))stop('The number of the parameters does not match with the specified distribution for g2.prior')
+
+  npar = 3*ncol(hyr_contr_matrix) # Three parameters by control
+  priors <- vector(mode = 'list',length = npar)
+
+  for(i in 1 :ncol(hyr_contr_matrix)){
+    b1=RBaM::parameter(name=paste0('b',i),
+                       init=b.prior[i],
+                       prior.dist = b.distr ,
+                       prior.par = st_b.prior)
+      parameter(name='k1',init=-0.5,prior.dist='Uniform',prior.par=c(-1.5,0))
+
+  }
+  # put all parameters in priors
+  data=data.frame(time=time,H=H,Q=Q)
+
+  ##ending
+  # residual data frame
+  ResultsResiduals=data.frame(time=data$time,
+                              H=data$H,
+                              Q_obs=data$Q,
+                              Q_sim=qsim,
+                              Q_res=residuals,
+                              uQ_obs=uQ,
+                              uQ_sim=residual_sd
+  )
+  parameters=data.frame(a=Q0,b=mu)
+
+  return(list(ResultsResiduals=ResultsResiduals,
+              parameters=parameters))
 }
 
-#' Fit rating curve using a linear interpolation
+#' Fit rating curve using a linear regression
 #'
-#' Linear interpolation used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot h + b}
+#' Linear regression used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot h + b}
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
@@ -123,10 +189,10 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 #'        \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
 #'        \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
 #'        }
-#'   \item parameters : data frame, parameters of the linear interpolation expressed \deqn{Q(h)= a \cdot h + b}
+#'   \item parameters : data frame, parameters of the linear regression expressed \deqn{Q(h)= a \cdot h + b}
 #'   \itemize{
-#'        \item a : real value, parameter of the linear interpolation
-#'        \item b : real value, parameter of the linear interpolation
+#'        \item a : real value, parameter of the linear regression
+#'        \item b : real value, parameter of the linear regression
 #'        }
 #' }
 #' @export
@@ -135,8 +201,8 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 #' # Dataset
 #' subset = RhoneRiver[1:20,]
 #'
-#' # Linear interpolation to estimate a simple rating curve
-#' fit.funk=fitRC_LinearInterpolation(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+#' # Linear regression to estimate a simple rating curve
+#' fit.funk=fitRC_LinearRegression(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
 #' fit=fit.funk$ResultsResiduals
 #'
 #' # Parameters of the linear regression
@@ -150,7 +216,7 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 #' arrows(fit$H, fit$Q_obs - fit$uQ_obs, fit$H, fit$Q_obs + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #'
-#' # Linear interpolation
+#' # Linear regression
 #' lines(x=fit$H,y=fit$Q_sim, col="blue",lty=3, lwd=2)
 #'
 #' # plot residuals
@@ -159,14 +225,14 @@ fitRC_BaRatin=function(time,H,Q,uQ,matrix,priors,remnant){
 #' arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #' abline(h=0, col='red')
-fitRC_LinearInterpolation <- function(time,H,Q,uQ){
+fitRC_LinearRegression <- function(time,H,Q,uQ){
   if(length(time)<=2){ # because second degree polynomial by default (loess function)
-    warning('NA was returned because it not possible to perform linear interpolation with fewer than two points.')
+    warning('NA was returned because it not possible to perform linear regression with fewer than two points.')
     return(list(NA,NA))
   }
   data=data.frame(time=time,H=H,Q=Q)
 
-  # Linear interpolation for estimating rating curve
+  # Linear regression for estimating rating curve
   mod <- stats::lm(Q ~ H, data = data)
 
   # Parameters
@@ -192,7 +258,7 @@ fitRC_LinearInterpolation <- function(time,H,Q,uQ){
                               uQ_sim=residual_sd
                               )
 
-  parameters=data.frame(a=a,b=b,c=NA)
+  parameters=data.frame(a=a,b=b)
 
   return(list(ResultsResiduals=ResultsResiduals,
               parameters=parameters))
@@ -305,7 +371,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
                               uQ_obs=uQ,
                               uQ_sim=residual_sd
                               )
-  parameters=data.frame(a=Q0,b=mu,c=NA)
+  parameters=data.frame(a=Q0,b=mu)
 
   return(list(ResultsResiduals=ResultsResiduals,
               parameters=parameters))
