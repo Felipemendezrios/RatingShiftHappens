@@ -90,7 +90,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            burn=0.5,
                                            nSlim=max(nCycles/10,1),
                                            temp.folder=file.path(tempdir(),'BaM'),
-                                           funk=fitRC_LinearRegression,...){
+                                           funk=fitRC_exponential,...){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
@@ -209,7 +209,7 @@ recursive.ModelAndSegmentation <- function(H,
 
   # Get stable periods by adding information about information to be returned
   data <- c()
-  param.equation <- c()
+  param.equation <- list()
   for(i in 1:length(terminal)){
     data.stable.p=residualsData[[terminal[[i]]]] # Save data from stable period
     node = data.frame(time=data.stable.p$time,
@@ -227,9 +227,10 @@ recursive.ModelAndSegmentation <- function(H,
     data = rbind(data,node)
 
     # Get parameters of rating curve
-    param.equation = rbind(param.equation,
-                           param.equation.p[[terminal[[i]]]])
+    param.equation [[i]] = param.equation.p[[terminal[[i]]]]
   }
+  # Convert list in data frame to present results ir possible
+  param.equation <- convert_list_to_dataframe(param.equation)
 
   data=data[order(data$time),]
   data$period <- rep(NA,nrow(data))
@@ -239,8 +240,6 @@ recursive.ModelAndSegmentation <- function(H,
     data$period[which(unique(data$id)[i]==data$id)] <- period.counter
     period.counter=period.counter+1
   }
-
-  rownames(param.equation) <- NULL
 
   data = data[,-which('id'==colnames(data))]
 
