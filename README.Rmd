@@ -164,7 +164,7 @@ GetCatalog()$Equations
 ```
 All these equations Q(h) allow for the proper transformation of stage to discharge, following the specified assumption for each fitting model.
 
-Models can either be non-parametric, such as as `fitRC_loess`, which relies solely on data for calculation, or parametric, like `fitRC_BaRatin` with three parameters (a,b,c), integrating physics and geometry proprieties of the river in the estimation process. 
+Models can either be non-parametric, such as as `fitRC_loess`, which relies solely on data for calculation, or parametric, like `fitRC_BaRatin` with three parameters (a,b,c) per hydraulic control, integrating physics and geometry proprieties of the river in the estimation process. 
 
 Hereafter, the employed model will be an exponential regression (`fitRC_exponential`), estimating discharge using two parameters, denoted as 'a' and 'b', following this equation : $Q(h) = ae^{(bh)}$
 
@@ -179,7 +179,7 @@ knitr::kable(head(ArdecheRiverMeyrasGaugings),
 
 ## Recursive model and segmentation procedure for an *unknown*  number of segments
 
-This function enables the modeling of the rating curve and ensures its continual update at each segmentation for an *unkown* number of segments. This approach leads to a better fit for the model as it is consistently updated with data from the current period.
+This function enables the modeling of the rating curve and ensures its continual update at each segmentation for an *unknown* number of segments. This approach leads to a better fit for the model as it is consistently updated with data from the current period.
 
 ```{r recursive.ModelAndSegmentation}
 # Apply recursive model and segmentation
