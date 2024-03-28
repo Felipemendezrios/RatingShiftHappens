@@ -53,7 +53,7 @@ check_square_matrix <- function(x){
 #'
 #' @return logical, return null if number of parameter does not match with specified distribution
 check_param_distribution <- function(distribution, prior){
-  if(distribution == 'uniform' && length(prior)==2){
+  if(distribution == 'Gaussian' && length(prior)==2){
     return('ok')
   }else if(distribution == 'LogNormal' && length(prior)==2){
     return('ok')
@@ -62,4 +62,19 @@ check_param_distribution <- function(distribution, prior){
   }else{
     return(NULL)
   }
+}
+
+convert_list_to_dataframe <- function(liste_df){
+
+  lengths <- sapply(liste_df, ncol)
+  if (length(unique(lengths)) > 1) {
+    warning("Parameters have not the same size for all estimation of the rating curves")
+    return(liste_df)
+  }
+
+  result=c()
+  for (i in seq_along(liste_df)) {
+    result <- rbind(result, liste_df[[i]])
+  }
+  return(result)
 }
