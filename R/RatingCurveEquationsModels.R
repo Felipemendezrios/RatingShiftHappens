@@ -14,7 +14,7 @@ Loess_Equation<-function(){
 #'
 #' @return equation, \deqn{Q(h)= a \cdot H + b}
 #' @export
-LinearInterpolation_Equation <- function(H,a,b){
+LinearRegression_Equation <- function(H,a,b){
   a*H+b
 }
 

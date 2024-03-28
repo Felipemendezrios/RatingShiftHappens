@@ -90,7 +90,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            burn=0.5,
                                            nSlim=max(nCycles/10,1),
                                            temp.folder=file.path(tempdir(),'BaM'),
-                                           funk=fitRC_LinearInterpolation,...){
+                                           funk=fitRC_LinearRegression,...){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes

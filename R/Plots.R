@@ -149,7 +149,7 @@ plotSegmentation <- function(summary) {
 #' Use `GetCatalog()$Equations` to discover the equations supported. More information in `?GetCatalog()`.
 #' @export
 plotRC_ModelAndSegmentation=function(summary,
-                                     equation = LinearInterpolation_Equation,
+                                     equation = LinearRegression_Equation,
                                      Hmin_user = 0,
                                      Hmax_user = 2,
                                      H_step_discretization=0.01,

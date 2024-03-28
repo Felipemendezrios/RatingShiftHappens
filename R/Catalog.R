@@ -17,12 +17,12 @@ GetCatalog<-function(printOnly=FALSE){
   models=c('fitRC_loess',
            'fitRC_BaRatin',
            'fitRC_exponential',
-           'fitRC_LinearInterpolation')
+           'fitRC_LinearRegression')
 
   Equations=c('Loess_Equation',
               'BaRatin_Equation',
               'Exponential_Equation',
-              'LinearInterpolation_Equation')
+              'LinearRegression_Equation')
   if(printOnly){
     message('MODELS:')
     print(models)
