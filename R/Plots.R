@@ -390,13 +390,19 @@ plotRC_ModelAndSegmentation=function(summary,
 #' Plot shift times after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
 #'
 #' @param summary list, summary data resulting from model and segmentation function
+#' @param uH vector, uncertainty concerning the observed stage
 #'
 #' @return ggplot, stage record and shift times
 #' @export
-plotStage_ModelAndSegmentation <- function(summary){
+plotStage_ModelAndSegmentation <- function(summary, uH=NA){
 
   data=summary$data
   shift=summary$shift
+
+  if(is.null(check_vector_lengths(uH,nrow(data))))stop('Uncertainty of the stage is not the same size as the observed data')
+
+  data=cbind(data,uH=uH)
+
   # Add some colors to the palette for observations
   colourCount_period = length(unique(data$period))
   getPalette_period =  scales::viridis_pal(option='D')
@@ -434,6 +440,10 @@ plotStage_ModelAndSegmentation <- function(summary){
                    y=H,
                    col=factor(period)),
                show.legend = FALSE)+
+    geom_errorbar(aes(x=time,
+                      ymin=H-uH,
+                      ymax=H+uH,
+                      col=factor(period)))+
     labs(x='Time',
          y='Stage m',
          col='Period',
@@ -443,7 +453,7 @@ plotStage_ModelAndSegmentation <- function(summary){
     theme(plot.title = element_text(hjust=0.5,
                                     face='bold',
                                     size=15),
-          legend.title.align=0.5)
+          legend.title = element_text(hjust=0.5))
 
   return(plotStageSegmentation)
 }
