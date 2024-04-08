@@ -64,17 +64,3 @@ check_param_distribution <- function(distribution, prior){
   }
 }
 
-convert_list_to_dataframe <- function(liste_df){
-
-  lengths <- sapply(liste_df, ncol)
-  if (length(unique(lengths)) > 1) {
-    warning("Parameters have not the same size for all estimation of the rating curves")
-    return(liste_df)
-  }
-
-  result=c()
-  for (i in seq_along(liste_df)) {
-    result <- rbind(result, liste_df[[i]])
-  }
-  return(result)
-}

@@ -98,3 +98,57 @@ replace_negatives_or_zero_values <- function(data_frame, columns, consider_zero 
   return(result)
 }
 
+#' Convert list to data frame
+#'
+#' @param liste_df list, data frame
+#'
+#' @return data frame if possible, if not a list
+#' @export
+#'
+#' @examples
+#'
+#' sample_data <- list(
+#' A = data.frame(a=1, b=-2, c=0, d=4),
+#' B = data.frame(a=-3, b=5, c=0, d=-1))
+#'
+#' # Convert to data frame
+#' convert_list_to_dataframe(sample_data)
+#'
+#' sample_data <- list(
+#' A = data.frame(a=1, c=0, d=4),
+#' B = data.frame(a=-3, b=5, c=0, d=-1))
+#'
+#' # Convert to data frame
+#' convert_list_to_dataframe(sample_data)
+convert_list_to_dataframe <- function(liste_df){
+  result=c()
+  lengths <- sapply(liste_df, ncol)
+  if (length(unique(lengths)) > 1) {
+    warning("The number of the components in the list is not the same, replace by NA for missing values")
+    maxncol <- max(lengths)
+    list_maxncol=which(lengths==maxncol)[1]
+    namescol=names(liste_df[[list_maxncol]])
+
+    for (i in seq_along(liste_df)) {
+      if(length(liste_df[[i]])==maxncol){
+        result <- rbind(result, liste_df[[i]])
+      }else{
+        values=liste_df[[i]]
+        values_with_NA = data.frame(rbind(rep(NA,maxncol)))
+        colnames(values_with_NA)=namescol
+
+        values_with_NA[,c(match(names(values),namescol))]=values
+
+        result <- rbind(result,values_with_NA)
+      }
+
+    }
+    return(result)
+  }
+
+  for (i in seq_along(liste_df)) {
+    result <- rbind(result, liste_df[[i]])
+  }
+  rownames(result)<-NULL
+  return(result)
+}
