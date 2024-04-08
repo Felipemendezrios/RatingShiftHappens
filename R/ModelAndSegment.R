@@ -152,7 +152,7 @@ recursive.ModelAndSegmentation <- function(H,
 
   DF.order <- DF.order[order(DF.order$time),]
 
-  residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ) # initialize first residual data to be segmented
+  residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,...) # initialize first residual data to be segmented
   residualsData <- list(residualsData.all[[1]])
   param.equation.p <- list(residualsData.all[[2]])
 
@@ -201,7 +201,7 @@ recursive.ModelAndSegmentation <- function(H,
           NewQ=residualsData[[newParents[m]]]$Q_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           # Update rating curve estimation
-          residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ)
+          residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
           residualsData[[p]] <- residualsData.all[[p]][[1]]
           param.equation.p[[p]] <- residualsData.all[[p]][[2]]
 
