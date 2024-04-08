@@ -15,10 +15,3 @@ a ggplot
 \description{
 Plot the final segmentation displaying shift time along with uncertainties
 }
-\examples{
-# Apply recursive segmentation
-results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH)
-
-# plot recursive segmentation
-plotSegmentation(summary=results$summary)
-}

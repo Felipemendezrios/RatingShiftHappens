@@ -41,6 +41,5 @@ Plot of all the rating curve after using the function \code{recursive.ModelAndSe
 \details{
 Some equations for estimating the rating curve are available in this package.
 Use \code{GetCatalog()$Equations} to discover the equations supported. More information in \code{?GetCatalog()}.
-For the extra information, you can view the arguments through \code{args()}  by enclosing the equation specified in the input arguments in brackets as shown in the example of \verb{?recursive.ModelAndSegmentation``. Information about parameters values are available from the function }recursive.ModelAndSegmentation\verb{saved in}$summary$param.equation`. Save each parameter estimates separately
-Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example
+For the extra information, you can view the arguments through \code{args()}  by enclosing the equation specified in the input arguments in brackets as shown in the example of \verb{?recursive.ModelAndSegmentation``. Information about parameters values are available from the function }recursive.ModelAndSegmentation\verb{saved in}$summary$param.equation\verb{. Save each parameter estimates separately Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example }?recursive.ModelAndSegmentation`.
 }

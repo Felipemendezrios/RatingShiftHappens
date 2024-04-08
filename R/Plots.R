@@ -63,13 +63,6 @@ plotTree <- function(tree){
 #' @param summary list, summary data resulting from any segmentation function
 #'
 #' @return a ggplot
-#'
-#' @examples
-#' # Apply recursive segmentation
-#' results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH)
-#'
-#' # plot recursive segmentation
-#' plotSegmentation(summary=results$summary)
 #' @export
 plotSegmentation <- function(summary) {
 
@@ -151,7 +144,7 @@ plotSegmentation <- function(summary) {
 #' Use `GetCatalog()$Equations` to discover the equations supported. More information in `?GetCatalog()`.
 #' For the extra information, you can view the arguments through `args()`  by enclosing the equation specified in the input arguments in brackets as shown in the example of `?recursive.ModelAndSegmentation``.
 #' Information about parameters values are available from the function `recursive.ModelAndSegmentation` saved in `$summary$param.equation`. Save each parameter estimates separately
-#' Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example
+#' Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example `?recursive.ModelAndSegmentation`.
 #' @export
 plotRC_ModelAndSegmentation=function(summary,
                                      equation,

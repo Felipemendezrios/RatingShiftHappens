@@ -4,10 +4,12 @@
 \alias{plotStage_ModelAndSegmentation}
 \title{Plot shift times}
 \usage{
-plotStage_ModelAndSegmentation(summary)
+plotStage_ModelAndSegmentation(summary, uH = NA)
 }
 \arguments{
 \item{summary}{list, summary data resulting from model and segmentation function}
+
+\item{uH}{vector, uncertainty concerning the observed stage}
 }
 \value{
 ggplot, stage record and shift times
