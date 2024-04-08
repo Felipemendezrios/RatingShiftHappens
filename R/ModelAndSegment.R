@@ -80,14 +80,31 @@
 #'                             b=b)
 #'
 #' # Plot the rating curves after segmentation with zoom user-defined
-#' plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 1, Hmax_user = 2, H_step_discretization = 0.01,
+#' plotRC_ModelAndSegmentation(summary=results$summary,
+#'                             equation = Exponential_Equation,
+#'                             autoscale = FALSE,
+#'                             Hmin_user = 1,
+#'                             Hmax_user = 2,
+#'                             H_step_discretization = 0.01,
 #'                             a=a,b=b)
 #'
 #' # Plot the rating curves after segmentation in log scale
-#' plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation, a=a, b=b)
+#' plotRC_ModelAndSegmentation(summary=results$summary,
+#'                             logscale=TRUE,
+#'                             equation = Exponential_Equation,
+#'                             a=a,
+#'                             b=b)
 #'
 #' # Plot the rating curves after segmentation in log scale with zoom
-#' plotRC_ModelAndSegmentation(summary=results$summary,a=a, b=b, logscale=TRUE,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 0.5, Hmax_user = 2, H_step_discretization = 0.01)
+#' plotRC_ModelAndSegmentation(summary=results$summary,
+#'                             a=a,
+#'                             b=b,
+#'                             logscale=TRUE,
+#'                             equation = Exponential_Equation,
+#'                             autoscale = FALSE,
+#'                             Hmin_user = 0.5,
+#'                             Hmax_user = 2,
+#'                             H_step_discretization = 0.01)
 #'
 #' # Plot shift times in stage record
 #' plotStage_ModelAndSegmentation(summary=results$summary)

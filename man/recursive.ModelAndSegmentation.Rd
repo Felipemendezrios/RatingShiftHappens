@@ -15,7 +15,7 @@ recursive.ModelAndSegmentation(
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
-  funk = fitRC_LinearInterpolation,
+  funk = fitRC_exponential,
   ...
 )
 }
@@ -88,7 +88,7 @@ knitr::kable(head(results$summary$shift),
              align = 'c',row.names = FALSE)
 
 # Parameters estimation of the rating curve
-results$summary$param.equation
+convert_list_to_dataframe(results$summary$param.equation)
 
 # Have a look at recursion tree
 results$tree
@@ -96,17 +96,48 @@ results$tree
 # Visualize tree structure
 plotTree(results$tree)
 
+# See the arguments of the specified fit model for the rating curve
+args(Exponential_Equation)
+
+# See parameters estimates for each rating curve
+results$summary$param.equation
+
+# It must be pass as input data a and b as parameters of the specified fit model in this case
+a=convert_list_to_dataframe(results$summary$param.equation)$a
+b=convert_list_to_dataframe(results$summary$param.equation)$b
+
 # Plot the rating curve after segmentation following a regression exponential
-plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation)
+plotRC_ModelAndSegmentation(summary=results$summary,
+                            equation=Exponential_Equation,
+                            a=a,
+                            b=b)
 
 # Plot the rating curves after segmentation with zoom user-defined
-plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 1, Hmax_user = 2, H_step_discretization = 0.01)
+plotRC_ModelAndSegmentation(summary=results$summary,
+                            equation = Exponential_Equation,
+                            autoscale = FALSE,
+                            Hmin_user = 1,
+                            Hmax_user = 2,
+                            H_step_discretization = 0.01,
+                            a=a,b=b)
 
 # Plot the rating curves after segmentation in log scale
-plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation)
+plotRC_ModelAndSegmentation(summary=results$summary,
+                            logscale=TRUE,
+                            equation = Exponential_Equation,
+                            a=a,
+                            b=b)
 
 # Plot the rating curves after segmentation in log scale with zoom
-plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 0.5, Hmax_user = 2, H_step_discretization = 0.01)
+plotRC_ModelAndSegmentation(summary=results$summary,
+                            a=a,
+                            b=b,
+                            logscale=TRUE,
+                            equation = Exponential_Equation,
+                            autoscale = FALSE,
+                            Hmin_user = 0.5,
+                            Hmax_user = 2,
+                            H_step_discretization = 0.01)
 
 # Plot shift times in stage record
 plotStage_ModelAndSegmentation(summary=results$summary)

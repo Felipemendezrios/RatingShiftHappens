@@ -17,7 +17,7 @@ If \code{printOnly==FALSE}, a list with the following fields:
 }
 }
 \description{
-Rating curve models available
+Rating curve models with their equation available
 }
 \examples{
 catalog <- GetCatalog()
