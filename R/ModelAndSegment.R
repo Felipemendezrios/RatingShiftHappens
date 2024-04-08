@@ -55,7 +55,7 @@
 #'              align = 'c',row.names = FALSE)
 #'
 #' # Parameters estimation of the rating curve
-#' results$summary$param.equation
+#' convert_list_to_dataframe(results$summary$param.equation)
 #'
 #' # Have a look at recursion tree
 #' results$tree
@@ -63,17 +63,31 @@
 #' # Visualize tree structure
 #' plotTree(results$tree)
 #'
+#' # See the arguments of the specified fit model for the rating curve
+#' args(Exponential_Equation)
+#'
+#' # See parameters estimates for each rating curve
+#' results$summary$param.equation
+#'
+#' # It must be pass as input data a and b as parameters of the specified fit model in this case
+#' a=convert_list_to_dataframe(results$summary$param.equation)$a
+#' b=convert_list_to_dataframe(results$summary$param.equation)$b
+#'
 #' # Plot the rating curve after segmentation following a regression exponential
-#' plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation)
+#' plotRC_ModelAndSegmentation(summary=results$summary,
+#'                             equation=Exponential_Equation,
+#'                             a=a,
+#'                             b=b)
 #'
 #' # Plot the rating curves after segmentation with zoom user-defined
-#' plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 1, Hmax_user = 2, H_step_discretization = 0.01)
+#' plotRC_ModelAndSegmentation(summary=results$summary,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 1, Hmax_user = 2, H_step_discretization = 0.01,
+#'                             a=a,b=b)
 #'
 #' # Plot the rating curves after segmentation in log scale
-#' plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation)
+#' plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation, a=a, b=b)
 #'
 #' # Plot the rating curves after segmentation in log scale with zoom
-#' plotRC_ModelAndSegmentation(summary=results$summary,logscale=TRUE,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 0.5, Hmax_user = 2, H_step_discretization = 0.01)
+#' plotRC_ModelAndSegmentation(summary=results$summary,a=a, b=b, logscale=TRUE,equation = Exponential_Equation, autoscale = FALSE, Hmin_user = 0.5, Hmax_user = 2, H_step_discretization = 0.01)
 #'
 #' # Plot shift times in stage record
 #' plotStage_ModelAndSegmentation(summary=results$summary)
@@ -185,8 +199,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            uQ_obs=NewuQ,
                                            uQ_sim=NA
                                            )
-            param.equation.p[[p]] = data.frame(rbind(rep(NA,ncol(param.equation.p[[1]]))))
-            colnames(param.equation.p[[p]]) <- colnames(param.equation.p[[1]])
+            param.equation.p[[p]] = NA
           }else{
           # update residual of new rating curve
           new_residuals[[m]]=residualsData[[p]]$Q_res # Save ith segment (on a total of nS)
@@ -229,8 +242,6 @@ recursive.ModelAndSegmentation <- function(H,
     # Get parameters of rating curve
     param.equation [[i]] = param.equation.p[[terminal[[i]]]]
   }
-  # Convert list in data frame to present results ir possible
-  param.equation <- convert_list_to_dataframe(param.equation)
 
   data=data[order(data$time),]
   data$period <- rep(NA,nrow(data))
