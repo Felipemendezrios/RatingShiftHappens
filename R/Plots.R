@@ -133,23 +133,29 @@ plotSegmentation <- function(summary) {
 
 #' Plot Rating curve after segmentation
 #'
-#' Plot of all the rating curve after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#' Plot of all the rating curve after using the function `recursive.ModelAndSegmentation`, along with associated uncertainties
 #'
-#' @param summary data.frame, summary data resulting from `recursive.ModelAndSegmentation` function saved in `summary$data`
+#' @param summary data.frame, summary data resulting from the function `recursive.ModelAndSegmentation` saved in `$summary`
 #' @param equation the equation to be considered for plotting : see ‘Details’
+#' @param ... extra arguments for the specified equation : see 'Details'. Respect the name of the arguments (a, b, ..., c, control matrix) depending of the equation used.
 #' @param Hmin_user real value, minimal stage record set by user for plotting in meters
 #' @param Hmax_user real value, minimal stage record set by user for plotting in meters
 #' @param H_step_discretization real positive non-zero value, time step of the discretization in meters
 #' @param autoscale logical, auto scale following data for plotting
 #' @param logscale logical, `TRUE`= log scale in discharge axis, `FALSE` = normal scale in discharge axis
 #'
+#'
 #' @return ggplot, rating curve after segmentation
 #' @details
 #' Some equations for estimating the rating curve are available in this package.
 #' Use `GetCatalog()$Equations` to discover the equations supported. More information in `?GetCatalog()`.
+#' For the extra information, you can view the arguments through `args()`  by enclosing the equation specified in the input arguments in brackets as shown in the example of `?recursive.ModelAndSegmentation``.
+#' Information about parameters values are available from the function `recursive.ModelAndSegmentation` saved in `$summary$param.equation`. Save each parameter estimates separately
+#' Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example
 #' @export
 plotRC_ModelAndSegmentation=function(summary,
-                                     equation = LinearRegression_Equation,
+                                     equation,
+                                     ...,
                                      Hmin_user = 0,
                                      Hmax_user = 2,
                                      H_step_discretization=0.01,
@@ -160,8 +166,8 @@ plotRC_ModelAndSegmentation=function(summary,
 
   # Summary data
   summary_data=summary$data
-  # summary equation paramaters
-  summary_param=summary$param.equation
+  # summary equation parameters
+  param=summary$param.equation
   # summary shift times adding first and last discharge measurement
   summary_shift=rbind(min(summary_data$time),
                       summary$shift,
@@ -171,11 +177,11 @@ plotRC_ModelAndSegmentation=function(summary,
   columns_to_check = c('Q_I95_lower','Q_I95_upper','Qsim','Qsim_I95_lower','Qsim_I95_upper')
   if(any(summary_data<=0)){
     if(logscale==TRUE){
-      warning(paste0('Rating curve presented in log scale does not accept negative values and zero. Some values have been replace by NA'))
+      warning(paste0('Rating curve presented in log scale does not accept negative values and zero. Some values have been replace by 1e-6 '))
       DF_remplacement = replace_negatives_or_zero_values(data_frame = summary_data,
                                                          columns = columns_to_check,
                                                          consider_zero = TRUE,
-                                                         replace = NA )
+                                                         replace = 1e-6  )
     }else{
       warning(paste0('Rating curve does not accept negative values zero. Some values have been replace by zero'))
       DF_remplacement = replace_negatives_or_zero_values(data_frame = summary_data,
@@ -208,10 +214,7 @@ plotRC_ModelAndSegmentation=function(summary,
   # Check H limit defined by user
   if(H_max_plot_limit<=H_min_plot_limit)stop('Plot view need to be verify, Hmax_user is lower than Hmin_user. Try autoscale=TRUE')
 
-  # Convert parameters from equation in a list of each component is related to rating curve
-  param <- split(summary_param,seq_len(nrow(summary_param)))
-
-  # Uncertainty associated to the simulation of discharge by rating curve
+  # Structural uncertainty associated to the simulation of discharge by rating curve. Parametric uncertainty has not been propagated
   uq_lower=unique(stats::qnorm(0.025)*summary_data$uQ_sim)
   uq_upper=unique(stats::qnorm(0.975)*summary_data$uQ_sim)
 
@@ -227,45 +230,41 @@ plotRC_ModelAndSegmentation=function(summary,
                          period_date_begin=0,
                          period_date_end=0)
 
-  # Summary table of all simulation results discretized at H_grid if possible
-  summary_sim_grid <- c()
+
+  Q_sim_grid <- data.frame(matrix(NA, nrow = length(H_grid), ncol = length(param)))
+
+  for (i in seq_along(H_grid)) {
+    # Discharge simulation following equation specified in input arguments, discretized in H_grid
+    Q_sim_grid [i,] <- equation(H_grid [i],...)
+  }
+  # Lower uncertainty of discharge simulations
+  Q_sim_lower <-  data.frame(sapply(1:ncol(Q_sim_grid), function(col_index) {
+    Q_sim_grid[, col_index] + uq_lower[col_index]}))
+  # Upper uncertainty of discharge simulations
+  Q_sim_upper <-  data.frame(sapply(1:ncol(Q_sim_grid), function(col_index) {
+    Q_sim_grid[, col_index] + uq_upper[col_index]}))
+
+
+  # Summarize results index by period discretized in H_grid if possible if not at stage observed
   period_date_begin_obs <- c()
   period_date_end_obs <- c()
+  summary_sim_grid <- c()
 
-  for(i in 1:length(param)){
+  for(i in 1:length(param)){ # scan all rating curve estimates
+    if(all(!is.na(Q_sim_grid[,i]))){ # Verify if results can be discretized in H_grid
 
-    # Discharge simulation:
-    # Condition for estimating simulation using equation, at least two parameters (a,b) but possibility to integrate in the future equation with only one parameter (a)
-    if(!is.na(param[[i]]$a)){
-
-      # BaRatin Case : three parameters (a,b,c)
-      if(!is.na(param[[i]]$c)){
-        Q_sim_grid_p <- equation(H_grid, a = param[[i]]$a, b = param[[i]]$b, c = param[[i]]$c)
-
-        # Linear and exponential regression: two parameters (a,b)
-      }else if(!is.na(param[[i]]$b)){
-        Q_sim_grid_p <- equation(H_grid, a = param[[i]]$a, b = param[[i]]$b)
-
-        # Regression with only a parameters (a)
-      }else{
-        Q_sim_grid_p <- equation(H_grid, a = param[[i]]$a)
-      }
-
-      Q_sim_lower_p <- Q_sim_grid_p + uq_lower[i]
-      Q_sim_upper_p <- Q_sim_grid_p + uq_upper[i]
-
-      summary_sim_grid_p = data.frame(H_sim=H_grid,
-                                      Qsim=Q_sim_grid_p,
-                                      Qsim_I95_lower=Q_sim_lower_p,
-                                      Qsim_I95_upper=Q_sim_upper_p,
-                                      period=i,
-                                      period_date_begin=summary_shift$tau[i],
-                                      period_date_end=summary_shift$tau[i+1])
-
-      summary_sim_grid=rbind(summary_sim_grid,summary_sim_grid_p)
+      summary_sim_grid_p=data.frame(H_sim=H_grid,
+                                    Qsim=Q_sim_grid[,i],
+                                    Qsim_I95_lower=Q_sim_lower[,i],
+                                    Qsim_I95_upper=Q_sim_upper[,i],
+                                    period=i,
+                                    period_date_begin=summary_shift$tau[i],
+                                    period_date_end=summary_shift$tau[i+1])
 
     }else{
-      # When any paramaters has been estimated. Discharge simulation at stage observed
+
+      warning(paste0('Fit rating curve for the period ', i,
+                     ' without any parameters. Discharge simulation estimated at observed stage'))
       summary_data_p=summary_data[which(summary_data$period==i),]
 
       summary_sim_grid_p =  data.frame(H_sim=summary_data_p$H,
@@ -276,8 +275,8 @@ plotRC_ModelAndSegmentation=function(summary,
                                        period_date_begin=summary_shift$tau[i],
                                        period_date_end=summary_shift$tau[i+1])
 
-      summary_sim_grid=rbind(summary_sim_grid,summary_sim_grid_p)
     }
+    summary_sim_grid=rbind(summary_sim_grid,summary_sim_grid_p)
 
     # Period in time format for observations
     period_date_begin_obs_p=rep(summary_shift$tau[i],length(which(summary_data$period==i)))
@@ -293,7 +292,7 @@ plotRC_ModelAndSegmentation=function(summary,
       DF_remplacement = replace_negatives_or_zero_values(data_frame = summary_sim_grid,
                                                          columns = columns_to_check,
                                                          consider_zero = TRUE,
-                                                         replace = NA )
+                                                         replace = 1e-6   )
     }else{
       DF_remplacement = replace_negatives_or_zero_values(data_frame = summary_sim_grid,
                                                          columns = columns_to_check,
@@ -310,6 +309,11 @@ plotRC_ModelAndSegmentation=function(summary,
   summary_obs$period_date_end=period_date_end_obs$end_validity
 
   # Plot RC steps :
+  min_x <- min(summary_sim_grid$H_sim,summary_obs$H_obs)
+  max_x <- max(summary_sim_grid$H_sim,summary_obs$H_obs)
+  min_y <- min(summary_sim_grid$Qsim_I95_lower,summary_obs$Q_I95_lower)
+  max_y <- max(summary_sim_grid$Qsim_I95_upper,summary_obs$Q_I95_upper)
+
   # Create an empty ggplot to paste graphs over it
   RC_plot <- ggplot()
 
@@ -341,7 +345,10 @@ plotRC_ModelAndSegmentation=function(summary,
   # Customize plot
   RC_plot = RC_plot +
     coord_cartesian(xlim=c(H_min_plot_limit,H_max_plot_limit))+
-  labs(x='Stage (m)',
+    scale_x_continuous(breaks = seq(floor(min_x / 0.5) * 0.5,
+                                    ceiling(max_x / 0.5) * 0.5,
+                                    by=0.1))+
+    labs(x='Stage (m)',
        y='Discharge (m3/s)',
        title = 'Rating curves after segmentation')+
     scale_color_manual(values = getPalette_period(colourCount_period),
@@ -356,7 +363,23 @@ plotRC_ModelAndSegmentation=function(summary,
 
   # Log scale
   if(logscale==TRUE){
-    RC_plot=RC_plot+coord_trans(y='log10',xlim = c(H_min_plot_limit,H_max_plot_limit))
+
+    breaks <- 10^seq(floor(log10(min_y)), ceiling(log10(max_y)), by = 1)
+
+    # Custom label formatting function
+    custom_format <- function(x) {
+      ifelse(x >= 1,
+             as.character(round(x)),
+             sapply(x, function(val) {
+               formatted <- format(val, scientific = FALSE)
+               if (grepl("\\.0+$", formatted)) {
+                 formatted <- sub("\\.0+$", "", formatted)
+               }
+               formatted
+             })
+      )
+    }
+  RC_plot= RC_plot+ scale_y_continuous(trans = "log10", breaks = breaks, labels=custom_format)
   }
 
   return(RC_plot)
