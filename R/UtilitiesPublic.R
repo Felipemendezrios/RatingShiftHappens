@@ -46,7 +46,7 @@ DateFormatTransform <- function(date){
     warning('Time expressed in UTC')
     date_UTC <- lubridate::force_tz(date, tzone = "UTC")
   }else if(lubridate::tz(date)=="" || is.null(lubridate::tz(date))){
-    warning('Timezone not explicityly set or not recognized. Assumption : UTC')
+    warning('Timezone not explicityly set or not recognized. Assumption : UTC. Please verify lag in time')
     date_UTC <- as.POSIXct(date, origin = '1970-01-01',tz='UTC')
   }else if(lubridate::tz(date)=='UTC'){
     date_UTC <- as.POSIXct(date, origin = '1970-01-01',tz='UTC')

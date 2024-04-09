@@ -27,7 +27,7 @@ ArdecheRiverMeyrasGaugings
 }
 \description{
 A data frame containing stages (H, in meters) and discharges ADCP measurements
-(Q, in cubic meters per second) for the Ardèche River at Meyras, France, along with
+(Q, in cubic meters per second) for the Ardèche River at Meyras, France,
 along with the associated uncertainties expressed as standard deviations (uQ) from 2001 until 2018
 }
 \keyword{datasets}
