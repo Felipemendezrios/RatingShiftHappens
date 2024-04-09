@@ -27,7 +27,7 @@
 #' Gauging of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
 #'
 #' A data frame containing stages (H, in meters) and discharges ADCP measurements
-#' (Q, in cubic meters per second) for the Ardèche River at Meyras, France, along with
+#' (Q, in cubic meters per second) for the Ardèche River at Meyras, France,
 #' along with the associated uncertainties expressed as standard deviations (uQ) from 2001 until 2018
 #'
 #' @format
@@ -47,3 +47,17 @@
 #' @source\url{https://www.theses.fr/2021GRALU006}
 "ArdecheRiverMeyrasGaugings"
 
+#' MINAN of the discharge simulation obtained by BaRatinAGE for the Congo River at Brazzaville, Republic of the Congo.
+#'
+#' A data frame containing discharges simulations (Q, in cubic meters per second)
+#' for the Congo River at Brazzaville, Republic of the Congo, along with
+#' the associated uncertainties expressed as standard deviations (uQ) from 1902 until 2024
+#'
+#' @format
+#' \describe{
+#'   \item{time}{Date time}
+#'   \item{year}{Year}
+#'   \item{Q}{MINAN of the Discharge simulation }
+#'   \item{uQ}{Uncertainty expressed as standard deviation}
+#' }
+"CongoRiverBrazzavilleMINAN"
