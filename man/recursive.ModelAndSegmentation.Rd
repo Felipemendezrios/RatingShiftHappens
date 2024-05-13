@@ -74,7 +74,8 @@ Use \code{GetCatalog()$models} to discover the supported models. More informatio
 }
 \examples{
 # Apply recursive model and segmentation
-results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
+results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
+                                       Q=ArdecheRiverMeyrasGaugings$Q,
                                        time=ArdecheRiverMeyrasGaugings$Date,
                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
                                        nSmax=2,nMin=2,funk=fitRC_exponential)

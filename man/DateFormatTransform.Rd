@@ -20,9 +20,15 @@ List with the following components :
 Get date format and transform date to numeric
 }
 \examples{
-DateFormatTransform(c(as.POSIXct('2024-04-19 12:30:00',tz='UTC'),as.POSIXct('2024-03-19 18:30:00',tz='UTC')))
+DateFormatTransform(
+                   c(as.POSIXct('2024-04-19 12:30:00',
+                     tz='UTC'),
+                     as.POSIXct('2024-03-19 18:30:00',
+                     tz='UTC')))
 
-DateFormatTransform(c(as.Date('2024/02/19'),as.Date('2024/02/10')))
+DateFormatTransform(c(as.Date('2024/02/19'),
+                      as.Date('2024/02/10')))
 
-DateFormatTransform(c(as.character('20240419'),as.character('20240119')))
+DateFormatTransform(c(as.character('20240419'),
+                      as.character('20240119')))
 }
