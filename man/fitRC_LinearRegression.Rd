@@ -2,33 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fitRC_LinearRegression}
 \alias{fitRC_LinearRegression}
-\title{#' Fit rating curve using BaRatin model with fixed parameters
-#'
-#' Rating curve estimated by using BaRatin approach with the parameter c fixed to 1.67 and only one hydraulic control type channel. The input data must be already ordered.
-#'
-#' @param time real vector, time
-#' @param H real vector, stage
-#' @param Q real vector, discharge
-#' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#' @param b.distr
-#' @param a.distr
-#' @param b.prior
-#' @param st_b.prior
-#' @param Bc.prior
-#' @param KS.prior
-#' @param S0.prior
-#' @param st_Bc.prior
-#' @param st_KS.prior
-#' @param st_S0.prior
-#' @param remnant.err.model
-#' @param g1.prior
-#' @param g2.prior
-#' @param g1.distr.type
-#' @param g2.distr.type
-#' @param hmax_Xtra
-#'
-#' @return Not yet
-Fit rating curve using a linear regression}
+\title{Fit rating curve using simplified BaRatin model}
 \usage{
 fitRC_LinearRegression(time, H, Q, uQ)
 }
@@ -42,6 +16,25 @@ fitRC_LinearRegression(time, H, Q, uQ)
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 }
 \value{
+list with the following components :
+\enumerate{
+\item ResultsResiduals : data frame, results after fitting curve
+\itemize{
+\item time: real value, time
+\item H: real value, stage
+\item Q_obs: real value, discharge observed
+\item Q_sim: real value, discharge simulated
+\item Q_res: real value, residual between discharge observed and simulated
+\item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
+\item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
+}
+\item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ (5/3)}
+\itemize{
+\item a : real value, parameter of geometry component
+\item b : real value, parameter of offset (thalweg or streambed)
+}
+}
+
 List with the following components :
 \enumerate{
 \item ResultsResiduals : data frame, results after fitting curve
@@ -62,7 +55,7 @@ List with the following components :
 }
 }
 \description{
-Linear regression used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot h + b}
+Rating curve estimated by using BaRatin approach with the parameter c set to (5/3) and single rectangular weir as hydraulic control. The input data must be already ordered.
 }
 \examples{
 # Dataset
