@@ -9,7 +9,7 @@
 #'   \item origin: value, denoting the oldest date from the input variable
 #'   \item time: real vector, representing time in numeric format. This denotes the number of days from origin
 #' }
-#'
+#' @import lubridate
 #' @export
 #'
 #' @examples
@@ -28,9 +28,11 @@ DateFormatTransform <- function(date){
 
   # Transform date to numeric format: origin default is "1970-01-01 00:00:00 UTC"
   if(lubridate::is.Date(date)){
-
-   return(list(origin=min(date),
-               time=as.numeric(difftime(date, min(date), units = "days"))))
+    origin=min(date)
+    # Interval in days between origin and each date
+    diff_days <- time_length(interval(origin, date), "day")
+   return(list(origin=origin,
+               time=diff_days))
 
   }else if(!lubridate::is.POSIXct(date)){
 
@@ -44,22 +46,23 @@ DateFormatTransform <- function(date){
     if(any(is.na(parsed_date)))stop('The format is not supported; please verify the input date or time format')
 
     # Transform date to numeric format: origin default is "1970-01-01 00:00:00 UTC"
-    return(list(origin=min(parsed_date),
-                time=as.numeric(difftime(parsed_date, min(parsed_date), units = "days"))))
+    origin=min(parsed_date)
+    diff_days <- time_length(interval(origin, parsed_date), "day")
+    return(list(origin=origin,
+                time=diff_days))
 
-  }else if(lubridate::tz(date)=='CET'){
-    # Transform to UTC using force_tz
-    warning('Time expressed in UTC')
-    date_UTC <- lubridate::force_tz(date, tzone = "UTC")
   }else if(lubridate::tz(date)=="" || is.null(lubridate::tz(date))){
     warning('Timezone not explicityly set or not recognized. Assumption : UTC. Please verify lag in time')
-    date_UTC <- as.POSIXct(date, origin = '1970-01-01',tz='UTC')
-  }else if(lubridate::tz(date)=='UTC'){
-    date_UTC <- as.POSIXct(date, origin = '1970-01-01',tz='UTC')
+    date.transf <- as.POSIXct(date, origin = '1970-01-01',tz='UTC')
+  }else{
+    # Read time zone
+    date.transf <- lubridate::with_tz(date)
   }
+  origin=min(date.transf)
+  diff_days <- time_length(interval(origin, date.transf), "day")
 
-  return(list(origin=min(date_UTC),
-              time=as.numeric(difftime(date_UTC, min(date_UTC), units = "days"))))
+  return(list(origin=origin,
+              time=diff_days))
 }
 
 #' Replace negative and/or zero values to NA or a specified value
