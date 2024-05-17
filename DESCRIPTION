@@ -22,7 +22,8 @@ Imports:
 	RBaM,
     ggplot2,
 	dplyr,
-	tidyr
+	tidyr,
+	lubridate
 Suggests: 
     knitr,
     rmarkdown
