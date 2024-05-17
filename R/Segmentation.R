@@ -40,9 +40,11 @@
 #' # Plot segmentation
 #' plotSegmentation(res$summary)
 #' @export
+#' @import dplyr
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
-#' @importFrom stats quantile sd
+#' @importFrom stats quantile sd approx
 #' @importFrom utils read.table
+#' @importFrom tidyr gather
 segmentation.engine <- function(obs,
                                 time=1:length(obs),
                                 u=0*obs,
@@ -131,7 +133,7 @@ segmentation.engine <- function(obs,
   mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
 
   cook_temp=RBaM::mcmcCooking(burn=burn,
-                        nSlim=nSlim)
+                              nSlim=nSlim)
 
   remnantInit=stats::sd(obs)
   if(is.na(remnantInit)){ # happens when nObs=1
@@ -156,8 +158,6 @@ segmentation.engine <- function(obs,
   mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
   mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
   resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
-
-  # unlink(temp.folder, recursive=TRUE)
 
   colnames(mcmc.segm)[ncol(mcmc.segm)-1] <- "structural_sd"
 
@@ -229,13 +229,74 @@ segmentation.engine <- function(obs,
     data$period = unlist(periods)
   }
 
+  # Save only MCMC related to shift
+  if(nS!=1){
+    if(nS==2){
+      MCMC.shift.time = data.frame(tau1=mcmc.segm[,c((nS+1):(nS*2-1))])
+    }else{
+      MCMC.shift.time = mcmc.segm[,c((nS+1):(nS*2-1))]
+    }
+
+    MCMC.shift.time.plot <- MCMC.shift.time%>%
+      tidyr::gather(key = "Shift", value = "Value")
+
+    # Interval credibility at 95% by shift
+    IC_merge=merge(data.frame(MCMC.shift.time.plot%>%
+                                group_by(Shift)%>%
+                                summarize(
+                                  Lower_inc = quantile(Value, probs=0.025)
+                                )),
+                   data.frame(MCMC.shift.time.plot%>%
+                                group_by(Shift)%>%
+                                summarize(
+                                  Upper_inc = quantile(Value,probs= 0.975)
+                                )
+                   ))
+    # Get density values for each shift time
+    density_data<-c()
+    density_data.p <- list()
+    for(i in 1:(nS-1)){
+      density.MCMC.shift.time.p=density(MCMC.shift.time[,i])
+      density_data.p[[i]]=data.frame(Shift=IC_merge$Shift[i],
+                                     Value=density.MCMC.shift.time.p$x,
+                                     Density=density.MCMC.shift.time.p$y)
+
+      density_data=rbind(density_data,density_data.p[[i]])
+    }
+
+
+    density_inc_95 <- c()
+    for (i in 1:nrow(IC_merge)) {
+      linear.interpolation=stats::approx(x=density_data.p[[i]]$Value,
+                                         y=density_data.p[[i]]$Density,
+                                         xout=c(as.double(IC_merge[i,-1]),tau.MAP[i]))
+
+      local.res.interpolation <- data.frame(Shift=IC_merge$Shift[i],
+                                            tau_lower_inc=linear.interpolation$x[1],
+                                            density_tau_lower_inc=linear.interpolation$y[1],
+                                            tau_upper_inc=linear.interpolation$x[2],
+                                            density_tau_upper_inc=linear.interpolation$y[2],
+                                            taU_MAP=linear.interpolation$x[3],
+                                            density_taU_MAP=linear.interpolation$y[3]
+      )
+
+      density_inc_95 = rbind(density_inc_95,local.res.interpolation)
+    }
+
+  }else{
+    density_data=NULL
+    density_inc_95=NULL
+  }
+
   return(list(summary = list(data=data,
                              shift=shift),
               tau=tau.MAP,
               segments=segments.MAP,
               mcmc=mcmc.segm,
               data.p = list(obs.p=obss,time.p=times,u.p=us),
-              DIC=mcmc.DIC[1,2]))
+              DIC=mcmc.DIC[1,2],
+              plot = list(density.tau = density_data,
+                          density.inc.tau = density_inc_95)))
 }
 #' Segmentation
 #'
@@ -325,6 +386,7 @@ segmentation <- function(obs,
   }
   nS=which.min(DICs)
   summary<- res[[nS]]$summary
+
   return(list(summary=summary,results=res,nS=nS))
 }
 #' Recursive segmentation
