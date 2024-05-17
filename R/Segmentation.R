@@ -32,6 +32,7 @@
 #'   \item mcmc: data frame, MCMC simulation
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
 #'   \item DIC: real, DIC estimation
+#'   \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #' }
 #' @examples
 #' # Run segmentation engine function at two segments
@@ -84,8 +85,11 @@ segmentation.engine <- function(obs,
 
   # Check time format
   numeric.check=TRUE
-  # Save class of time from input data
-  class.time <- class(time)[1]
+
+  # Get origin date of the segmentation
+  origin.date <- min(DF.order.f$time)
+
+  # Date transformation function to passe to numeric format if necessary
   if(!is.numeric(DF.order.f$time)){
     DateTransformed <- DateFormatTransform(date=DF.order.f$time)
     DF.order.f$time <- DateTransformed$time
@@ -97,6 +101,7 @@ segmentation.engine <- function(obs,
   time <- DF.order.f$time
   u <- DF.order.f$u
   npar = nS + nS - 1
+
 
   priors <- vector(mode = 'list',length = npar)
 
@@ -171,11 +176,6 @@ segmentation.engine <- function(obs,
 
   simulation.MAP <- resid.segm$Y1_sim
 
-  if(numeric.check!=TRUE){
-    time = NumericFormatTransform(numeric.date = time,
-                                  class = class.time,
-                                  origin.date = origin.date)
-  }
   data = data.frame(time=time,
                     obs=obs,
                     u=u,
@@ -207,17 +207,8 @@ segmentation.engine <- function(obs,
                        shift.time.p.unc)
     }
     rownames(shift) <- NULL
-    shift <- shift[order(shift$tau),]
+    shift <- shift[order(shift$tau),]   ## here i remember that i dont want to order because plot need follow the iterations... to implement!!
 
-    if(numeric.check!=TRUE &  all(shift$tau!= 0)){
-      # Transform all time in POSIXct format
-      shift <- data.frame(lapply(shift, function(column) {
-        NumericFormatTransform(numeric.date = column,
-                               class = class.time,
-                               origin.date = origin.date)
-      }))
-
-    }
     tau.MAP <- shift$tau
 
     # Store sub series into a list
@@ -239,6 +230,7 @@ segmentation.engine <- function(obs,
 
   # Save only MCMC related to shift
   if(nS!=1){
+
     if(nS==2){
       MCMC.shift.time = data.frame(tau1=mcmc.segm[,c((nS+1):(nS*2-1))])
     }else{
@@ -252,14 +244,15 @@ segmentation.engine <- function(obs,
     IC_merge=merge(data.frame(MCMC.shift.time.plot%>%
                                 group_by(Shift)%>%
                                 summarize(
-                                  Lower_inc = quantile(Value, probs=0.025)
+                                  Lower_inc = stats::quantile(Value, probs=0.025)
                                 )),
                    data.frame(MCMC.shift.time.plot%>%
                                 group_by(Shift)%>%
                                 summarize(
-                                  Upper_inc = quantile(Value,probs= 0.975)
+                                  Upper_inc = stats::quantile(Value,probs= 0.975)
                                 )
                    ))
+
     # Get density values for each shift time
     density_data<-c()
     density_data.p <- list()
@@ -272,28 +265,61 @@ segmentation.engine <- function(obs,
       density_data=rbind(density_data,density_data.p[[i]])
     }
 
-
     density_inc_95 <- c()
     for (i in 1:nrow(IC_merge)) {
       linear.interpolation=stats::approx(x=density_data.p[[i]]$Value,
                                          y=density_data.p[[i]]$Density,
                                          xout=c(as.double(IC_merge[i,-1]),tau.MAP[i]))
 
-      local.res.interpolation <- data.frame(Shift=IC_merge$Shift[i],
-                                            tau_lower_inc=linear.interpolation$x[1],
-                                            density_tau_lower_inc=linear.interpolation$y[1],
-                                            tau_upper_inc=linear.interpolation$x[2],
-                                            density_tau_upper_inc=linear.interpolation$y[2],
-                                            taU_MAP=linear.interpolation$x[3],
-                                            density_taU_MAP=linear.interpolation$y[3]
+      if(numeric.check!=TRUE){
+        # Transform all time in POSIXct format
+        linear.interpolation$x <- rbind(lapply(linear.interpolation$x, function(column) {
+          NumericFormatTransform(numeric.date = column,
+                                 origin.date = origin.date)
+        }))
+      }
+
+
+      local.res.interpolation <- cbind(IC_merge$Shift[i],
+                                       linear.interpolation$x[1],
+                                       linear.interpolation$y[1],
+                                       linear.interpolation$x[2],
+                                       linear.interpolation$y[2],
+                                       linear.interpolation$x[3],
+                                       linear.interpolation$y[3]
       )
 
       density_inc_95 = rbind(density_inc_95,local.res.interpolation)
     }
+    colnames(density_inc_95)=c('Shift','tau_lower_inc', 'density_tau_lower_inc',
+                               'tau_upper_inc', 'density_tau_upper_inc','taU_MAP',
+                               'density_taU_MAP')
 
   }else{
     density_data=NULL
     density_inc_95=NULL
+  }
+
+  # Transform all time units to the respective format
+  if(numeric.check!=TRUE){
+
+    # Data time (summary)
+    data$time = NumericFormatTransform(numeric.date = data$time,
+                                  origin.date = origin.date)
+
+    # Rating shift time summary
+    if(all(shift$tau!= 0)){
+      # Transform all time in POSIXct format
+      shift <- data.frame(lapply(shift, function(column) {
+        NumericFormatTransform(numeric.date = column,
+                               origin.date = origin.date)
+      }))
+    }
+
+    # Transform density data in POSIXct format if necessary
+    density_data$Value <- NumericFormatTransform(numeric.date = density_data$Value,
+                                                 origin.date = origin.date)
+
   }
 
   return(list(summary = list(data=data,
@@ -304,7 +330,8 @@ segmentation.engine <- function(obs,
               segments=segments.MAP,
               mcmc=mcmc.segm,
               data.p = list(obs.p=obss,time.p=times,u.p=us),
-              DIC=mcmc.DIC[1,2]
+              DIC=mcmc.DIC[1,2],
+              origin.date=origin.date
               ))
 }
 #' Segmentation
@@ -570,7 +597,6 @@ recursive.segmentation <- function(obs,
     if(all(is.numeric(shift$tau)!=TRUE)){
       shift[,c(2,3)] <- data.frame(lapply(shift[,c(2,3)], function(column) {
         NumericFormatTransform(numeric.date = column,
-                               class = class(data$time)[1],
                                origin.date = min(data$time))
       }))
     }
