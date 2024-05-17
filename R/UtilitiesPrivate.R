@@ -19,17 +19,11 @@ check_vector_lengths <- function(...) {
 #' Numeric date to input format of time
 #'
 #' @param numeric.date real vector, numeric date
-#' @param class string value, class of a vector (character, POSIXct, Date)
 #' @param origin.date value, origin date in character, POSIXct or Date format
 #'
 #' @return numeric date to input format of time
-NumericFormatTransform <- function(numeric.date,class,origin.date){
-  original.format.date=switch(class,
-                              'Date'=origin.date+numeric.date,
-                              'POSIXct' = origin.date+numeric.date*86400,
-                              'character' = origin.date+numeric.date*86400
-  )
-  return(original.format.date)
+NumericFormatTransform <- function(numeric.date,origin.date){
+  return(origin.date+numeric.date*86400)
 }
 
 
