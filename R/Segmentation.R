@@ -19,6 +19,14 @@
 #'        \item data: data frame, all data with their respective periods after segmentation
 #'        \item shift: data frame, all detected shift time in numeric or POSIXct format in UTC
 #'   }
+#'   \item plot : list, data formatted to use as input for some plot functions
+#'   \itemize{
+#'        \item density.tau: data frame, a table with three columns. The first column indicates the specific shift being analyzed.
+#'        The second column contains the values assessed during the MCMC exploration. The last columns shows the probability density associated
+#'        with each tested value
+#'        \item density.inc.tau: data frame, all information about the 95% credibility interval and the Maximum a posterior (MAP) estimation
+#'        for shift times with their associated probability densities
+#'   }
 #'   \item tau: real vector, estimated shift times in numeric or POSIXct format in UTC
 #'   \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 #'   \item mcmc: data frame, MCMC simulation
@@ -240,7 +248,7 @@ segmentation.engine <- function(obs,
     MCMC.shift.time.plot <- MCMC.shift.time%>%
       tidyr::gather(key = "Shift", value = "Value")
 
-    # Interval credibility at 95% by shift
+    # Credibility interval at 95% by shift
     IC_merge=merge(data.frame(MCMC.shift.time.plot%>%
                                 group_by(Shift)%>%
                                 summarize(
@@ -290,13 +298,14 @@ segmentation.engine <- function(obs,
 
   return(list(summary = list(data=data,
                              shift=shift),
+              plot = list(density.tau = density_data,
+                          density.inc.tau = density_inc_95),
               tau=tau.MAP,
               segments=segments.MAP,
               mcmc=mcmc.segm,
               data.p = list(obs.p=obss,time.p=times,u.p=us),
-              DIC=mcmc.DIC[1,2],
-              plot = list(density.tau = density_data,
-                          density.inc.tau = density_inc_95)))
+              DIC=mcmc.DIC[1,2]
+              ))
 }
 #' Segmentation
 #'
@@ -387,7 +396,9 @@ segmentation <- function(obs,
   nS=which.min(DICs)
   summary<- res[[nS]]$summary
 
-  return(list(summary=summary,results=res,nS=nS))
+  return(list(summary=summary,
+              results=res,
+              nS=nS))
 }
 #' Recursive segmentation
 #'

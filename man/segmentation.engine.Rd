@@ -43,6 +43,14 @@ List with the following components :
 \item data: data frame, all data with their respective periods after segmentation
 \item shift: data frame, all detected shift time in numeric or POSIXct format in UTC
 }
+\item plot : list, data formatted to use as input for some plot functions
+\itemize{
+\item density.tau: data frame, a table with three columns. The first column indicates the specific shift being analyzed.
+The second column contains the values assessed during the MCMC exploration. The last columns shows the probability density associated
+with each tested value
+\item density.inc.tau: data frame, all information about the 95\% credibility interval and the Maximum a posterior (MAP) estimation
+for shift times with their associated probability densities
+}
 \item tau: real vector, estimated shift times in numeric or POSIXct format in UTC
 \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
 \item mcmc: data frame, MCMC simulation
