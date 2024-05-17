@@ -34,6 +34,65 @@ list with the following components :
 \item b : real value, parameter of offset (thalweg or streambed)
 }
 }
+#' fitRC_Simplified_BaRatin=function(time,H,Q,uQ,
+#'                                   b.distr = 'Gaussian' ,a.distr = 'LogNormal',
+#'                                   b.prior, st_b.prior,
+#'                                  Bc.prior, KS.prior, S0.prior,
+#'                                  hmax_Xtra=1.5\emph{max(H)){
+#'   # Hardcoded variables
+#'   hyr_contr_matrix=matrix(c(1),nrow=1,ncol=1)
+#'   c = 5/3
+#'
+#'   if(is.null(check_square_matrix(hyr_contr_matrix)))stop('Matrix must be square. Try another hydraulic matrix control')
+#'   if(is.null(check_vector_lengths(hyr_contr_matrix,
+#'                                   b.prior, Bc.prior, KS.prior, S0.prior)))stop('Prior information of the parameters does not have the same length')
+#'   if(is.null(check_vector_lengths(hyr_contr_matrix,
+#'                                   st_b.prior,st_Bc.prior,st_KS.prior, st_S0.prior)))stop('Prior information of the parameters does not have the same length')
+#'
+#'   #  How to handle uncertainty of the parameters? because depends on the distribution, number of parameters can vary
+#'   if(is.null(check_param_distribution(b.distr,st_b.prior)))stop('The number of the parameters does not match with the specified distribution for st_b.prior')
+#'   if(is.null(check_param_distribution(a.distr,st_Bc.prior)))stop('The number of the parameters does not match with the specified distribution for st_Bc.prior')
+#'   if(is.null(check_param_distribution(a.distr,st_KS.prior)))stop('The number of the parameters does not match with the specified distribution for st_KS.prior')
+#'   if(is.null(check_param_distribution(a.distr,st_S0.prior)))stop('The number of the parameters does not match with the specified distribution for st_S0.prior')
+#'   if(is.null(check_param_distribution(g1.distr.type,g1.prior)))stop('The number of the parameters does not match with the specified distribution for g1.prior')
+#'   if(is.null(check_param_distribution(g2.distr.type,g2.prior)))stop('The number of the parameters does not match with the specified distribution for g2.prior')
+#'
+#'   npar = 3}ncol(hyr_contr_matrix) #'  Three parameters by control
+#'   priors <- vector(mode = 'list',length = npar)
+#'
+#'   for(i in 1 :ncol(hyr_contr_matrix)){
+#'     b1=RBaM::parameter(name=paste0('b',i),
+#'                        init=b.prior\link{i},
+#'                        prior.dist = b.distr ,
+#'                        prior.par = st_b.prior)
+#'       parameter(name='k1',init=-0.5,prior.dist='Uniform',prior.par=c(-1.5,0))
+#'
+#'   }
+#'   #'  put all parameters in priors
+#'   data=data.frame(time=time,H=H,Q=Q)
+#'
+#'   ## ending
+#'   #  residual data frame
+#'   ResultsResiduals=data.frame(time=data$time,
+#'                               H=data$H,
+#'                               Q_obs=data$Q,
+#'                               Q_sim=qsim,
+#'                               Q_res=residuals,
+#'                               uQ_obs=uQ,
+#'                               uQ_sim=residual_sd
+#'   )
+#'   parameters=data.frame(a=Q0,b=mu)
+#'
+#'   return(list(ResultsResiduals=ResultsResiduals,
+#'               parameters=parameters))
+#' }
+#'
+#'
+#'
+
+Fit rating curve using a linear regression
+
+Linear regression used to estimate a simple rating curve. Formula : \deqn{Q(h)= a \cdot h + b}
 
 List with the following components :
 \enumerate{

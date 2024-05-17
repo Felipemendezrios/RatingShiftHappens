@@ -4,12 +4,10 @@
 \alias{NumericFormatTransform}
 \title{Transform numeric format}
 \usage{
-NumericFormatTransform(numeric.date, class, origin.date)
+NumericFormatTransform(numeric.date, origin.date)
 }
 \arguments{
 \item{numeric.date}{real vector, numeric date}
-
-\item{class}{string value, class of a vector (character, POSIXct, Date)}
 
 \item{origin.date}{value, origin date in character, POSIXct or Date format}
 }
