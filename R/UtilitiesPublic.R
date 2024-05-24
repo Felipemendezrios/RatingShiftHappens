@@ -30,7 +30,7 @@ DateFormatTransform <- function(date){
   if(lubridate::is.Date(date)){
     origin=min(date)
     # Interval in days between origin and each date
-    diff_days <- time_length(interval(origin, date), "day")
+    diff_days <- lubridate::time_length(interval(origin, date), "day")
    return(list(origin=origin,
                time=diff_days))
 
@@ -47,7 +47,7 @@ DateFormatTransform <- function(date){
 
     # Transform date to numeric format: origin default is "1970-01-01 00:00:00 UTC"
     origin=min(parsed_date)
-    diff_days <- time_length(interval(origin, parsed_date), "day")
+    diff_days <- lubridate::time_length(lubridate::interval(origin, parsed_date), "day")
     return(list(origin=origin,
                 time=diff_days))
 
@@ -59,7 +59,7 @@ DateFormatTransform <- function(date){
     date.transf <- lubridate::with_tz(date)
   }
   origin=min(date.transf)
-  diff_days <- time_length(interval(origin, date.transf), "day")
+  diff_days <- lubridate::time_length(lubridate::interval(origin, date.transf), "day")
 
   return(list(origin=origin,
               time=diff_days))
