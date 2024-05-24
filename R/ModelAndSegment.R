@@ -157,12 +157,6 @@ recursive.ModelAndSegmentation <- function(H,
   residualsData <- list(residualsData.all[[1]])
   param.equation.p <- list(residualsData.all[[2]])
 
-  # Transform date in numeric format because it will be use to match with segmentation results
-  if(!is.numeric(residualsData[[1]]$time)){
-    residualsData[[1]]$time=DateFormatTransform(date=residualsData[[1]]$time)$time
-  }
-
-
   if(any(is.na(residualsData[[1]]))){
     stop('There is not enough data to run the segmentation model')
   }

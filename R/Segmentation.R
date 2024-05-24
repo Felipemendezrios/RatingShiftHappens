@@ -77,6 +77,9 @@ segmentation.engine <- function(obs,
     stop(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
                    ') and the number of segments (',nS,')'))
   }
+  if(is.null(check_vector_lengths(obs,time,u))){
+    stop('The observations, time and uncertainty have not the same length')
+  }
   # sort data frame case time not ascending
   DF.order <- data.frame(obs=obs,
                          time=time,
@@ -182,6 +185,8 @@ segmentation.engine <- function(obs,
                     I95_lower=obs+stats::qnorm(0.025)*u,
                     I95_upper=obs+stats::qnorm(0.975)*u,
                     period = 1)
+
+
   if(nS==1){
     obss=obs # Subseries = whole series
     segments.MAP=simulation.MAP # Sub series = whole series
@@ -237,7 +242,7 @@ segmentation.engine <- function(obs,
       MCMC.shift.time = mcmc.segm[,c((nS+1):(nS*2-1))]
     }
 
-    MCMC.shift.time.plot <- MCMC.shift.time%>%
+    MCMC.shift.time.plot <- MCMC.shift.time %>%
       tidyr::gather(key = "Shift", value = "Value")
 
     # Credibility interval at 95% by shift
@@ -305,7 +310,19 @@ segmentation.engine <- function(obs,
 
     # Data time (summary)
     data$time = NumericFormatTransform(numeric.date = data$time,
-                                  origin.date = origin.date)
+                                       origin.date = origin.date)
+
+    # time series indexed by number of segments identified
+    if(is.list(times)==T){
+      for(i in 1:length(times)){
+        times[[i]] =  NumericFormatTransform(numeric.date = times[[i]],
+                                             origin.date = origin.date)
+      }
+    }else{
+      times = NumericFormatTransform(numeric.date = times,
+                                     origin.date = origin.date)
+    }
+
 
     # Rating shift time summary
     if(all(shift$tau!= 0)){
@@ -331,7 +348,7 @@ segmentation.engine <- function(obs,
               mcmc=mcmc.segm,
               data.p = list(obs.p=obss,time.p=times,u.p=us),
               DIC=mcmc.DIC[1,2],
-              origin.date=origin.date
+              origin.date.p=origin.date
               ))
 }
 #' Segmentation
@@ -425,7 +442,8 @@ segmentation <- function(obs,
 
   return(list(summary=summary,
               results=res,
-              nS=nS))
+              nS=nS,
+              origin.date=res[[nS]]$origin.date.p))
 }
 #' Recursive segmentation
 #'

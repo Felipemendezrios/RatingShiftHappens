@@ -51,12 +51,9 @@ DateFormatTransform <- function(date){
     return(list(origin=origin,
                 time=diff_days))
 
-  }else if(lubridate::tz(date)=="" || is.null(lubridate::tz(date))){
-    warning('Timezone not explicityly set or not recognized. Assumption : UTC. Please verify lag in time')
-    date.transf <- as.POSIXct(date, origin = '1970-01-01',tz='UTC')
   }else{
     # Read time zone
-    date.transf <- lubridate::with_tz(date)
+    date.transf <- date
   }
   origin=min(date.transf)
   diff_days <- lubridate::time_length(lubridate::interval(origin, date.transf), "day")
