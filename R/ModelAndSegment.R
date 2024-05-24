@@ -202,7 +202,7 @@ recursive.ModelAndSegmentation <- function(H,
           NewQ=residualsData[[newParents[m]]]$Q_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           # Update rating curve estimation
-          residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ)
+          residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
           residualsData[[p]] <- residualsData.all[[p]][[1]]
           param.equation.p[[p]] <- residualsData.all[[p]][[2]]
 
@@ -277,6 +277,8 @@ recursive.ModelAndSegmentation <- function(H,
     nodes.shift.time=which(tree$nS!=1)
 
     shift <- c()
+    DF.origin.date <-  list()
+    counter <- 0
     for(i in 1:length(nodes.shift.time)){
       nSopt.p = allRes[[nodes.shift.time[[i]]]]$nS
       results.p = allRes[[nodes.shift.time[[i]]]]$results
@@ -289,21 +291,31 @@ recursive.ModelAndSegmentation <- function(H,
                                     I95_lower=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
                                                               probs=c(0.025)),
                                     I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
-                                                              probs=c(0.975)))
+                                                              probs=c(0.975)),
+                                    id_segmentation=i)
         shift <- rbind(shift,
                        shift.time.p.unc)
+        counter=counter+1
+        # Get origin date of each segmentation
+        DF.origin.date [[counter]] = results.p[[nSopt.p]]$origin.date.p
       }
     }
     rownames(shift) <- NULL
-    shift <- shift[order(shift$tau),]
 
     # Transform uncertainty on the shift in POSIXct format
     if(all(is.numeric(shift$tau)!=TRUE)){
-      shift[,c(2,3)] <- data.frame(lapply(shift[,c(2,3)], function(column) {
-        NumericFormatTransform(numeric.date = column,
-                               class = class(data$time)[1],
-                               origin.date = min(data$time))
-      }))
+      transformed.IC.shift <- c()
+      for(i in 1:length(DF.origin.date)){
+
+        transformed.IC.shift.p <- data.frame(lapply(shift[i,c(2,3)], function(column) {
+          NumericFormatTransform(numeric.date = column,
+                                 origin.date = DF.origin.date[[i]])
+        }))
+
+        transformed.IC.shift=rbind(transformed.IC.shift,transformed.IC.shift.p)
+      }
+      shift[,c(2,3)]=transformed.IC.shift
+      shift <- shift[order(shift$tau),]
     }
   }else{
     shift=NULL
@@ -312,5 +324,7 @@ recursive.ModelAndSegmentation <- function(H,
   return(list(summary=list(data=data,
                            shift=shift,
                            param.equation=param.equation),
-              res=allRes,tree=tree))
+              res=allRes,
+              tree=tree,
+              origin.date=DF.origin.date))
 }
