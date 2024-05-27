@@ -23,7 +23,8 @@ Imports:
     ggplot2,
 	dplyr,
 	tidyr,
-	lubridate
+	lubridate,
+	ggnewscale
 Suggests: 
     knitr,
     rmarkdown

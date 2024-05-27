@@ -56,16 +56,27 @@ plotTree <- function(tree){
   return(g)
 }
 
-#' Plot segmentation
+#' Plots segmentation
 #'
-#' Plot the final segmentation displaying shift time along with uncertainties
+#' Plots  focusing on the observed data and shift time and their estimation
 #'
 #' @param summary list, summary data resulting from any segmentation function
+#' @param plot_summary list, plot data resulting from any segmentation function
 #'
-#' @return a ggplot
+#' @return  List with the following components :
+#' \enumerate{
+#'   \item final_plot:  ,
+#'   \item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically,
+#'   \item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
+#'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
+#'   }
 #' @export
-plotSegmentation <- function(summary) {
+#' @importFrom ggnewscale new_scale_color
+#' @import patchwork
+plotSegmentation <- function(summary,
+                             plot_summary) {
 
+  # Plot Segmentation showing shift time and observed data indexed by period
   data=summary$data
   shift=summary$shift
 
@@ -75,23 +86,37 @@ plotSegmentation <- function(summary) {
 
   # Add some colors to the palette for shift
   colourCount_tau = length(unique(shift$tau))
-  getPalette_tau = scales::viridis_pal(option = "C")
+  getPalette_tau_MAP =  scales::viridis_pal(option='H')
 
   # Plot shift times
-  g=ggplot(data)+
-    geom_vline(xintercept = shift$tau,alpha=0.8)+
+  obs_shift_plot=ggplot(data)+
+    geom_vline(data=shift,
+               aes(xintercept = tau,
+                   col=factor(tau)),
+               alpha=0.8)+
+    geom_point(data=shift,
+               aes(x=tau,
+                   y=min(data$I95_lower),),
+               col='red',
+               shape=4,
+               size=3)+
     coord_cartesian(ylim = c(min(data$I95_lower),max(data$I95_upper)))+
-    geom_rect(data = shift,
-              aes(xmin = I95_lower,
-                  xmax = I95_upper,
-                  ymin = -Inf,
-                  ymax = Inf,
-                  fill=(factor(tau))),
-              alpha=0.4)+
-    labs(fill='Shift time')
+    labs(col='Global shift time')
+
+  if(is.numeric(shift$tau)){
+    obs_shift_plot=obs_shift_plot+
+      scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
+                         labels=round(shift$tau,2))
+  }else{
+    obs_shift_plot=obs_shift_plot+
+      scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
+                         labels=round(shift$tau,units='days'))
+  }
 
   # Plot observations by period
-  g=g+
+  obs_shift_plot=
+    obs_shift_plot+
+    ggnewscale::new_scale_color()+
     geom_point(aes(x=time,
                    y=obs,
                    col=factor(period)))+
@@ -102,6 +127,7 @@ plotSegmentation <- function(summary) {
                       col=factor(period)),
                   width=3)+
     labs(y='Observation',
+         x='Time',
          col='Period',
          title = 'Segmentation')+
     scale_color_manual(values = getPalette_obs(colourCount_obs))+
@@ -111,17 +137,64 @@ plotSegmentation <- function(summary) {
                                     size=15),
           legend.title.align=0.5)
 
-  if(is.numeric(shift$tau)){
-    g=g+
-      scale_fill_manual(values=getPalette_tau(colourCount_tau),
-                        labels=round(shift$tau,2))
-  }else{
-    g=g+
-      scale_fill_manual(values=getPalette_tau(colourCount_tau),
-                        labels=round(shift$tau,units='days'))
-  }
+  # Plot probability density function of the shift time
+  colourCount_shift = length(unique(density.inc.tau$Shift))
 
-  return(g)
+  getPalette_tau_density = scales::viridis_pal(option = "H")
+  getPalette_tau_trait =  scales::viridis_pal(option='E')
+
+  # Customize labels
+  label_shift <- paste0('Shift ',seq(1,colourCount_shift))
+  label_wrap <- stats::setNames(paste('Shift detected in this node : ',
+                                      unique(density.inc.tau$id_iteration)),
+                                unique(density.inc.tau$id_iteration))
+
+  pdf_shift_plot= ggplot(density.tau,aes(x=Value,
+                                         y = Density,
+                                         fill=Shift))+
+    geom_area(alpha=0.4,position = "identity")+
+    geom_segment(data=density.inc.tau,
+                 aes(x=tau_lower_inc,
+                     y=0 ,
+                     xend=tau_lower_inc,
+                     yend=density_tau_lower_inc,
+                     col=factor(Shift)),
+                 alpha=0.7)+
+    geom_segment(data=density.inc.tau,
+                 aes(x=tau_upper_inc,
+                     y=0 ,
+                     xend=tau_upper_inc,
+                     yend=density_tau_upper_inc,
+                     col=factor(Shift)),
+                 alpha=0.7)+
+    geom_point(data=density.inc.tau,
+                 aes(x=taU_MAP,
+                     y=density_taU_MAP),
+                 col='red',
+               shape=4,
+               size=2)+
+    facet_wrap(~id_iteration,
+               ncol=1,
+               scales='free_y',
+               labeller = labeller(id_iteration=label_wrap))+
+    scale_fill_manual(values=getPalette_tau_density(colourCount_shift),
+                      labels=label_shift)+
+    scale_color_manual(values=getPalette_tau_trait(colourCount_shift),
+                       labels=label_shift)+
+    theme_bw()+
+    coord_cartesian(xlim = c(min(data$time),max(data$time)))+
+    labs(x='Time',
+         y='Probability density',
+         fill=NULL,
+         col=NULL)+
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+
+  return(list(final_plot=obs_shift_plot/pdf_shift_plot,
+              observation_and_shift=obs_shift_plot,
+              shift_time_density=pdf_shift_plot))
 }
 
 #' Plot Rating curve after segmentation

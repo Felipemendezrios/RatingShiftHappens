@@ -2,16 +2,24 @@
 % Please edit documentation in R/Plots.R
 \name{plotSegmentation}
 \alias{plotSegmentation}
-\title{Plot segmentation}
+\title{Plots segmentation}
 \usage{
-plotSegmentation(summary)
+plotSegmentation(summary, plot_summary)
 }
 \arguments{
 \item{summary}{list, summary data resulting from any segmentation function}
+
+\item{plot_summary}{list, plot data resulting from any segmentation function}
 }
 \value{
-a ggplot
+List with the following components :
+\enumerate{
+\item final_plot:  ,
+\item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically,
+\item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
+vertical lines indicating the 95\% credibility interval and a red cross representing shift time assignment
+}
 }
 \description{
-Plot the final segmentation displaying shift time along with uncertainties
+Plots  focusing on the observed data and shift time and their estimation
 }
