@@ -13,5 +13,5 @@ plotSegmentation(summary)
 a ggplot
 }
 \description{
-Plot the final segmentation displaying shift time along with uncertainties
+Plot the segmentation displaying shift time
 }
