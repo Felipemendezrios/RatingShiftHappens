@@ -21,5 +21,9 @@ vertical lines indicating the 95\% credibility interval and a red cross represen
 }
 }
 \description{
+<<<<<<< HEAD
 Plots  focusing on the observed data and shift time and their estimation
+=======
+Plot the segmentation displaying shift time
+>>>>>>> 054864736ef84a365aa4f49d42acf1160418327a
 }

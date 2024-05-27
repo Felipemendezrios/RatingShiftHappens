@@ -59,6 +59,7 @@ plotTree <- function(tree){
 #' Plots segmentation
 #'
 #' Plots  focusing on the observed data and shift time and their estimation
+#' Plot the segmentation displaying shift time
 #'
 #' @param summary list, summary data resulting from any segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
@@ -83,6 +84,7 @@ plotSegmentation <- function(summary,
   # Add some colors to the palette for observations
   colourCount_obs = length(unique(data$period))
   getPalette_obs =  scales::viridis_pal(option='D')
+  getPalette_tau_MAP =  scales::viridis_pal(option='H')
 
   # Add some colors to the palette for shift
   colourCount_tau = length(unique(shift$tau))
