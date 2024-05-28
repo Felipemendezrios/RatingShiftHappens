@@ -136,11 +136,9 @@ recursive.ModelAndSegmentation <- function(H,
   if(any(Q<0)){
     stop('Dishcarge cannot be negative, verify information')
   }
-
   if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ))){
     stop('Missing values not allowed in time, stage, discharge or uncertainty')
   }
-
   check <- check_vector_lengths(time,H,Q,uQ)
   if(is.null(check)){
     stop('time, hauteur, discharge or uncertainty do not have the same length')
@@ -163,7 +161,6 @@ recursive.ModelAndSegmentation <- function(H,
   residuals=list(residualsData[[1]]$Q_res) # List of all nodes (each corresponding to a subseries of residual) to be segmented at this level. Start with a unique node corresponding to the whole series
   TIME=list(residualsData[[1]]$time) # List of corresponding times
   u_residuals=list(sqrt(residualsData[[1]]$uQ_sim^2+residualsData[[1]]$uQ_obs^2)) # List of corresponding uncertainties
-
 
   while(continue){
     level=level+1 # Increment recursion level
@@ -278,12 +275,24 @@ recursive.ModelAndSegmentation <- function(H,
 
     shift <- c()
     DF.origin.date <-  list()
+    density.tau <- c()
+    density.inc.tau <- c()
     counter <- 0
     for(i in 1:length(nodes.shift.time)){
       nSopt.p = allRes[[nodes.shift.time[[i]]]]$nS
       results.p = allRes[[nodes.shift.time[[i]]]]$results
 
       shift.time.p=data.frame(c(results.p[[nSopt.p]]$tau))
+
+      # Add id to the MCMC to estimate density of shift time
+      density.tau.p = cbind(allRes[[nodes.shift.time[[i]]]]$plot$density.tau,
+                            id_iteration=nodes.shift.time[[i]])
+      density.tau = rbind(density.tau,density.tau.p)
+
+      density.inc.tau.p = cbind(allRes[[nodes.shift.time[[i]]]]$plot$density.inc.tau,
+                                id_iteration=nodes.shift.time[[i]])
+      density.inc.tau = rbind(density.inc.tau,
+                              density.inc.tau.p)
 
       for(j in 1:(nSopt.p-1)){
 
@@ -292,7 +301,7 @@ recursive.ModelAndSegmentation <- function(H,
                                                               probs=c(0.025)),
                                     I95_upper=stats::quantile(results.p[[nSopt.p]]$mcmc[,nSopt.p+j],
                                                               probs=c(0.975)),
-                                    id_segmentation=i)
+                                    id_iteration=nodes.shift.time[[i]])
         shift <- rbind(shift,
                        shift.time.p.unc)
         counter=counter+1
@@ -315,8 +324,8 @@ recursive.ModelAndSegmentation <- function(H,
         transformed.IC.shift=rbind(transformed.IC.shift,transformed.IC.shift.p)
       }
       shift[,c(2,3)]=transformed.IC.shift
-      shift <- shift[order(shift$tau),]
     }
+    shift <- shift[order(shift$tau),]
   }else{
     shift=NULL
   }
@@ -324,6 +333,8 @@ recursive.ModelAndSegmentation <- function(H,
   return(list(summary=list(data=data,
                            shift=shift,
                            param.equation=param.equation),
+              plot = list(density.tau = density.tau,
+                          density.inc.tau = density.inc.tau),
               res=allRes,
               tree=tree,
               origin.date=DF.origin.date))

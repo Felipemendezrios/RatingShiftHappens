@@ -644,8 +644,8 @@ recursive.segmentation <- function(obs,
         transformed.IC.shift=rbind(transformed.IC.shift,transformed.IC.shift.p)
       }
       shift[,c(2,3)]=transformed.IC.shift
-      shift <- shift[order(shift$tau),]
     }
+    shift <- shift[order(shift$tau),]
   }else{
     shift=NULL
   }
