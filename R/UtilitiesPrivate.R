@@ -58,3 +58,20 @@ check_param_distribution <- function(distribution, prior){
   }
 }
 
+#' Convert à list to a data frame if possible
+#'
+#' @param listx list
+#'
+#' @return data frame or list
+List_to_DF <- function(listx){
+  col_nb=(unlist(lapply(listx, ncol)))
+  all_equal <- all(col_nb==col_nb[1])
+
+  if(all_equal){
+    listxpost=do.call(rbind, listx)
+    rownames(listxpost) <- NULL
+  }else{
+    listxpost=listx
+  }
+  return(listxpost)
+}
