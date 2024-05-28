@@ -7,23 +7,19 @@
 plotSegmentation(summary, plot_summary)
 }
 \arguments{
-\item{summary}{list, summary data resulting from any segmentation function}
+\item{summary}{data frame, summary data resulting from any segmentation function without estimation of rating curve}
 
 \item{plot_summary}{list, plot data resulting from any segmentation function}
 }
 \value{
 List with the following components :
 \enumerate{
-\item final_plot:  ,
-\item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically,
+\item final_plot: ggplot, observed data presenting the shift time and their estimation
+\item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically
 \item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
 vertical lines indicating the 95\% credibility interval and a red cross representing shift time assignment
 }
 }
 \description{
-<<<<<<< HEAD
 Plots  focusing on the observed data and shift time and their estimation
-=======
-Plot the segmentation displaying shift time
->>>>>>> 054864736ef84a365aa4f49d42acf1160418327a
 }

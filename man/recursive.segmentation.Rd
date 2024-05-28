@@ -74,5 +74,6 @@ results$tree
 # Visualize tree structure
 plotTree(results$tree)
 # Plot segmentation
-plotSegmentation(summary=results$summary)
+plotSegmentation(summary=results$summary,
+                 plot_summary=results$plot)
 }

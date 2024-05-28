@@ -4,10 +4,12 @@
 \alias{plotResidual_ModelAndSegmentation}
 \title{Plot residuals with updating rating curve}
 \usage{
-plotResidual_ModelAndSegmentation(summary)
+plotResidual_ModelAndSegmentation(summary, plot_summary)
 }
 \arguments{
 \item{summary}{list, summary data resulting from model and segmentation function}
+
+\item{plot_summary}{list, plot data resulting from any segmentation function}
 }
 \value{
 ggplot, residual segmentation
