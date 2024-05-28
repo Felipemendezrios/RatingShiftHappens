@@ -59,15 +59,14 @@ plotTree <- function(tree){
 #' Plots segmentation
 #'
 #' Plots  focusing on the observed data and shift time and their estimation
-#' Plot the segmentation displaying shift time
 #'
-#' @param summary list, summary data resulting from any segmentation function
+#' @param summary data frame, summary data resulting from any segmentation function without estimation of rating curve
 #' @param plot_summary list, plot data resulting from any segmentation function
 #'
 #' @return  List with the following components :
 #' \enumerate{
-#'   \item final_plot:  ,
-#'   \item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically,
+#'   \item final_plot: ggplot, observed data presenting the shift time and their estimation
+#'   \item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically
 #'   \item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
 #'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
 #'   }
@@ -84,7 +83,6 @@ plotSegmentation <- function(summary,
   # Add some colors to the palette for observations
   colourCount_obs = length(unique(data$period))
   getPalette_obs =  scales::viridis_pal(option='D')
-  getPalette_tau_MAP =  scales::viridis_pal(option='H')
 
   # Add some colors to the palette for shift
   colourCount_tau = length(unique(shift$tau))
@@ -98,7 +96,7 @@ plotSegmentation <- function(summary,
                alpha=0.8)+
     geom_point(data=shift,
                aes(x=tau,
-                   y=min(data$I95_lower),),
+                   y=min(data$I95_lower)),
                col='red',
                shape=4,
                size=3)+
@@ -140,45 +138,45 @@ plotSegmentation <- function(summary,
           legend.title.align=0.5)
 
   # Plot probability density function of the shift time
-  colourCount_shift = length(unique(density.inc.tau$Shift))
+  colourCount_shift = length(unique(plot_summary$density.inc.tau$Shift))
 
   getPalette_tau_density = scales::viridis_pal(option = "H")
   getPalette_tau_trait =  scales::viridis_pal(option='E')
 
   # Customize labels
   label_shift <- paste0('Shift ',seq(1,colourCount_shift))
-  label_wrap <- stats::setNames(paste('Shift detected in this node : ',
-                                      unique(density.inc.tau$id_iteration)),
-                                unique(density.inc.tau$id_iteration))
+  if(length(which(colnames(plot_summary$density.inc.tau)=='id_iteration'))!=0){
+    label_wrap <- stats::setNames(paste('Shift detected in this node : ',
+                                        unique(plot_summary$density.inc.tau$id_iteration)),
+                                  unique(plot_summary$density.inc.tau$id_iteration))
+  }
 
-  pdf_shift_plot= ggplot(density.tau,aes(x=Value,
-                                         y = Density,
-                                         fill=Shift))+
-    geom_area(alpha=0.4,position = "identity")+
-    geom_segment(data=density.inc.tau,
+  pdf_shift_plot= ggplot(plot_summary$density.tau,
+                         aes(x=Value,
+                             y = Density,
+                             fill=Shift))+
+    geom_area(alpha=0.4,
+              position = "identity")+
+    geom_segment(data=plot_summary$density.inc.tau,
                  aes(x=tau_lower_inc,
                      y=0 ,
                      xend=tau_lower_inc,
                      yend=density_tau_lower_inc,
                      col=factor(Shift)),
                  alpha=0.7)+
-    geom_segment(data=density.inc.tau,
+    geom_segment(data=plot_summary$density.inc.tau,
                  aes(x=tau_upper_inc,
                      y=0 ,
                      xend=tau_upper_inc,
                      yend=density_tau_upper_inc,
                      col=factor(Shift)),
                  alpha=0.7)+
-    geom_point(data=density.inc.tau,
+    geom_point(data=plot_summary$density.inc.tau,
                  aes(x=taU_MAP,
                      y=density_taU_MAP),
                  col='red',
                shape=4,
                size=2)+
-    facet_wrap(~id_iteration,
-               ncol=1,
-               scales='free_y',
-               labeller = labeller(id_iteration=label_wrap))+
     scale_fill_manual(values=getPalette_tau_density(colourCount_shift),
                       labels=label_shift)+
     scale_color_manual(values=getPalette_tau_trait(colourCount_shift),
@@ -193,6 +191,14 @@ plotSegmentation <- function(summary,
           axis.ticks.y = element_blank(),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank())
+
+  if(length(which(colnames(plot_summary$density.inc.tau)=='id_iteration'))!=0){
+    pdf_shift_plot=pdf_shift_plot+
+      facet_wrap(~id_iteration,
+                 ncol=1,
+                 scales='free_y',
+                 labeller = labeller(id_iteration=label_wrap))
+  }
 
   return(list(final_plot=obs_shift_plot/pdf_shift_plot,
               observation_and_shift=obs_shift_plot,
@@ -222,7 +228,7 @@ plotSegmentation <- function(summary,
 #' Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example `?recursive.ModelAndSegmentation`.
 #' @export
 plotRC_ModelAndSegmentation=function(summary,
-                                     equation,
+                                     equation=Exponential_Equation,
                                      ...,
                                      Hmin_user = 0,
                                      Hmax_user = 2,
@@ -263,8 +269,8 @@ plotRC_ModelAndSegmentation=function(summary,
   }
 
   # Add some colors to the palette for observations
-  colourCount_period = length(unique(summary_data$period))
-  getPalette_period =  scales::viridis_pal(option='D')
+  colourCount_obs = length(unique(summary_data$period))
+  getPalette_obs =  scales::viridis_pal(option='D')
 
   ### limit of plotting
   if(autoscale==TRUE){
@@ -386,30 +392,30 @@ plotRC_ModelAndSegmentation=function(summary,
   RC_plot <- ggplot()
 
   RC_plot = RC_plot+
-        # Plot Simulation (MAP and uncertainty)
-        geom_ribbon(data=summary_sim_grid,
-                    aes(x=H_sim,
-                        ymin=Qsim_I95_lower,
-                        ymax=Qsim_I95_upper ,
-                        fill=factor(period)),
-                    alpha=0.3,
-                    na.rm = FALSE)+
-          geom_line(data=summary_sim_grid,
-                    aes(x=H_sim,
-                        y=Qsim,
-                        col=factor(period_date_end)))+
-        # Plot observations with uncertainty :
-        geom_errorbar(data=summary_obs,
-                      aes(x=H_obs,
-                          y=Q_obs,
-                          ymin=Q_I95_lower,
-                          ymax=Q_I95_upper,
-                          col=factor(period_date_end)),
-                      width=0.1)+
-          geom_point(data=summary_obs,
-                     aes(x=H_obs,
-                         y=Q_obs,
-                         col=factor(period_date_end)))
+    # Plot Simulation (MAP and uncertainty)
+    geom_ribbon(data=summary_sim_grid,
+                aes(x=H_sim,
+                    ymin=Qsim_I95_lower,
+                    ymax=Qsim_I95_upper ,
+                    fill=factor(period)),
+                alpha=0.3,
+                na.rm = FALSE)+
+    geom_line(data=summary_sim_grid,
+              aes(x=H_sim,
+                  y=Qsim,
+                  col=factor(period_date_end)))+
+    # Plot observations with uncertainty :
+    geom_errorbar(data=summary_obs,
+                  aes(x=H_obs,
+                      y=Q_obs,
+                      ymin=Q_I95_lower,
+                      ymax=Q_I95_upper,
+                      col=factor(period_date_end)),
+                  width=0.1)+
+    geom_point(data=summary_obs,
+               aes(x=H_obs,
+                   y=Q_obs,
+                   col=factor(period_date_end)))
   # Customize plot
   RC_plot = RC_plot +
     coord_cartesian(xlim=c(H_min_plot_limit,H_max_plot_limit))+
@@ -419,9 +425,9 @@ plotRC_ModelAndSegmentation=function(summary,
     labs(x='Stage (m)',
        y='Discharge (m3/s)',
        title = 'Rating curves after segmentation')+
-    scale_color_manual(values = getPalette_period(colourCount_period),
+    scale_color_manual(values = getPalette_obs(colourCount_obs),
                        name = 'Final validity date')+
-    scale_fill_manual(values = getPalette_period(colourCount_period),
+    scale_fill_manual(values = getPalette_obs(colourCount_obs),
                       name = 'Period')+
     theme_bw()+
     theme(plot.title = element_text(hjust=0.5,
@@ -453,77 +459,81 @@ plotRC_ModelAndSegmentation=function(summary,
   return(RC_plot)
 }
 
-#' Plot shift times
+#' Plot stage time series after segmentation
 #'
-#' Plot shift times after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#' Plots focusing on the observed data and shift times after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
 #'
 #' @param summary list, summary data resulting from model and segmentation function
-#' @param uH vector, uncertainty concerning the observed stage
+#' @param plot_summary list, plot data resulting from any segmentation function
+#' @param uH vector or value, uncertainty concerning the observed stage in meters
 #'
-#' @return ggplot, stage record and shift times
+#'
+#' @return  List with the following components :
+#' \enumerate{
+#'   \item final_plot: ggplot, observed data presenting the shift time and their estimation
+#'   \item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically,
+#'   \item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
+#'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
+#'   }
 #' @export
-plotStage_ModelAndSegmentation <- function(summary, uH=NA){
+plot_H_ModelAndSegmentation <- function(summary,
+                                        plot_summary,
+                                        uH=NA){
+  # Adapt summary to use PlotSegmentation function to plot segmentation of stage time series
+  data_adapted <- data.frame(time=summary$data$time,
+                             obs=summary$data$H,
+                             I95_lower=summary$data$H-uH,
+                             I95_upper=summary$data$H+uH,
+                             period=summary$data$period)
 
-  data=summary$data
-  shift=summary$shift
+  summary_plot = list(data=data_adapted,
+                        shift=summary$shift)
 
-  if(is.null(check_vector_lengths(uH,nrow(data))))stop('Uncertainty of the stage is not the same size as the observed data')
+  plot_segmentation=plotSegmentation(summary = summary_plot,
+                                     plot_summary = plot_summary)
 
-  data=cbind(data,uH=uH)
+  plot_segmentation[[1]][[1]]$labels$y='Stage record (m)'
+  plot_segmentation[[2]]$labels$y='Stage record (m)'
 
-  # Add some colors to the palette for observations
-  colourCount_period = length(unique(data$period))
-  getPalette_period =  scales::viridis_pal(option='D')
+  return(plot_segmentation)
+}
+#' Plot discharge time series after segmentation
+#'
+#' Plots focusing on the observed data and shift times after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#'
+#' @param summary list, summary data resulting from model and segmentation function
+#' @param plot_summary list, plot data resulting from any segmentation function
+#' @param uH vector or value, uncertainty concerning the observed stage in meters
+#'
+#'
+#' @return  List with the following components :
+#' \enumerate{
+#'   \item final_plot: ggplot, observed data presenting the shift time and their estimation
+#'   \item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically,
+#'   \item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
+#'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
+#'   }
+#' @export
+plot_Q_ModelAndSegmentation <- function(summary,
+                                        plot_summary,
+                                        uH=NA){
+  # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
+  data_adapted <- data.frame(time=summary$data$time,
+                             obs=summary$data$Q,
+                             I95_lower=summary$data$Q_I95_lower,
+                             I95_upper=summary$data$Q_I95_upper,
+                             period=summary$data$period)
 
-  # Add some colors to the palette for shift
-  colourCount_tau = length(unique(shift$tau))
-  getPalette_tau = scales::viridis_pal(option = "C")
+  summary_plot = list(data=data_adapted,
+                      shift=summary$shift)
 
-  plotStageSegmentation=ggplot(data)
-  if(!is.null(shift)){
-    plotStageSegmentation=plotStageSegmentation+geom_vline(xintercept = shift$tau,alpha=0.8)+
-      geom_rect(data = shift,
-                aes(xmin = I95_lower,
-                    xmax = I95_upper,
-                    ymin = -Inf,
-                    ymax = Inf,
-                    fill=(factor(tau))),
-                alpha=0.4)+
-      labs(fill='Shift time')
+  plot_segmentation=plotSegmentation(summary = summary_plot,
+                                     plot_summary = plot_summary)
 
-    if(is.numeric(shift$tau)){
-      plotStageSegmentation=plotStageSegmentation+
-        scale_fill_manual(values=getPalette_tau(colourCount_tau),
-                          labels=round(shift$tau,2))
-    }else{
-      plotStageSegmentation=plotStageSegmentation+
-        scale_fill_manual(values=getPalette_tau(colourCount_tau),
-                          labels=round(shift$tau,units='days'))
-    }
-  }
+  plot_segmentation[[1]][[1]]$labels$y='Discharge (m3/s)'
+  plot_segmentation[[2]]$labels$y='Discharge (m3/s)'
 
-  plotStageSegmentation=plotStageSegmentation+
-    coord_cartesian(ylim = c(min(data$H),max(data$H)))+
-    geom_point(aes(x=time,
-                   y=H,
-                   col=factor(period)),
-               show.legend = FALSE)+
-    geom_errorbar(aes(x=time,
-                      ymin=H-uH,
-                      ymax=H+uH,
-                      col=factor(period)))+
-    labs(x='Time',
-         y='Stage m',
-         col='Period',
-         title = 'Stage record and segmentation')+
-    scale_color_manual(values = getPalette_period(colourCount_period))+
-    theme_bw()+
-    theme(plot.title = element_text(hjust=0.5,
-                                    face='bold',
-                                    size=15),
-          legend.title = element_text(hjust=0.5))
-
-  return(plotStageSegmentation)
+  return(plot_segmentation)
 }
 
 #' Plot residuals with updating rating curve
@@ -531,27 +541,30 @@ plotStage_ModelAndSegmentation <- function(summary, uH=NA){
 #' Plot residuals after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
 #'
 #' @param summary list, summary data resulting from model and segmentation function
+#' @param plot_summary list, plot data resulting from any segmentation function
 #'
 #' @return ggplot, residual segmentation
 #' @export
-plotResidual_ModelAndSegmentation <- function(summary){
+plotResidual_ModelAndSegmentation <- function(summary,
+                                              plot_summary){
 
-  data=summary$data
-  shift=summary$shift
+  if(is.null(summary$shift))stop('Any shift time detected')
 
-  if(is.null(shift))stop('Any shift time detected')
+  # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
+  data_adapted <- data.frame(time=summary$data$time,
+                             obs=summary$data$Qres,
+                             I95_lower=summary$data$Q_I95_lower-summary$data$Qsim,
+                             I95_upper=summary$data$Q_I95_upper-summary$data$Qsim,
+                             period=summary$data$period)
 
-  plotresidual=plotSegmentation(summary = list(data=data.frame(time=data$time,
-                                                               obs=data$Qres,
-                                                               u=NA,
-                                                               I95_lower=(data$Q_I95_lower-data$Qsim),
-                                                               I95_upper=(data$Q_I95_upper-data$Qsim),
-                                                               period=data$period),
-                                               shift=shift))
+  summary_plot = list(data=data_adapted,
+                      shift=summary$shift)
 
-  plotresidual=plotresidual+
-    guides(col='none')+
-    ylab('Residual (m3/s)')
+  plotresidual=plotSegmentation(summary = summary_plot,
+                                plot_summary = plot_summary)
+
+  plotresidual[[1]][[1]]$labels$y='Residual (m3/s) : Observed discharge minus simulated discharge'
+  plotresidual[[2]]$labels$y='Residual (m3/s) : Observed discharge minus simulated discharge'
 
   return(plotresidual)
 }
