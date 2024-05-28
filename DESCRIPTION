@@ -24,6 +24,7 @@ Imports:
 	dplyr,
 	tidyr,
 	lubridate,
+	patchwork,
 	ggnewscale
 Suggests: 
     knitr,
