@@ -56,7 +56,7 @@
 #'              align = 'c',row.names = FALSE)
 #'
 #' # Parameters estimation of the rating curve
-#' convert_list_to_dataframe(results$summary$param.equation)
+#' results$summary$param.equation
 #'
 #' # Have a look at recursion tree
 #' results$tree
@@ -71,8 +71,8 @@
 #' results$summary$param.equation
 #'
 #' # It must be pass as input data a and b as parameters of the specified fit model in this case
-#' a=convert_list_to_dataframe(results$summary$param.equation)$a
-#' b=convert_list_to_dataframe(results$summary$param.equation)$b
+#' a=results$summary$param.equation$a
+#' b=results$summary$param.equation$b
 #'
 #' # Plot the rating curve after segmentation following a regression exponential
 #' plotRC_ModelAndSegmentation(summary=results$summary,
@@ -108,10 +108,16 @@
 #'                             H_step_discretization = 0.01)
 #'
 #' # Plot shift times in stage record
-#' plotStage_ModelAndSegmentation(summary=results$summary)
+#' plot_H_ModelAndSegmentation(summary=results$summary,
+#'                             plot_summary=results$plot)
+#'
+#' # Plot shift times in discharge observations
+#' plot_Q_ModelAndSegmentation(summary=results$summary,
+#'                             plot_summary=results$plot)
 #'
 #' # Plot residual
-#' plotResidual_ModelAndSegmentation(summary=results$summary)
+#' plotResidual_ModelAndSegmentation(summary=results$summary,
+#'                                   plot_summary=results$plot)
 recursive.ModelAndSegmentation <- function(H,
                                            Q,
                                            time=1:length(H),
@@ -329,6 +335,9 @@ recursive.ModelAndSegmentation <- function(H,
   }else{
     shift=NULL
   }
+
+  # Convert a list to a data frame if possible
+  param.equation <- List_to_DF(param.equation)
 
   return(list(summary=list(data=data,
                            shift=shift,

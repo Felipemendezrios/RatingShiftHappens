@@ -47,7 +47,8 @@
 #' knitr::kable(head(res$summary$shift),
 #'              align = 'c',row.names = FALSE)
 #' # Plot segmentation
-#' plotSegmentation(res$summary)
+#' plotSegmentation(res$summary,
+#'                  res$plot)
 #' @export
 #' @import dplyr
 #' @importFrom RBaM parameter xtraModelInfo model dataset mcmcOptions mcmcCooking remnantErrorModel BaM
@@ -402,7 +403,8 @@ segmentation.engine <- function(obs,
 #' knitr::kable(head(res$results[[nSopt]]$summary$shift),
 #'              align = 'c',row.names = FALSE)
 #' # Plot segmentation
-#' plotSegmentation(res$summary)
+#' plotSegmentation(res$summary,
+#'                  res$plot)
 #' @export
 segmentation <- function(obs,
                          time=1:length(obs),
@@ -494,7 +496,8 @@ segmentation <- function(obs,
 #' # Visualize tree structure
 #' plotTree(results$tree)
 #' # Plot segmentation
-#' plotSegmentation(summary=results$summary)
+#' plotSegmentation(summary=results$summary,
+#'                  plot_summary=results$plot)
 #' @export
 recursive.segmentation <- function(obs,
                                    time=1:length(obs),
