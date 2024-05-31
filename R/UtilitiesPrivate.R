@@ -75,3 +75,55 @@ List_to_DF <- function(listx){
   }
   return(listxpost)
 }
+
+#' Copy all files from a folder to a another folder
+#'
+#' @param dir.source character, source directory
+#' @param dir.destination character, destination directory
+#'
+#' @return
+copy_files_to_folder <- function(dir.source,
+                                 dir.destination){
+  # Ensure the destination directory exists
+  if (!dir.exists(dir.destination)) {
+    dir.create(dir.destination, recursive = TRUE)
+  }else{
+    # erase old files
+    unlink(file.path(dir.destination,"*"))
+  }
+
+  # List all files in the source directory recursively
+  files <- list.files(dir.source, full.names = TRUE, recursive = TRUE)
+
+  # Copy each file to the destination directory
+  lapply(files, function(file) {
+    # Construct the destination file path
+    destination_file <- file.path(dir.destination)
+
+    # Copy the file
+    file.copy(file, destination_file, overwrite = TRUE)
+  })
+}
+
+#' Remove files excepting some specified files
+#'
+#' @param files_to_keep character, files to keep
+#' @param dir.source character, source directory
+#'
+#' @return
+remove_files <- function(dir.source,
+                         files_to_keep){
+  # Remove all files except Results_Cooking.txt and Residual folder
+  all_files <- list.files(dir.source, full.names = TRUE)
+
+  files_to_keep_position <- which(!is.na(match(basename(all_files), files_to_keep)))
+
+  files_to_remove <- all_files[-files_to_keep_position]
+
+  # Remove the files
+  lapply(files_to_remove, function(file) {
+    file.remove(file)
+  })
+
+}
+
