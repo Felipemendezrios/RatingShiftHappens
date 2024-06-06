@@ -293,17 +293,16 @@ fitRC_exponential <- function(time,H,Q,uQ){
               parameters=parameters))
 }
 
-#' Fit rating curve using Baratin simplified
+#' Fit rating curve using simplified BaRatin method
 #'
 #' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without any prior about the parameters. Only one hydraulic control is assigned
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
 #' @param Q real vector, discharge
-#' @param temp.folder.RC.Plot.Grid directory, temporary directory to write computations of rating curve with prediction following Hgrid
-#' @param temp.folder.RC.H.obs directory, temporary directory to write computations of rating curve only using observed stages
-#' @param Hgrid real data.frame, grid to computing the rating curve
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
+#' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
+#' @param Hgrid real data.frame, grid to computing the rating curve
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -326,7 +325,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #' }
 fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
                                    temp.folder.RC=file.path(tempdir(),'BaM','RC'),
-                                   Hgrid=data.frame(Hgrid=seq(floor(min(H)),ceiling(max(H)),by=0.01))){
+                                   Hgrid=data.frame(grid=seq(floor(min(H)),ceiling(max(H)),by=0.01))){
   # if(length(time)<2){
   #   warning('NA was returned because it not possible to perform linear regression with fewer than two points.')
   #   return(list(NA,NA))
@@ -550,212 +549,4 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
               parameters=parameters))
 
 }
-
-#' Fit rating curve using rectangular channel BaRatin model
-#'
-#' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^5/3}
-#'
-#' @param time real vector, time
-#' @param H real vector, stage
-#' @param Q real vector, discharge
-#' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#' @param prior_a list, prior information about parameter a, describing geometry properties
-#' @param prior_b list, prior information about parameter b, describing talweg
-#'
-#' @return List with the following components :
-#' \enumerate{
-#'   \item ResultsResiduals : data frame, results after fitting curve
-#'   \itemize{
-#'        \item time: real value, time
-#'        \item H: real value, stage
-#'        \item Q_obs: real value, discharge observed
-#'        \item Q_sim: real value, discharge simulated
-#'        \item Q_res: real value, residual between discharge observed and simulated
-#'        \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
-#'        \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
-#'        }
-#'   \item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ c}
-#'   \itemize{
-#'        \item a : real value, parameter of geometry component
-#'        \item b : real value, parameter of offset (thalweg or streambed)
-#'        \item c : real value, parameter of exponent
-#'        }
-#' }
-fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ, prior_a, prior_b){
-  # if(length(time)<2){
-  #   warning('NA was returned because it not possible to perform linear regression with fewer than two points.')
-  #   return(list(NA,NA))
-  # }
-
-  prior_a=list('a1',26.516,'LogNormal',c(3.2797,0.36))
-  prior_b=list('b1',-0.6,'Gaussian',c(-0.58,1.49))
-
-  data=data.frame(time=time,H=H,Q=Q,uQ=uQ)
-
-
-  D=RBaM::dataset(X=data['H'],
-                  Y=data['Q'],
-                  Yu=data['uQ'],
-                  data.dir=file.path(tempdir(),'BaM'))
-
-
-  # Rectangular channel BaRatin model Q(h)=a*(h-b)^5/3
-  controlMatrix=list(rbind(c(1)),5)
-
-  b1=RBaM::parameter(name=prior_b[[1]],
-                     init=prior_b[[2]],
-                     prior.dist = prior_b[[3]] ,
-                     prior.par = prior_b[[4]])
-
-  a1=RBaM::parameter(name=prior_a[[1]],
-                     init=prior_a[[2]],
-                     prior.dist = prior_a[[3]] ,
-                     prior.par = prior_a[[4]])
-
-  c1=RBaM::parameter(name='c1',
-                     init=5/3,
-                     prior.dist = 'FIX' ,
-                     prior.par = NULL)
-
-  # Stitch it all together into a model object
-  M=RBaM::model(ID='BaRatinBAC',
-          nX=1,nY=1, # number of input/output variables
-          par=list(b1,a1,c1), # list of model parameters
-          xtra=RBaM::xtraModelInfo(object=controlMatrix)) # use xtraModelInfo() to pass the control matrix
-
-  RBaM:: BaM(mod=M,
-             data=D,
-             workspace = file.path(tempdir(),'BaM'),
-             dir.exe = file.path(find.package("RBaM"), "bin"))
-
-  # Exponential model Q(h)=Q0*exp(mu*h)
-  # Convert exponential regression model to linear using the natural log of Q as the response variable and H as the predictor variable
-  # Linear model : ln(Q(h))=a1+a2*h
-  # a1 = ln(Q0) ;  a2 = mu
-  mod <- stats::lm(log(Q) ~ H, data = data)
-
-  a1=stats::coef(mod)[1]
-  a2=stats::coef(mod)[2]
-
-  # Initialization of parameters
-  Q0.init=exp(a1)
-  mu.init=a2
-
-  # Return to the exponential model
-  initialization = list(a=Q0.init, b=mu.init)
-
-  # General formula : Q(h)=a*exp(b*h)
-  model.exp=stats::nls(Q ~ a*exp(b*H), data=data, start = initialization)
-
-  Q0=stats::coef(model.exp)[1]
-  mu=stats::coef(model.exp)[2]
-
-  # Prediction of discharge Q_rc from the water level (H)
-  qsim <- stats::predict(model.exp, newdata = data.frame(data$H))
-
-  # Residual calculation
-  residuals <- data$Q - qsim
-
-  # Residual standard deviation
-  residual_sd <- stats::sd(residuals)  # incorrect interpreted as predictive uncertainty
-
-  # residual data frame
-  ResultsResiduals=data.frame(time=data$time,
-                              H=data$H,
-                              Q_obs=data$Q,
-                              Q_sim=qsim,
-                              Q_res=residuals,
-                              uQ_obs=uQ,
-                              uQ_sim=residual_sd
-  )
-  parameters=data.frame(a=Q0,b=mu)
-
-  return(list(ResultsResiduals=ResultsResiduals,
-              parameters=parameters))
-}
-
-
-#' Fit rating curve using simplified BaRatin model
-#'
-#' Rating curve estimated by using BaRatin approach with the parameter c set to (5/3) and single rectangular weir as hydraulic control. The input data must be already ordered.
-#'
-#' @param time real vector, time
-#' @param H real vector, stage
-#' @param Q real vector, discharge
-#' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#'
-#' @return list with the following components :
-#' \enumerate{
-#'   \item ResultsResiduals : data frame, results after fitting curve
-#'   \itemize{
-#'        \item time: real value, time
-#'        \item H: real value, stage
-#'        \item Q_obs: real value, discharge observed
-#'        \item Q_sim: real value, discharge simulated
-#'        \item Q_res: real value, residual between discharge observed and simulated
-#'        \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
-#'        \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
-#'        }
-#'   \item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ (5/3)}
-#'   \itemize{
-#'        \item a : real value, parameter of geometry component
-#'        \item b : real value, parameter of offset (thalweg or streambed)
-#'        }
-#' }
-#'#' fitRC_Simplified_BaRatin=function(time,H,Q,uQ,
-#'#'                                   b.distr = 'Gaussian' ,a.distr = 'LogNormal',
-#'#'                                   b.prior, st_b.prior,
-#'  #'                                  Bc.prior, KS.prior, S0.prior,
-#'  #'                                  hmax_Xtra=1.5*max(H)){
-#'  #'   # Hardcoded variables
-#'  #'   hyr_contr_matrix=matrix(c(1),nrow=1,ncol=1)
-#'  #'   c = 5/3
-#'  #'
-#'  #'   if(is.null(check_square_matrix(hyr_contr_matrix)))stop('Matrix must be square. Try another hydraulic matrix control')
-#'  #'   if(is.null(check_vector_lengths(hyr_contr_matrix,
-#'  #'                                   b.prior, Bc.prior, KS.prior, S0.prior)))stop('Prior information of the parameters does not have the same length')
-#'  #'   if(is.null(check_vector_lengths(hyr_contr_matrix,
-#'  #'                                   st_b.prior,st_Bc.prior,st_KS.prior, st_S0.prior)))stop('Prior information of the parameters does not have the same length')
-#'  #'
-#'  #'   #  How to handle uncertainty of the parameters? because depends on the distribution, number of parameters can vary
-#'  #'   if(is.null(check_param_distribution(b.distr,st_b.prior)))stop('The number of the parameters does not match with the specified distribution for st_b.prior')
-#'  #'   if(is.null(check_param_distribution(a.distr,st_Bc.prior)))stop('The number of the parameters does not match with the specified distribution for st_Bc.prior')
-#'  #'   if(is.null(check_param_distribution(a.distr,st_KS.prior)))stop('The number of the parameters does not match with the specified distribution for st_KS.prior')
-#'  #'   if(is.null(check_param_distribution(a.distr,st_S0.prior)))stop('The number of the parameters does not match with the specified distribution for st_S0.prior')
-#'  #'   if(is.null(check_param_distribution(g1.distr.type,g1.prior)))stop('The number of the parameters does not match with the specified distribution for g1.prior')
-#'  #'   if(is.null(check_param_distribution(g2.distr.type,g2.prior)))stop('The number of the parameters does not match with the specified distribution for g2.prior')
-#'  #'
-#'  #'   npar = 3*ncol(hyr_contr_matrix) #'  Three parameters by control
-#'  #'   priors <- vector(mode = 'list',length = npar)
-#'  #'
-#'  #'   for(i in 1 :ncol(hyr_contr_matrix)){
-#'  #'     b1=RBaM::parameter(name=paste0('b',i),
-#'  #'                        init=b.prior[i],
-#'  #'                        prior.dist = b.distr ,
-#'  #'                        prior.par = st_b.prior)
-#'  #'       parameter(name='k1',init=-0.5,prior.dist='Uniform',prior.par=c(-1.5,0))
-#'  #'
-#'  #'   }
-#'  #'   #'  put all parameters in priors
-#'  #'   data=data.frame(time=time,H=H,Q=Q)
-#'  #'
-#'  #'   ## ending
-#'  #'   #  residual data frame
-#'  #'   ResultsResiduals=data.frame(time=data$time,
-#'  #'                               H=data$H,
-#'  #'                               Q_obs=data$Q,
-#'  #'                               Q_sim=qsim,
-#'  #'                               Q_res=residuals,
-#'  #'                               uQ_obs=uQ,
-#'  #'                               uQ_sim=residual_sd
-#'  #'   )
-#'  #'   parameters=data.frame(a=Q0,b=mu)
-#'  #'
-#'  #'   return(list(ResultsResiduals=ResultsResiduals,
-#'  #'               parameters=parameters))
-#'  #' }
-#'  #'
-#'  #'
-#'  #'
-#'
 
