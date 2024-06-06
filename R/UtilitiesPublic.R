@@ -89,7 +89,7 @@ DateFormatTransform <- function(date){
 #' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = FALSE)
 replace_negatives_or_zero_values <- function(data_frame, columns='all', consider_zero = TRUE, replace=NA) {
 
-  if(columns=='all'){
+  if(all(columns=='all')){
     columns.match = seq(1,ncol(data_frame))
   }else{
     columns.match = match(columns,colnames(data_frame))
