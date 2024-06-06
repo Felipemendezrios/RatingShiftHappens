@@ -6,7 +6,7 @@
 \usage{
 replace_negatives_or_zero_values(
   data_frame,
-  columns,
+  columns = "all",
   consider_zero = TRUE,
   replace = NA
 )
