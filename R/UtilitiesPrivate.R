@@ -81,7 +81,6 @@ List_to_DF <- function(listx){
 #' @param dir.source character, source directory
 #' @param dir.destination character, destination directory
 #'
-#' @return
 copy_files_to_folder <- function(dir.source,
                                  dir.destination){
   # Ensure the destination directory exists
@@ -105,12 +104,11 @@ copy_files_to_folder <- function(dir.source,
   })
 }
 
-#' Remove files excepting some specified files
+#' Remove files excepting some specific files from the directory
 #'
 #' @param files_to_keep character, files to keep
 #' @param dir.source character, source directory
 #'
-#' @return
 remove_files <- function(dir.source,
                          files_to_keep){
   # Remove all files except Results_Cooking.txt and Residual folder
