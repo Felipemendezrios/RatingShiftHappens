@@ -295,14 +295,13 @@ fitRC_exponential <- function(time,H,Q,uQ){
 
 #' Fit rating curve using simplified BaRatin method
 #'
-#' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without any prior about the parameters. Only one hydraulic control is assigned
+#' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without non-informative prior from the parameters. Only one hydraulic control is assigned
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
-#' @param Hgrid real data.frame, grid to computing the rating curve
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -323,14 +322,13 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #'        \item c : real value, parameter of exponent
 #'        }
 #' }
+#' @export
 fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
-                                   temp.folder.RC=file.path(tempdir(),'BaM','RC'),
-                                   Hgrid=data.frame(grid=seq(floor(min(H)),ceiling(max(H)),by=0.01))){
+                                   temp.folder.RC=file.path(tempdir(),'BaM','RC')){
   # if(length(time)<2){
   #   warning('NA was returned because it not possible to perform linear regression with fewer than two points.')
   #   return(list(NA,NA))
   # }
-  if(!is.data.frame(Hgrid))(stop('Hgrid must be a data frame'))
 
   data=data.frame(time=time,H=H,Q=Q,uQ=uQ)
 
@@ -342,12 +340,13 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
 
   # Extra information to lunch model
   controlMatrix = rbind(c(1))
-  hmax_grid = max(Hgrid)
+  hmax_grid = max(data$H)
 
   # Declare a prior information about each parameter
   b1=RBaM::parameter(name='b1',
                      init=min(data$H),
-                     prior.dist = "FlatPrior")
+                     prior.dist = "Uniform",
+                     prior.par=c(1.5*min(data$H),max(data$H)))
   #initial guess a1
   if(mean(data$H)!=min(data$H)){
     a1.init=mean(data$Q)/(mean(data$H)-min(data$H))^(5/3)
@@ -363,7 +362,8 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
 
   c1=RBaM::parameter(name='c1',
                      init=5/3,
-                     prior.dist = 'FlatPrior+')
+                     prior.dist = "Gaussian",
+                     prior.par=c(5/3,0.05))
 
   priors=list(b1,a1,c1)
 
@@ -401,9 +401,13 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
 
+  # Save data object and model object
+  save(D,file = file.path(temp.folder.RC,'DataObject.RData'))
+  save(M,file = file.path(temp.folder.RC,'ModelObject.RData'))
+
   # PREDICTIONS : two steps
   # First prediction : estimate total uncertainty of simulation (u_sim = u_total) at observed stages to returned as u_sim for segmentation
-  # Second prediction : estimate total uncertainty of simulation discretized at Hgrid to plot
+  # Second prediction : estimate total uncertainty of simulation discretized at Hgrid to plot (manage in PlotRCPrediction function)
 
   # First prediction : observed data :
   # Define a 'prediction' object for total predictive uncertainty only for observed stages
@@ -419,19 +423,19 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
                           doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
                           doStructural=TRUE) # propagate structural uncertainty ?
 
-  # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
-  paramU=RBaM::prediction(X=data['H'],
-                          spagFiles='QRC_ParamU.spag',
-                          data.dir=temp.folder.RC,
-                          doParametric=TRUE,
-                          doStructural=FALSE)
-
-  # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
-  maxpost=RBaM::prediction(X=data['H'],
-                           spagFiles='QRC_Maxpost.spag',
-                           data.dir=temp.folder.RC,
-                           doParametric=FALSE,
-                           doStructural=FALSE)
+  # # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
+  # paramU=RBaM::prediction(X=data['H'],
+  #                         spagFiles='QRC_ParamU.spag',
+  #                         data.dir=temp.folder.RC,
+  #                         doParametric=TRUE,
+  #                         doStructural=FALSE)
+  #
+  # # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
+  # maxpost=RBaM::prediction(X=data['H'],
+  #                          spagFiles='QRC_Maxpost.spag',
+  #                          data.dir=temp.folder.RC,
+  #                          doParametric=FALSE,
+  #                          doStructural=FALSE)
 
   # # Define a 'prediction' object with no uncertainty - this corresponds to the rating curve computed with prior information
   # priorU=RBaM::prediction(X=Hgrid,
@@ -445,30 +449,13 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
              data=D,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
-             pred=list(totalU,paramU,maxpost), # list of predictions
-             # pred=priorU, # list of predictions
-             doCalib=FALSE,
+             pred=totalU, # list of predictions
+             # pred=list(totalU,paramU,maxpost), # list of predictions
+               doCalib=FALSE,
              doPred=TRUE)
 
   # Total uncertainty propagation
   env_QRC_TotalU=utils::read.table(file.path(temp.folder.RC,'QRC_TotalU.env'),header=TRUE)
-  # env_QRC_TotalUReplace=replace_negatives_or_zero_values(data_frame=env_QRC_TotalU,
-  #                                                 columns='all',
-  #                                                 consider_zero = FALSE,
-  #                                                 replace=0)
-  # Predictive uncertainty propagation
-  # env_QRC_ParamU=utils::read.table(file.path(temp.folder.RC,'QRC_ParamU.env'),header=TRUE)
-  # env_QRC_ParamUReplace=replace_negatives_or_zero_values(data_frame=env_QRC_ParamU,
-  #                                                 columns='all',
-  #                                                 consider_zero = FALSE,
-  #                                                 replace=0)
-
-  # MaxPost prediction
-  # env_QRC_MaxPost=utils::read.table(file.path(temp.folder.RC,'QRC_Maxpost.spag'))
-  # env_QRC_MaxPostReplace=replace_negatives_or_zero_values(data_frame=env_QRC_MaxPost,
-  #                                                  columns='all',
-  #                                                  consider_zero = FALSE,
-  #                                                  replace=0)
 
   # Discharge simulation
   qsim <- resid.segm$Y1_sim
@@ -502,48 +489,14 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
                        dir.destination=file.path(temp.folder.RC, 'Residual'))
 
   # Second prediction : Hgrid :
-  remove_files(dir.source = temp.folder.RC ,
-               files_to_keep=c('Results_Cooking.txt',
-                               'Results_Residuals.txt',
-                               'Results_Summary.txt',
-                               "Residual"))
-
-  totalU=RBaM::prediction(X=Hgrid, # stage values
-                          spagFiles='QRC_TotalU.spag', # file where predictions are saved
-                          data.dir=temp.folder.RC, # a copy of data files will be saved here
-                          doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
-                          doStructural=TRUE) # propagate structural uncertainty ?
-
-  # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
-  paramU=RBaM::prediction(X=Hgrid,
-                          spagFiles='QRC_ParamU.spag',
-                          data.dir=temp.folder.RC,
-                          doParametric=TRUE,
-                          doStructural=FALSE)
-
-  # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
-  maxpost=RBaM::prediction(X=Hgrid,
-                           spagFiles='QRC_Maxpost.spag',
-                           data.dir=temp.folder.RC,
-                           doParametric=FALSE,
-                           doStructural=FALSE)
-
-  # # Define a 'prediction' object with no uncertainty - this corresponds to the rating curve computed with prior information
-  # priorU=RBaM::prediction(X=Hgrid,
-  #                         spagFiles='QRC_Prior.spag',
-  #                         data.dir=temp.folder.RC,
-  #                         priorNsim = nrow(mcmc.segm),
-  #                         doParametric=TRUE,
-  #                         doStructural=FALSE)
-
-  RBaM:: BaM(mod=M,
-             data=D,
-             workspace = temp.folder.RC,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
-             pred=list(totalU,paramU,maxpost), # list of predictions
-             # pred=priorU, # list of predictions
-             doCalib=FALSE,
-             doPred=TRUE)
+  invisible(remove_files(dir.source = temp.folder.RC ,
+                         files_to_keep=c('Results_Cooking.txt',
+                                         'Results_Residuals.txt',
+                                         'Results_Summary.txt',
+                                         'CalibrationData.txt',
+                                         'ModelObject.RData',
+                                         'DataObject.RData',
+                                         'Residual')))
 
   return(list(ResultsResiduals=ResultsResiduals,
               parameters=parameters))
