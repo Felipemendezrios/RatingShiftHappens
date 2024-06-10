@@ -85,23 +85,23 @@ copy_files_to_folder <- function(dir.source,
                                  dir.destination){
   # Ensure the destination directory exists
   if (!dir.exists(dir.destination)) {
-    dir.create(dir.destination, recursive = TRUE)
+    dir.create(dir.destination)
   }else{
     # erase old files
     unlink(file.path(dir.destination,"*"))
   }
 
   # List all files in the source directory recursively
-  files <- list.files(dir.source, full.names = TRUE, recursive = TRUE)
+  files <- list.files(dir.source, full.names = TRUE, recursive = FALSE)
+
+  if(any(files==dir.destination)){
+    files=files[-which(files==dir.destination)]
+  }
 
   # Copy each file to the destination directory
-  lapply(files, function(file) {
-    # Construct the destination file path
-    destination_file <- file.path(dir.destination)
-
-    # Copy the file
-    file.copy(file, destination_file, overwrite = TRUE)
-  })
+  invisible(file.copy(files,
+                      dir.destination,
+                      recursive=TRUE))
 }
 
 #' Remove files excepting some specific files from the directory
