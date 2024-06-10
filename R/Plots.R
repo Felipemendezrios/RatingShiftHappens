@@ -568,3 +568,169 @@ plotResidual_ModelAndSegmentation <- function(summary,
 
   return(plotresidual)
 }
+
+
+
+#' Plot rating curve from a tree structure
+#'
+#' Plot all rating curve specified in the nodes after using `recursive.ModelAndSegmentation` function.
+#'
+#' @param Hgrid data frame, grid user-defined for plotting rating curve
+#' @param autoscale logical, auto scale following data for plotting Hgrid
+#' @param temp.folder directory, temporary directory to write computations
+#' @param CalibrationData character, name of the calibration data used in the `recursive.ModelAndSegmentation` function. It must to match or an error message will be appear
+#' @param nodes vector, nodes from tree structure for plotting rating curve
+#'
+#' @return ggplot, rating curve with MAP, uncertainties and gauging data. More specification in 'Details'
+#' @details
+#' The function allows plotting any node from the tree structure, as shown in the example from `recursive.ModelAndSegmentation`.
+#' The rating curves consist of the optimal rating curve after estimation, along with the parametric and total uncertainty.
+#' Gauging data used for calibration during segmentation have been plotted. Hence, the smaller the number of the node, the more gauging data have been used for calibration.
+#' @export
+PlotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
+                             autoscale=FALSE,
+                             temp.folder=file.path(tempdir(),'BaM'),
+                             CalibrationData='CalibrationData.txt',
+                             nodes){
+
+  if(!is.data.frame(Hgrid))(stop('Hgrid must be a data frame'))
+  if(!is.vector(nodes))(stop('Nodes must be a vector'))
+  if(!dir.exists(file.path(temp.folder,'it_1')))(stop('Segmentation using the BaRatin method is required before using this function.
+                                                      Please, ensure that you have specified the correct path in input data'))
+
+  if(any(nodes>length(list.files(temp.folder,pattern = 'it_'))))stop('At least one specified node does not exist. Check node input data')
+  if(any(CalibrationData==list.files(file.path(temp.folder,'it_1')))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder. Please, check the name of calibration data used in the recursive.ModelAndSegmentation function')
+
+  # Extract all data requierd from specified nodes
+  allData=list()
+
+  for( i in 1:length(nodes)){
+
+    temp.folder.RCPlot=file.path(temp.folder,paste0('it_',nodes[i]))
+
+    CalData=read.table(file.path(temp.folder.RCPlot,
+                                 CalibrationData),
+                       header = T)
+
+    # Upload Data object
+    load(file.path(temp.folder.RCPlot,'DataObject.RData'))
+
+    # Upload Model object
+    load(file.path(temp.folder.RCPlot,'ModelObject.RData'))
+
+    if(autoscale==TRUE){
+      Hgrid=data.frame(grid=seq(min(CalData$H),max(CalData$H),by=0.01))
+    }
+    totalU=RBaM::prediction(X=Hgrid, # stage values
+                            spagFiles='QRC_TotalU.spag', # file where predictions are saved
+                            data.dir=temp.folder.RCPlot, # a copy of data files will be saved here
+                            doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                            doStructural=TRUE) # propagate structural uncertainty ?
+
+    # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
+    paramU=RBaM::prediction(X=Hgrid,
+                            spagFiles='QRC_ParamU.spag',
+                            data.dir=temp.folder.RCPlot,
+                            doParametric=TRUE,
+                            doStructural=FALSE)
+
+    # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
+    maxpost=RBaM::prediction(X=Hgrid,
+                             spagFiles='QRC_Maxpost.spag',
+                             data.dir=temp.folder.RCPlot,
+                             doParametric=FALSE,
+                             doStructural=FALSE)
+
+    # # Define a 'prediction' object with no uncertainty - this corresponds to the rating curve computed with prior information
+    # priorU=RBaM::prediction(X=Hgrid,
+    #                         spagFiles='QRC_Prior.spag',
+    #                         data.dir=temp.folder.RCPlot,
+    #                         priorNsim = nrow(mcmc.segm),
+    #                         doParametric=TRUE,
+    #                         doStructural=FALSE)
+
+    RBaM:: BaM(mod=M,
+               data=D,
+               workspace = temp.folder.RCPlot,
+               dir.exe = file.path(find.package("RBaM"), "bin"),
+               pred=list(totalU,paramU,maxpost), # list of predictions
+               # pred=priorU, # list of predictions
+               doCalib=FALSE,
+               doPred=TRUE)
+
+    # Get total uncertainty from the rating curve
+    TotalUenv=read.table(file.path(temp.folder.RCPlot,'QRC_TotalU.env'),header = TRUE)
+    TotalUenv=replace_negatives_or_zero_values(data_frame = TotalUenv,
+                                               columns = 'all',
+                                               consider_zero = TRUE,
+                                               replace = 0 )
+
+    # Add parametric uncertainty
+    ParametricUenv=read.table(file.path(temp.folder.RCPlot,'QRC_ParamU.env'),header = TRUE)
+    ParametricUenv=replace_negatives_or_zero_values(data_frame = ParametricUenv,
+                                                    columns = 'all',
+                                                    consider_zero = TRUE,
+                                                    replace = 0 )
+
+
+    # Add maxpost rating curve
+    MAPRC=read.table(file.path(temp.folder.RCPlot,'QRC_Maxpost.spag'))
+
+    allData[[i]]=list(CalData=CalData,
+                      TotalUenv=TotalUenv,
+                      ParametricUenv=ParametricUenv,
+                      MAPRC=MAPRC,
+                      HgridPlot=Hgrid)
+  }
+
+  # Plots
+  PlotRCPred=list()
+  for (i in 1:length(allData)){
+    PlotRCPred[[i]]<-local({
+      inner_list <- allData[[i]]
+      i<-i
+
+      ggplot()+
+        # Total uncertainty
+        geom_ribbon(data = inner_list$TotalUenv,
+                    aes(x=inner_list$HgridPlot[,1],
+                        ymin=q2.5,
+                        ymax=q97.5,
+                        fill='Total'),
+                    alpha=0.65)+
+        # Parametric uncertainty
+        geom_ribbon(data = inner_list$ParametricUenv,
+                    aes(x=inner_list$HgridPlot[,1],
+                        ymin=q2.5,
+                        ymax=q97.5,
+                        fill='Parametric'),
+                    alpha=0.65)+
+        # Map
+        geom_line(data=inner_list$MAPRC,
+                  aes(x=inner_list$HgridPlot[,1],
+                      y=inner_list$MAPRC[,1],
+                      col='MAP'))+
+        # Guagings
+        geom_errorbar(data = inner_list$CalData,
+                      aes(x=H,
+                          ymin=Q-uQ,
+                          ymax=Q+uQ,
+                          col='Gaugings'),
+                      width=0.05)+
+        geom_point(data = inner_list$CalData,
+                   aes(x=H,
+                       y=Q,
+                       col='Gaugings'))+
+        labs(title=paste0('Rating curve estimation for node ',nodes[[i]]),
+             x='H[m]',
+             y='Q[m3/s]',
+             fill='Uncertainty',
+             col=NULL)+
+        scale_fill_manual(values=c('yellow', 'red'))+
+        scale_color_manual(values=c('black','blue'))+
+        theme_bw()+
+        theme(plot.title = element_text(hjust = 0.5))
+    })
+  }
+  return(PlotRCPred)
+}
