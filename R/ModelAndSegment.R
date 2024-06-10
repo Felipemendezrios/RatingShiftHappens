@@ -40,12 +40,16 @@
 #' @export
 #'
 #' @examples
+#' # Define fit model for rating curve
+#' fit=fitRC_exponential
+#' equation=Exponential_Equation
+#'
 #' # Apply recursive model and segmentation
 #' results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
 #'                                        Q=ArdecheRiverMeyrasGaugings$Q,
 #'                                        time=ArdecheRiverMeyrasGaugings$Date,
 #'                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
-#'                                        nSmax=2,nMin=2,funk=fitRC_exponential)
+#'                                        nSmax=3,nMin=2,funk=fit)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),
@@ -61,11 +65,15 @@
 #' # Have a look at recursion tree
 #' results$tree
 #'
+#' # Terminal nodes
+#' terminal = results$tree$indx[which(results$tree$nS==1)]
+#' terminal
+#'
 #' # Visualize tree structure
 #' plotTree(results$tree)
 #'
 #' # See the arguments of the specified fit model for the rating curve
-#' args(Exponential_Equation)
+#' args(equation)
 #'
 #' # See parameters estimates for each rating curve
 #' results$summary$param.equation
@@ -76,13 +84,13 @@
 #'
 #' # Plot the rating curve after segmentation following a regression exponential
 #' plotRC_ModelAndSegmentation(summary=results$summary,
-#'                             equation=Exponential_Equation,
+#'                             equation=equation,
 #'                             a=a,
 #'                             b=b)
 #'
 #' # Plot the rating curves after segmentation with zoom user-defined
 #' plotRC_ModelAndSegmentation(summary=results$summary,
-#'                             equation = Exponential_Equation,
+#'                             equation = equation,
 #'                             autoscale = FALSE,
 #'                             Hmin_user = 1,
 #'                             Hmax_user = 2,
@@ -92,7 +100,7 @@
 #' # Plot the rating curves after segmentation in log scale
 #' plotRC_ModelAndSegmentation(summary=results$summary,
 #'                             logscale=TRUE,
-#'                             equation = Exponential_Equation,
+#'                             equation = equation,
 #'                             a=a,
 #'                             b=b)
 #'
@@ -101,7 +109,7 @@
 #'                             a=a,
 #'                             b=b,
 #'                             logscale=TRUE,
-#'                             equation = Exponential_Equation,
+#'                             equation = equation,
 #'                             autoscale = FALSE,
 #'                             Hmin_user = 0.5,
 #'                             Hmax_user = 2,
@@ -118,6 +126,32 @@
 #' # Plot residual
 #' plotResidual_ModelAndSegmentation(summary=results$summary,
 #'                                   plot_summary=results$plot)
+#'
+#' # example with baratin method
+#' fit=fitRC_SimplifiedBaRatin
+#'
+#' results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
+#'                                        Q=ArdecheRiverMeyrasGaugings$Q,
+#'                                        time=ArdecheRiverMeyrasGaugings$Date,
+#'                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
+#'                                        nSmax=3,nMin=2,funk=fit)
+#'
+#' # Have a look at recursion tree
+#' results$tree
+#'
+#' # Terminal nodes
+#' terminal = results$tree$indx[which(results$tree$nS==1)]
+#' terminal
+#'
+#' # Plot the rating curves after using BaRatin method. Function specially created to this method
+#' if(identical(fit,fitRC_SimplifiedBaRatin)){
+#'
+#'   PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+#'                    autoscale=FALSE,
+#'                    temp.folder=file.path(tempdir(),'BaM'),
+#'                    CalibrationData='CalibrationData.txt',
+#'                    nodes=terminal)
+#' }
 recursive.ModelAndSegmentation <- function(H,
                                            Q,
                                            time=1:length(H),
@@ -158,6 +192,12 @@ recursive.ModelAndSegmentation <- function(H,
   DF.order <- DF.order[order(DF.order$time),]
 
   residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,...) # initialize first residual data to be segmented
+
+  # Save results from first prediction using the grid for plotting rating curve
+  if(identical(funk,fitRC_SimplifiedBaRatin)){
+    invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
+                                   dir.destination=file.path(temp.folder, 'it_1')))
+  }
   residualsData <- list(residualsData.all[[1]])
   param.equation.p <- list(residualsData.all[[2]])
 
@@ -206,6 +246,11 @@ recursive.ModelAndSegmentation <- function(H,
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           # Update rating curve estimation
           residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
+          # Save results from first prediction using the grid for plotting rating curve
+          if(identical(funk,fitRC_SimplifiedBaRatin)){
+            invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
+                                           dir.destination=file.path(temp.folder,paste0('it_',p,'/'))))
+          }
           residualsData[[p]] <- residualsData.all[[p]][[1]]
           param.equation.p[[p]] <- residualsData.all[[p]][[2]]
 
