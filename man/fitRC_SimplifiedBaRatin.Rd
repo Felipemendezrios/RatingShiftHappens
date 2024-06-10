@@ -45,5 +45,5 @@ List with the following components :
 }
 }
 \description{
-Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without non-informative prior from the parameters. Only one hydraulic control is assigned
+Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without prior information on the parameters. Only one hydraulic control is considered
 }

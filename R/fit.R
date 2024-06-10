@@ -295,7 +295,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
 
 #' Fit rating curve using simplified BaRatin method
 #'
-#' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without non-informative prior from the parameters. Only one hydraulic control is assigned
+#' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without prior information on the parameters. Only one hydraulic control is considered
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
@@ -502,4 +502,3 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,
               parameters=parameters))
 
 }
-
