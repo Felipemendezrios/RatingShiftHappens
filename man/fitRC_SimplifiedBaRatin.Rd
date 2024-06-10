@@ -9,8 +9,7 @@ fitRC_SimplifiedBaRatin(
   H,
   Q,
   uQ,
-  temp.folder.RC = file.path(tempdir(), "BaM", "RC"),
-  Hgrid = data.frame(grid = seq(floor(min(H)), ceiling(max(H)), by = 0.01))
+  temp.folder.RC = file.path(tempdir(), "BaM", "RC")
 )
 }
 \arguments{
@@ -23,8 +22,6 @@ fitRC_SimplifiedBaRatin(
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 
 \item{temp.folder.RC}{directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve}
-
-\item{Hgrid}{real data.frame, grid to computing the rating curve}
 }
 \value{
 List with the following components :
@@ -48,5 +45,5 @@ List with the following components :
 }
 }
 \description{
-Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without any prior about the parameters. Only one hydraulic control is assigned
+Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} without non-informative prior from the parameters. Only one hydraulic control is assigned
 }

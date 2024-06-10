@@ -73,12 +73,16 @@ Some functions for estimating the rating curve are available in this package.
 Use \code{GetCatalog()$models} to discover the supported models. More information in \code{?GetCatalog()}.
 }
 \examples{
+# Define fit model for rating curve
+fit=fitRC_exponential
+equation=Exponential_Equation
+
 # Apply recursive model and segmentation
 results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
                                        Q=ArdecheRiverMeyrasGaugings$Q,
                                        time=ArdecheRiverMeyrasGaugings$Date,
                                        uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                       nSmax=2,nMin=2,funk=fitRC_exponential)
+                                       nSmax=3,nMin=2,funk=fit)
 
 # Data information
 knitr::kable(head(results$summary$data),
@@ -94,11 +98,15 @@ results$summary$param.equation
 # Have a look at recursion tree
 results$tree
 
+# Terminal nodes
+terminal = results$tree$indx[which(results$tree$nS==1)]
+terminal
+
 # Visualize tree structure
 plotTree(results$tree)
 
 # See the arguments of the specified fit model for the rating curve
-args(Exponential_Equation)
+args(equation)
 
 # See parameters estimates for each rating curve
 results$summary$param.equation
@@ -109,13 +117,13 @@ b=results$summary$param.equation$b
 
 # Plot the rating curve after segmentation following a regression exponential
 plotRC_ModelAndSegmentation(summary=results$summary,
-                            equation=Exponential_Equation,
+                            equation=equation,
                             a=a,
                             b=b)
 
 # Plot the rating curves after segmentation with zoom user-defined
 plotRC_ModelAndSegmentation(summary=results$summary,
-                            equation = Exponential_Equation,
+                            equation = equation,
                             autoscale = FALSE,
                             Hmin_user = 1,
                             Hmax_user = 2,
@@ -125,7 +133,7 @@ plotRC_ModelAndSegmentation(summary=results$summary,
 # Plot the rating curves after segmentation in log scale
 plotRC_ModelAndSegmentation(summary=results$summary,
                             logscale=TRUE,
-                            equation = Exponential_Equation,
+                            equation = equation,
                             a=a,
                             b=b)
 
@@ -134,7 +142,7 @@ plotRC_ModelAndSegmentation(summary=results$summary,
                             a=a,
                             b=b,
                             logscale=TRUE,
-                            equation = Exponential_Equation,
+                            equation = equation,
                             autoscale = FALSE,
                             Hmin_user = 0.5,
                             Hmax_user = 2,
@@ -151,4 +159,30 @@ plot_Q_ModelAndSegmentation(summary=results$summary,
 # Plot residual
 plotResidual_ModelAndSegmentation(summary=results$summary,
                                   plot_summary=results$plot)
+
+# example with baratin method
+fit=fitRC_SimplifiedBaRatin
+
+results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
+                                       Q=ArdecheRiverMeyrasGaugings$Q,
+                                       time=ArdecheRiverMeyrasGaugings$Date,
+                                       uQ=ArdecheRiverMeyrasGaugings$uQ,
+                                       nSmax=3,nMin=2,funk=fit)
+
+# Have a look at recursion tree
+results$tree
+
+# Terminal nodes
+terminal = results$tree$indx[which(results$tree$nS==1)]
+terminal
+
+# Plot the rating curves after using BaRatin method. Function specially created to this method
+if(identical(fit,fitRC_SimplifiedBaRatin)){
+
+  PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                   autoscale=FALSE,
+                   temp.folder=file.path(tempdir(),'BaM'),
+                   CalibrationData='CalibrationData.txt',
+                   nodes=terminal)
+}
 }
