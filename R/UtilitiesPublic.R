@@ -163,3 +163,82 @@ convert_list_to_dataframe <- function(liste_df){
   rownames(result)<-NULL
   return(result)
 }
+
+#' Builder function to generate prior information on the parameter as a object
+#'
+#' @return object, prior information on the parameter defined
+#' @export
+prior_infor_param_builder <- function() {
+
+  name <- as.character(readline(prompt = 'Enter a name of the parameter: '))
+
+  init <- as.numeric(readline(prompt = paste0('Enter initial guess of the parameter ',name,': ')))
+
+  # Display Available distributions
+  cat('Available distributions:\n ')
+  print(RBaM::getCatalogue()$distributions)
+
+  while(TRUE){
+    prior.dist = as.character(readline(prompt = 'Enter the prior distribution:'))
+    if(length(which(prior.dist==RBaM::getCatalogue()$distribution))==0){
+      cat('Invalid input. Please enter a prior distribution available. Please respect capital letters')
+      next
+    }
+    break
+  }
+
+  # Parameter of the distribution
+  if(prior.dist=='FIX'){
+    prior.par=NULL
+  }else{
+    while (TRUE) {
+       if (prior.dist %in% c('Gaussian', 'Uniform', 'LogNormal')) {
+
+        params_input <- readline(prompt = paste0("Enter the parameters for ", prior.dist, " distribution (separated by a space): "))
+        params <- strsplit(params_input, " ")[[1]]
+
+        # Check if two values were entered
+        if (length(params) != 2) {
+          cat("Invalid input. Please enter only two parameters separated by a space.\n")
+          next
+        }
+
+        # Convert the inputs to numeric
+        param1 <- as.numeric(params[1])
+        param2 <- as.numeric(params[2])
+
+        # Check if both inputs are valid numbers
+        if (is.na(param1) || is.na(param2)) {
+          cat("Invalid input. Please enter valid numbers for both parameters.\n")
+          next
+        }
+
+        # If both inputs are valid, return the parameters as a vector
+        prior.par = c(param1,param2)
+
+      } else {
+        params_input <- readline(prompt = "Enter the parameters of the distribution.\n If the number of the parameters is larger than one, separated by a space): \n")
+        params <- strsplit(params_input, " ")[[1]]
+
+        # Convert the inputs to numeric
+        numeric_params <- as.numeric(params)
+
+        # Check if any input is not a valid number
+        if (any(is.na(numeric_params))) {
+          cat("Invalid input. Please enter valid numbers for all parameters.\n")
+          next  # Skip to the next iteration of the loop
+        }
+        prior.par=as.vector(numeric_params)
+      }
+      break
+    }
+  }
+
+  return(RBaM::parameter(name=name,
+                         init=init,
+                         prior.dist = prior.dist,
+                         prior.par = prior.par))
+}
+
+
+
