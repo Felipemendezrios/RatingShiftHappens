@@ -194,9 +194,17 @@ recursive.ModelAndSegmentation <- function(H,
   residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,...) # initialize first residual data to be segmented
 
   # Save results from first prediction using the grid for plotting rating curve
-  if(identical(funk,fitRC_SimplifiedBaRatin)){
+  if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)){
+    dir.destination=file.path(temp.folder,'it_1/')
+    # Ensure the destination directory exists
+    if (!dir.exists(dir.destination)) {
+      dir.create(dir.destination)
+    }else{
+      # erase old files
+      unlink(file.path(dir.destination,"*"))
+    }
     invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
-                                   dir.destination=file.path(temp.folder, 'it_1')))
+                                   dir.destination=dir.destination))
   }
   residualsData <- list(residualsData.all[[1]])
   param.equation.p <- list(residualsData.all[[2]])
@@ -247,9 +255,18 @@ recursive.ModelAndSegmentation <- function(H,
           # Update rating curve estimation
           residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
           # Save results from first prediction using the grid for plotting rating curve
-          if(identical(funk,fitRC_SimplifiedBaRatin)){
+          if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)){
+            dir.destination=file.path(temp.folder,paste0('it_',p,'/'))
+            # Ensure the destination directory exists
+            if (!dir.exists(dir.destination)) {
+              dir.create(dir.destination)
+            }else{
+              # erase old files
+              unlink(file.path(dir.destination,"*"))
+            }
+
             invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
-                                           dir.destination=file.path(temp.folder,paste0('it_',p,'/'))))
+                                           dir.destination=dir.destination))
           }
           residualsData[[p]] <- residualsData.all[[p]][[1]]
           param.equation.p[[p]] <- residualsData.all[[p]][[2]]
