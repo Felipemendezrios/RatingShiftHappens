@@ -235,6 +235,9 @@ plotRC_ModelAndSegmentation=function(summary,
                                      H_step_discretization=0.01,
                                      autoscale=TRUE,
                                      logscale = FALSE){
+
+  if(equation==BaRatin_Equation)stop('To plot the rating curve using Baratin method, you must to use the function PlotRCPrediction')
+
   # Check discretization
   if(H_step_discretization<=0)stop('The discretization must be a positive non-zero value')
 
