@@ -241,4 +241,40 @@ prior_infor_param_builder <- function() {
 }
 
 
+#' Builder hydraulic control matrix
+#'
+#' @param ncontrols integer value, number of hydraulic controls
+#'
+#' @return matrix, hydraulic control
+#' @export
+control_matrix_builder <- function(ncontrols) {
+
+  control_matrix_build <- c()
+  for(i in 1:ncontrols){
+    while (TRUE) {
+      cat('
+      Describe the control-by-control matrix using :
+        1 to active control
+        0 to inactive control
+        The number must be separed by a space and must be the same size as the number of controls')
+      control_i_input <- c(readline(prompt = paste0('Hydraulic control N° ',i,' \n')))
+      control_i <- as.numeric(strsplit(control_i_input, " ")[[1]])
+
+      if(ncontrols!=length(control_i)){
+        cat('The specified control number must be identical to the number of the input data entered to respect a square matrix.\nPlease verify the separator used, it must be a space')
+        next
+      }
+
+      if(any(control_i!=0 & control_i!=1)){
+        cat('Hydraulic control must be filled by 1 (active) and 0 (inactive) for describing hydraulic controls')
+        next
+      }
+
+      control_matrix_build = rbind(control_matrix_build,control_i)
+      break
+    }
+  }
+  rownames(control_matrix_build) <- NULL
+  return(control_matrix_build)
+}
 
