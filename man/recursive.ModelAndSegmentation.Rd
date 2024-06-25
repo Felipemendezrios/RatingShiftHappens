@@ -160,29 +160,70 @@ plot_Q_ModelAndSegmentation(summary=results$summary,
 plotResidual_ModelAndSegmentation(summary=results$summary,
                                   plot_summary=results$plot)
 
-# example with baratin method
-fit=fitRC_SimplifiedBaRatin
 
-results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
-                                       Q=ArdecheRiverMeyrasGaugings$Q,
-                                       time=ArdecheRiverMeyrasGaugings$Date,
-                                       uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                       nSmax=3,nMin=2,funk=fit)
+# example with Baratin method
+fit=fitRC_BaRatin
 
-# Have a look at recursion tree
-results$tree
+# Hydraulic matrix control is also required. The `control_matrix_builder` was developed to help the user to create this matrix.
+# In this case, 3 hydraulic control has been set
+
+controlMatrix=matrix(c(1,0,0,0,1,1,0,0,1),ncol=3,nrow=3)
+
+# Prior information about input data is required. The `prior_infor_param_builder` function was developed to help the user to create these objects.
+#' # Prior information for Ardeche River at Meyras
+
+a1=RBaM::parameter(name='a1',init=14.17,prior.dist='LogNormal',prior.par=c(2.66,1.54))
+b1=RBaM::parameter(name='b1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.58,1.49))
+c1=RBaM::parameter(name='c1',init=1.5,prior.dist='Gaussian',prior.par=c(1.5,0.025))
+a2=RBaM::parameter(name='a2',init=26.5165,prior.dist='LogNormal',prior.par=c(3.28,0.36))
+b2=RBaM::parameter(name='b2',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.58,1.49))
+c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
+a3=RBaM::parameter(name='a3',init=31.82,prior.dist='LogNormal',prior.par=c(3.46,0.397))
+b3=RBaM::parameter(name='b3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2))
+c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
+
+a.object=list(a1,a2,a3)
+b.object=list(b1,b2,b3)
+c.object=list(c1,c2,c3)
+
+resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
+                                              Q=ArdecheRiverMeyrasGaugings$Q,
+                                              time=ArdecheRiverMeyrasGaugings$Date,
+                                              uQ=ArdecheRiverMeyrasGaugings$uQ,
+                                              nSmax=3,
+                                              nMin=2,
+                                              funk=fit,
+                                              HmaxGrid=max(ArdecheRiverMeyrasGaugings$H),
+                                              a.object=a.object,
+                                              b.object=b.object,
+                                              c.object=c.object,
+                                              controlMatrix=controlMatrix
+                                              )
+
+# Visualize tree structure
+plotTree(resultsBaRatin$tree)
 
 # Terminal nodes
-terminal = results$tree$indx[which(results$tree$nS==1)]
+terminal = resultsBaRatin$tree$indx[which(resultsBaRatin$tree$nS==1)]
 terminal
 
 # Plot the rating curves after using BaRatin method. Function specially created to this method
-if(identical(fit,fitRC_SimplifiedBaRatin)){
+PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                 autoscale=FALSE,
+                 temp.folder=file.path(tempdir(),'BaM'),
+                 CalibrationData='CalibrationData.txt',
+                 allnodes=FALSE,
+                 nodes=terminal)
 
-  PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                   autoscale=FALSE,
-                   temp.folder=file.path(tempdir(),'BaM'),
-                   CalibrationData='CalibrationData.txt',
-                   nodes=terminal)
-}
+# Plot shift times in stage record
+plot_H_ModelAndSegmentation(summary=resultsBaRatin$summary,
+                            plot_summary=resultsBaRatin$plot)
+
+# Plot shift times in discharge observations
+plot_Q_ModelAndSegmentation(summary=resultsBaRatin$summary,
+                            plot_summary=resultsBaRatin$plot)
+
+# Plot residual
+plotResidual_ModelAndSegmentation(summary=resultsBaRatin$summary,
+                                  plot_summary=resultsBaRatin$plot)
 }

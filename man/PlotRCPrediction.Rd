@@ -9,7 +9,8 @@ PlotRCPrediction(
   autoscale = FALSE,
   temp.folder = file.path(tempdir(), "BaM"),
   CalibrationData = "CalibrationData.txt",
-  nodes
+  allnodes = FALSE,
+  nodes = 1
 )
 }
 \arguments{
@@ -21,7 +22,9 @@ PlotRCPrediction(
 
 \item{CalibrationData}{character, name of the calibration data used in the \code{recursive.ModelAndSegmentation} function. It must to match or an error message will be appear}
 
-\item{nodes}{vector, nodes from tree structure for plotting rating curve}
+\item{allnodes}{logical, if TRUE all node will be plotted and the parameter nodes in the input data function will not be considered. If FALSE, it must to specify the nodes to plot.}
+
+\item{nodes}{integer vector, the nodes from tree structure for plotting rating curve.}
 }
 \value{
 ggplot, rating curve with MAP, uncertainties and gauging data. More specification in 'Details'

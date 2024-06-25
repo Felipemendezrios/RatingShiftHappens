@@ -9,6 +9,7 @@ fitRC_SimplifiedBaRatin(
   H,
   Q,
   uQ,
+  HmaxGrid,
   temp.folder.RC = file.path(tempdir(), "BaM", "RC")
 )
 }
@@ -20,6 +21,8 @@ fitRC_SimplifiedBaRatin(
 \item{Q}{real vector, discharge}
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
+
+\item{HmaxGrid}{real value, maximum stage of all data}
 
 \item{temp.folder.RC}{directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve}
 }
@@ -40,7 +43,7 @@ List with the following components :
 \itemize{
 \item a : real value, parameter of geometry component
 \item b : real value, parameter of offset (thalweg or streambed)
-\item c : real value, parameter of exponent
+\item c : real value, parameter of exponent describing the type of hydraulic control
 }
 }
 }
