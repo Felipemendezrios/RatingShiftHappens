@@ -164,12 +164,14 @@ plotResidual_ModelAndSegmentation(summary=results$summary,
 # example with Baratin method
 fit=fitRC_BaRatin
 
-# Hydraulic matrix control is also required. The `control_matrix_builder` was developed to help the user to create this matrix.
+# Hydraulic matrix control is also required.
+# The `control_matrix_builder` was developed to help the user to create this matrix.
 # In this case, 3 hydraulic control has been set
 
 controlMatrix=matrix(c(1,0,0,0,1,1,0,0,1),ncol=3,nrow=3)
 
-# Prior information about input data is required. The `prior_infor_param_builder` function was developed to help the user to create these objects.
+# Prior information about input data is required.
+# The `prior_infor_param_builder` function was developed to help the user to create these objects.
 #' # Prior information for Ardeche River at Meyras
 
 a1=RBaM::parameter(name='a1',init=14.17,prior.dist='LogNormal',prior.par=c(2.66,1.54))

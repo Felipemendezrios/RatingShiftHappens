@@ -6,6 +6,9 @@
 \usage{
 control_matrix_builder(ncontrols)
 }
+\arguments{
+\item{ncontrols}{integer value, number of hydraulic controls}
+}
 \value{
 matrix, hydraulic control
 }
