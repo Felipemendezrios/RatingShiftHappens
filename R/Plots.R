@@ -236,7 +236,7 @@ plotRC_ModelAndSegmentation=function(summary,
                                      autoscale=TRUE,
                                      logscale = FALSE){
 
-  if(equation==BaRatin_Equation)stop('To plot the rating curve using Baratin method, you must to use the function PlotRCPrediction')
+  if(identical(equation,BaRatin_Equation))stop('To plot the rating curve using Baratin method, you must to use the function PlotRCPrediction')
 
   # Check discretization
   if(H_step_discretization<=0)stop('The discretization must be a positive non-zero value')
@@ -436,7 +436,7 @@ plotRC_ModelAndSegmentation=function(summary,
     theme(plot.title = element_text(hjust=0.5,
                                     face='bold',
                                     size=15),
-          legend.title.align=0.5)
+          legend.title = element_text(hjust=0.5))
 
   # Log scale
   if(logscale==TRUE){
@@ -582,7 +582,8 @@ plotResidual_ModelAndSegmentation <- function(summary,
 #' @param autoscale logical, auto scale following data for plotting Hgrid
 #' @param temp.folder directory, temporary directory to write computations
 #' @param CalibrationData character, name of the calibration data used in the `recursive.ModelAndSegmentation` function. It must to match or an error message will be appear
-#' @param nodes vector, nodes from tree structure for plotting rating curve
+#' @param allnodes logical, if TRUE all node will be plotted and the parameter nodes in the input data function will not be considered. If FALSE, it must to specify the nodes to plot.
+#' @param nodes integer vector, the nodes from tree structure for plotting rating curve.
 #'
 #' @return ggplot, rating curve with MAP, uncertainties and gauging data. More specification in 'Details'
 #' @details
@@ -594,22 +595,29 @@ PlotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                              autoscale=FALSE,
                              temp.folder=file.path(tempdir(),'BaM'),
                              CalibrationData='CalibrationData.txt',
-                             nodes){
+                             allnodes=FALSE,
+                             nodes=1){
 
   if(!is.data.frame(Hgrid))(stop('Hgrid must be a data frame'))
-  if(!is.vector(nodes))(stop('Nodes must be a vector'))
   if(!dir.exists(file.path(temp.folder,'it_1')))(stop('Segmentation using the BaRatin method is required before using this function.
                                                       Please, ensure that you have specified the correct path in input data'))
 
-  if(any(nodes>length(list.files(temp.folder,pattern = 'it_'))))stop('At least one specified node does not exist. Check node input data')
+  if(allnodes==FALSE & any(nodes>length(list.files(temp.folder,pattern = 'it_'))))stop('At least one specified node does not exist. Check node input data')
+  if(allnodes==FALSE & !is.vector(nodes))(stop('Nodes must be a vector'))
   if(any(CalibrationData==list.files(file.path(temp.folder,'it_1')))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder. Please, check the name of calibration data used in the recursive.ModelAndSegmentation function')
 
-  # Extract all data requierd from specified nodes
+  # Extract all data required from specified nodes
   allData=list()
 
-  for( i in 1:length(nodes)){
+  if(allnodes){
+    nodes_to_plot=seq(1,length(grep(list.dirs(temp.folder,recursive  = FALSE),pattern='it_')==T))
+  }else{
+    nodes_to_plot=nodes
+  }
 
-    temp.folder.RCPlot=file.path(temp.folder,paste0('it_',nodes[i]))
+  for(i in 1:length(nodes_to_plot)){
+
+    temp.folder.RCPlot=file.path(temp.folder,paste0('it_',nodes_to_plot[[i]]))
 
     CalData=read.table(file.path(temp.folder.RCPlot,
                                  CalibrationData),
@@ -724,7 +732,7 @@ PlotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                    aes(x=H,
                        y=Q,
                        col='Gaugings'))+
-        labs(title=paste0('Rating curve estimation for node ',nodes[[i]]),
+        labs(title=paste0('Rating curve estimation for node ',nodes_to_plot[[i]]),
              x='H[m]',
              y='Q[m3/s]',
              fill='Uncertainty',
