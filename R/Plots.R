@@ -566,8 +566,8 @@ plotResidual_ModelAndSegmentation <- function(summary,
   plotresidual=plotSegmentation(summary = summary_plot,
                                 plot_summary = plot_summary)
 
-  plotresidual[[1]][[1]]$labels$y='Residual (m3/s) : Observed discharge minus simulated discharge'
-  plotresidual[[2]]$labels$y='Residual (m3/s) : Observed discharge minus simulated discharge'
+  plotresidual[[1]][[1]]$labels$y='Residual (m3/s) : Observed - simulated '
+  plotresidual[[2]]$labels$y='Residual (m3/s) : Observed - simulated'
 
   return(plotresidual)
 }
