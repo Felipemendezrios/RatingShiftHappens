@@ -745,3 +745,83 @@ PlotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
   }
   return(PlotRCPred)
 }
+
+
+#' Plot recession extracted
+#'
+#' @param Rec_extracted data frame, recession extracted after using `Extraction_recession`
+#' @param error_bar_plot logical, `TRUE` = plot error bar.
+#'
+#' @return list, plots of recession extracted
+#' @export
+#' @import RColorBrewer
+plot_rec_extracted <- function(Rec_extracted,
+                               error_bar_plot = FALSE){
+
+  colors=brewer.pal(10,'Paired')
+
+  # Plot of the extracted stage-recession
+  rec.plot=ggplot(Rec_extracted,
+                  aes(x=date,
+                      y=hrec,
+                      ymin=hrec-uHrec,
+                      ymax=hrec+uHrec,
+                      col=Rec_id))+
+    geom_point()
+
+  if(error_bar_plot){
+    rec.plot=rec.plot+
+      geom_errorbar()
+  }
+
+  rec.plot=rec.plot+
+    theme_bw()+
+    labs(x = 'Time [date]',
+         y = 'Stage')+
+    guides(color='none')+
+    scale_color_gradientn(colors=colors)
+
+  # Plot of the recession
+  rec.plot2=ggplot(Rec_extracted,
+                   aes(x=time_rec,
+                       y=hrec,
+                       ymin=hrec-uHrec,
+                       ymax=hrec+uHrec,
+                       col=Rec_id))+
+    geom_point()
+
+  if(error_bar_plot){
+    rec.plot2=rec.plot2+
+      geom_errorbar()
+  }
+
+  position_x=quantile(Rec_extracted$time_rec,probs = 0.95)
+  position_y=quantile(Rec_extracted$hrec,probs = 0.99)
+
+  test_long_serie=as.data.frame(Rec_extracted%>%
+                                  group_by(Rec_id)%>%
+                                  summarize(max(time_rec)))
+
+  rec.plot2=
+    rec.plot2 +
+    annotate("text",
+             x = position_x,
+             y = position_y,
+             label = paste0("Total points = ",nrow(Rec_extracted)))+
+    annotate("text",
+             x = position_x,
+             y = position_y*0.9,
+             label = paste0("Total recessions = ",max(unique(Rec_extracted$Rec_id))))+
+    annotate("text",
+             x = position_x,
+             y = position_y*0.8,
+             label = paste0("Total recessions (t > 80 days) = ", length(which(test_long_serie>80))))+
+    theme_bw()+
+    labs(x = 'Recession time [day]',
+         y = 'Stage',
+         col = '# Recession')+
+    scale_color_gradientn(colors=colors)
+
+  return(list(rec.plot,
+              rec.plot2))
+}
