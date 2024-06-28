@@ -25,7 +25,8 @@ Imports:
 	tidyr,
 	lubridate,
 	patchwork,
-	ggnewscale
+	ggnewscale,
+	RColorBrewer
 Suggests: 
     knitr,
     rmarkdown
