@@ -438,7 +438,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
   residuals <- resid.segm$Y1_res
 
   # Residual standard deviation
-  residual_sd <- env_QRC_TotalU$Stdev  # incorrect interpreted as predictive uncertainty
+  residual_sd <- env_QRC_TotalU$Stdev
 
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
@@ -619,7 +619,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
   residuals <- resid.segm$Y1_res
 
   # Residual standard deviation
-  residual_sd <- env_QRC_TotalU$Stdev  # incorrect interpreted as predictive uncertainty
+  residual_sd <- env_QRC_TotalU$Stdev
 
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
@@ -724,9 +724,6 @@ fitRC_BaRatin<- function(time,H,Q,uQ,
   # Put the lists in a list to iterate over them
   lists <- list(b.object,a.object, c.object)
 
-  # Get the length of the sublists (since all lists have the same size)
-  list_length <- length(a.object)
-
   # Use a loop to add the elements to the final list
   for(i in 1:ncontrols){
     for (lst in lists) {
@@ -811,7 +808,7 @@ fitRC_BaRatin<- function(time,H,Q,uQ,
   residuals <- resid.segm$Y1_res
 
   # Residual standard deviation
-  residual_sd <- env_QRC_TotalU$Stdev  # incorrect interpreted as predictive uncertainty
+  residual_sd <- env_QRC_TotalU$Stdev
 
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
