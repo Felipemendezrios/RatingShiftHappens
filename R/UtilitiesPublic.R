@@ -30,7 +30,7 @@ DateFormatTransform <- function(date){
   if(lubridate::is.Date(date)){
     origin=min(date)
     # Interval in days between origin and each date
-    diff_days <- lubridate::time_length(interval(origin, date), "day")
+    diff_days <- lubridate::time_length(lubridate::interval(origin, date), "day")
    return(list(origin=origin,
                time=diff_days))
 
