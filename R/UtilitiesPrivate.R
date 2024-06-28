@@ -125,3 +125,29 @@ remove_files <- function(dir.source,
 
 }
 
+#' Finding the local minimum
+#'
+#' Find all stage data decreasing: h(t) < h(t-1)
+#'
+#' @param t vector, time indicating the time of the record
+#' @param h real vector, stage
+#' @param uH real vector, uncertainty stage
+#'
+#' @return data frame, all stage data decreasing
+localmin <- function(t, h, uH) {
+
+  # Calculate the differences between adjacent values
+  diff_h <- diff(h)
+
+  # Find the indices where the difference is negative (indicating a decrease)
+  decreasing_indices <- which(diff_h <= 0)
+
+  # Detect if the last value is also decreasing to add it
+  if(any(decreasing_indices==(length(h)-1))){
+    decreasing_indices = c(decreasing_indices,length(h))
+  }
+
+  return(data.frame(t_local_min=t[decreasing_indices],
+                    h_local_min=h[decreasing_indices],
+                    uH_local_min=uH[decreasing_indices]))
+}
