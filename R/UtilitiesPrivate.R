@@ -23,7 +23,14 @@ check_vector_lengths <- function(...) {
 #'
 #' @return numeric date to input format of time
 NumericFormatTransform <- function(numeric.date,origin.date){
-  return(origin.date+numeric.date*86400)
+  date_time <- as.POSIXct(origin.date)
+  date_only <- as.Date(date_time)
+  contains_time_info <- date_time != as.POSIXct(date_only)
+  if (any(contains_time_info)) {
+    return(origin.date+numeric.date*86400)
+  }else{
+    return(origin.date+numeric.date)
+  }
 }
 
 
