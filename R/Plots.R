@@ -107,10 +107,15 @@ plotSegmentation <- function(summary,
     obs_shift_plot=obs_shift_plot+
       scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
                          labels=round(shift$tau,2))
-  }else{
+
+  }else if(lubridate::is.POSIXct(shift$tau)){
     obs_shift_plot=obs_shift_plot+
       scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
                          labels=round(shift$tau,units='days'))
+  }else{
+    obs_shift_plot=obs_shift_plot+
+      scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
+                         labels=shift$tau)
   }
 
   # Plot observations by period
@@ -308,7 +313,7 @@ plotRC_ModelAndSegmentation=function(summary,
                          period_date_end=0)
 
 
-  Q_sim_grid <- data.frame(matrix(NA, nrow = length(H_grid), ncol = length(param)))
+  Q_sim_grid <- data.frame(matrix(NA, nrow = length(H_grid), ncol = nrow(param)))
 
   for (i in seq_along(H_grid)) {
     # Discharge simulation following equation specified in input arguments, discretized in H_grid
@@ -327,7 +332,7 @@ plotRC_ModelAndSegmentation=function(summary,
   period_date_end_obs <- c()
   summary_sim_grid <- c()
 
-  for(i in 1:length(param)){ # scan all rating curve estimates
+  for(i in 1:nrow(param)){ # scan all rating curve estimates
     if(all(!is.na(Q_sim_grid[,i]))){ # Verify if results can be discretized in H_grid
 
       summary_sim_grid_p=data.frame(H_sim=H_grid,
@@ -386,10 +391,23 @@ plotRC_ModelAndSegmentation=function(summary,
   summary_obs$period_date_end=period_date_end_obs$end_validity
 
   # Plot RC steps :
-  min_x <- min(summary_sim_grid$H_sim,summary_obs$H_obs)
-  max_x <- max(summary_sim_grid$H_sim,summary_obs$H_obs)
-  min_y <- min(summary_sim_grid$Qsim_I95_lower,summary_obs$Q_I95_lower)
-  max_y <- max(summary_sim_grid$Qsim_I95_upper,summary_obs$Q_I95_upper)
+  ### limit of plotting
+  if(autoscale==TRUE){
+    min_x <- min(summary_sim_grid$H_sim,summary_obs$H_obs)
+    max_x <- max(summary_sim_grid$H_sim,summary_obs$H_obs)
+    min_y <- min(summary_sim_grid$Qsim_I95_lower,summary_obs$Q_I95_lower)
+    max_y <- max(summary_sim_grid$Qsim_I95_upper,summary_obs$Q_I95_upper)
+  }else{
+    H_min_plot_limit = Hmin_user
+    H_max_plot_limit = Hmax_user
+
+    subsetzoomdata=summary_obs[dplyr::between(summary_obs$H_obs,H_min_plot_limit,H_max_plot_limit),]
+
+    min_x <- min(summary_sim_grid$H_sim,subsetzoomdata$H_obs)
+    max_x <- max(summary_sim_grid$H_sim,subsetzoomdata$H_obs)
+    min_y <- min(summary_sim_grid$Qsim_I95_lower,subsetzoomdata$Q_I95_lower)
+    max_y <- max(summary_sim_grid$Qsim_I95_upper,subsetzoomdata$Q_I95_upper)
+  }
 
   # Create an empty ggplot to paste graphs over it
   RC_plot <- ggplot()
@@ -421,7 +439,8 @@ plotRC_ModelAndSegmentation=function(summary,
                    col=factor(period_date_end)))
   # Customize plot
   RC_plot = RC_plot +
-    coord_cartesian(xlim=c(H_min_plot_limit,H_max_plot_limit))+
+    coord_cartesian(xlim=c(H_min_plot_limit,H_max_plot_limit),
+                    ylim=c(min_y,max_y))+
     scale_x_continuous(breaks = seq(floor(min_x / 0.5) * 0.5,
                                     ceiling(max_x / 0.5) * 0.5,
                                     by=0.1))+
