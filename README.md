@@ -8,8 +8,7 @@ December 2023
 The goal of `RatingShiftHappens` package is to create a tools package
 for detecting, visualizing and estimating rating shifts. This package
 was derived from [BayDERS](https://github.com/MatteoDarienzo/BayDERS)
-developed by [Darienzo (2 Februray
-2021)](https://theses.hal.science/tel-03211343).
+developed by [Darienzo (2021)](https://theses.hal.science/tel-03211343).
 
 This documentation provides the description of several functions
 available to the segmentation process.
@@ -694,8 +693,8 @@ PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
 <div id="ref-darienzoDetectionEstimationStagedischarge2021"
 class="csl-entry">
 
-Darienzo, Matteo. 2 Februray 2021. “Detection and Estimation of
-Stage-Discharge Rating Shifts for Retrospective and Real-Time Streamflow
+Darienzo, Matteo. 2021. “Detection and Estimation of Stage-Discharge
+Rating Shifts for Retrospective and Real-Time Streamflow
 Quantification.” PhD thesis.
 
 </div>

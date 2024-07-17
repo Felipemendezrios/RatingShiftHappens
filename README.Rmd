@@ -5,7 +5,7 @@ date: "December 2023"
 output:
   github_document:
 subtitle: Documentation
-bibliography: bibliography/RatingShiftHappens.bib
+bibliography: inst/RatingShiftHappens.bib
 ---
 
 ```{r, include = FALSE}
