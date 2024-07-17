@@ -438,7 +438,7 @@ recursive.ModelAndSegmentation <- function(H,
     }
     shift <- shift[order(shift$tau),]
   }else{
-    shift=NULL
+    shift=density.tau=density.inc.tau=DF.origin.date=NULL
   }
 
   # Convert a list to a data frame if possible
