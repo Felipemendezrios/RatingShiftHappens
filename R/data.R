@@ -61,3 +61,56 @@
 #'   \item{uQ}{Uncertainty expressed as standard deviation}
 #' }
 "CongoRiverBrazzavilleMINAN"
+
+#' Gauging of the Wairau River at Barnetts Bank, Tuamarina, New Zealand, Tideda software export.
+#'
+#' A data frame containing stages (H, in meters) and discharges ADCP measurements
+#' (Q, in cubic meters per second) for the Wairau River at Barnetts Bank, Tuamarina, New Zealand,
+#' from 1999 until 2015.
+#' Any information about uncertainty in discharge measurement; hence a uncertainty of 8%
+#' has been considered and it was expressed as standard deviations (uQ).
+#'
+#' @format
+#' \describe{
+#'   \item{Date}{Date time}
+#'   \item{H}{Stage record}
+#'   \item{Q}{Discharge ADCP measurement}
+#'   \item{uQ}{Uncertainty expressed as standard deviation}
+#' }
+"WairauRiverGaugings"
+
+#' Synthetic dataset (Darienzo, et al. 2021)
+#'
+#' A list containing sub-lists with six classes of synthetic datasets.
+#' Each sub-list is composed of two parts. The first part is a data frame containing the stage (H, in meters)
+#' and discharges ADCP measurements (Q, in cubic meters per second) for a hypothetical case, as used
+#' by Darienzo et al. 2021, along with the associated uncertainties expressed as standard deviations (uQ).
+#' In addition, the period is also defined, indicating the same gauging family.
+#' The second part of the list contains the real shift time of each class.
+#'
+#' @format
+#' All list are the classes. All classes have the same columns; hence, Only the two first data frames will be explained.
+#' \describe{
+#'   \item{\code{Class 1:}}{Few gaugings
+#'      \itemize{
+#'        \item time: Date time
+#'        \item period: Period same family of gauging
+#'        \item h: Stage record
+#'        \item Q: Discharge ADCP measurement
+#'        \item uQ: Uncertainty expressed as standard deviation
+#'       }
+#'   }
+#'   \item{\code{Class 1 :}}{Shift time
+#'      \itemize{
+#'        \item shift_time: shift time detected in this class
+#'       }
+#'   }
+#'   \item{\code{Class 3:}}{Many gaugins}
+#'   \item{\code{Class 4:}}{Small shifts}
+#'   \item{\code{Class 6:}}{Many shifts}
+#'   \item{\code{Class 9:}}{Very uncertain gaugings}
+#'   \item{\code{Class 10:}}{Three controls}
+#' }
+#' @source \url{https://doi.org/10.1029/2020WR028607}
+"synthetic_gauging_datasets"
+
