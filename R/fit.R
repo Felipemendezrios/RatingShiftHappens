@@ -25,7 +25,7 @@
 #'        }
 #' }
 #' @export
-#'
+#' @importFrom stats loess predict sd
 #' @examples
 #' # Dataset
 #' subset = RhoneRiver[1:20,]
@@ -112,7 +112,7 @@ fitRC_loess<-function(time,H,Q,uQ){
 #'        }
 #' }
 #' @export
-#'
+#' @importFrom stats lm predict sd coef
 #' @examples
 #' # Dataset
 #' subset = RhoneRiver[1:20,]
@@ -208,7 +208,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ){
 #'        }
 #' }
 #' @export
-#'
+#' @importFrom stats lm nls sd coef predict
 #' @examples
 #' # Dataset
 #' subset = RhoneRiver[1:20,]
@@ -323,6 +323,9 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #'        \item c : real value, parameter of exponent describing the type of hydraulic control
 #'        }
 #' }
+#' @importFrom RBaM dataset parameter xtraModelInfo model mcmcOptions mcmcCooking remnantErrorModel BaM prediction
+#' @importFrom stats median
+#' @importFrom utils read.table
 #' @export
 fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
                                    temp.folder.RC=file.path(tempdir(),'BaM','RC')){
@@ -347,8 +350,8 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
   #initial guess a1
   if(mean(data$H)!=min(data$H)){
     a1.init=mean(data$Q)/(mean(data$H)-min(data$H))^(5/3)
-  }else if(median(data$H)!=min(data$H)){
-    a1.init=median(data$Q)/(median(data$H)-min(data$H))^(5/3)
+  }else if(stats::median(data$H)!=min(data$H)){
+    a1.init=stats::median(data$Q)/(stats::median(data$H)-min(data$H))^(5/3)
   }else{
     a1.init=mean(data$Q)/(mean(data$H)*0.1-min(data$H))^(5/3)
   }

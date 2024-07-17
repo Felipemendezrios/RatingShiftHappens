@@ -15,6 +15,7 @@
 #' plotTree(results$tree)
 #' @export
 #' @import ggplot2
+#' @importFrom stats rnorm
 plotTree <- function(tree){
   DF=tree
   n=NROW(DF)
@@ -71,8 +72,10 @@ plotTree <- function(tree){
 #'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
 #'   }
 #' @export
-#' @importFrom ggnewscale new_scale_color
 #' @import patchwork
+#' @importFrom ggnewscale new_scale_color
+#' @importFrom scales viridis_pal
+#' @importFrom stats setNames
 plotSegmentation <- function(summary,
                              plot_summary) {
 
@@ -232,6 +235,8 @@ plotSegmentation <- function(summary,
 #' Information about parameters values are available from the function `recursive.ModelAndSegmentation` saved in `$summary$param.equation`. Save each parameter estimates separately
 #' Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example `?recursive.ModelAndSegmentation`.
 #' @export
+#' @importFrom scales viridis_pal
+#' @importFrom stats qnorm
 plotRC_ModelAndSegmentation=function(summary,
                                      equation=Exponential_Equation,
                                      ...,
@@ -610,6 +615,7 @@ plotResidual_ModelAndSegmentation <- function(summary,
 #' The rating curves consist of the optimal rating curve after estimation, along with the parametric and total uncertainty.
 #' Gauging data used for calibration during segmentation have been plotted. Hence, the smaller the number of the node, the more gauging data have been used for calibration.
 #' @export
+#' @importFrom RBaM prediction
 PlotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                              autoscale=FALSE,
                              temp.folder=file.path(tempdir(),'BaM'),

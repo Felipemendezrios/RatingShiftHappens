@@ -168,6 +168,7 @@ convert_list_to_dataframe <- function(liste_df){
 #'
 #' @return object, prior information on the parameter defined
 #' @export
+#' @importFrom RBaM getCatalogue
 prior_infor_param_builder <- function() {
 
   name <- as.character(readline(prompt = 'Enter a name of the parameter: '))

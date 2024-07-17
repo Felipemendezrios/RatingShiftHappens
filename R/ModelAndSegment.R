@@ -38,7 +38,6 @@
 #'    \item tree: data frame, provide tree structure
 #' }
 #' @export
-#'
 #' @examples
 #' # Define fit model for rating curve
 #' fit=fitRC_exponential
