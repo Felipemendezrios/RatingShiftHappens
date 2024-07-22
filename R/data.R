@@ -1,6 +1,6 @@
 #' Floods of the Rhone River at Beaucaire, France
 #'
-#' A data frame containing annual maximum stages (H, in meters) et discharges
+#' A data frame containing annual maximum stages (H, in meters) and discharges
 #' (Q, in cubic meters per second) for the Rhone River at Beaucaire, France,
 #' along with the associated uncertainties expressed as standard deviations (uH and uQ).
 #' Details on the reconstruction of of these long series can be found in the article
@@ -114,3 +114,9 @@
 #' @source \url{https://doi.org/10.1029/2020WR028607}
 "synthetic_gauging_datasets"
 
+#' Daily stage record of the Rhone River at Beaucaire, France
+#'
+#' A data frame containing daily stages (H, in meters) and date
+#' for the Rhone River at Beaucaire, France. Any uncertainty has been reported.
+#'
+"RhoneRiverStage"

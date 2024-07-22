@@ -14,7 +14,7 @@ An object of class \code{data.frame} with 202 rows and 7 columns.
 RhoneRiver
 }
 \description{
-A data frame containing annual maximum stages (H, in meters) et discharges
+A data frame containing annual maximum stages (H, in meters) and discharges
 (Q, in cubic meters per second) for the Rhone River at Beaucaire, France,
 along with the associated uncertainties expressed as standard deviations (uH and uQ).
 Details on the reconstruction of of these long series can be found in the article

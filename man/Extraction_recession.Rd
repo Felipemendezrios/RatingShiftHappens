@@ -42,7 +42,7 @@ Extraction_recession(
 list, all recession satisfying the specified criteria
 }
 \description{
-All recession from the stage record are extracted according to several criteria
+All recession from the stage record are extracted according to several criteria. NA values are not accepted in the stage record.
 }
 \examples{
 

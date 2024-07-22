@@ -1,6 +1,6 @@
 #' Recession extraction
 #'
-#' All recession from the stage record are extracted according to several criteria
+#' All recession from the stage record are extracted according to several criteria. NA values are not accepted in the stage record.
 #'
 #' @param H real vector , stage
 #' @param uH real vector, uncertainty of the stage
@@ -35,6 +35,8 @@ Extraction_recession <- function(H,
                                  Nmin.rec=10,
                                  tburn.rec=0.2){
 
+  if(any(is.na(H) | is.na(uH) | is.na(time)))stop('NA value in input data. Be sure to remove them before running function')
+  if(is.null(check_vector_lengths(H,time)))stop('The input data have not the same length')
   if(filter.H  < 1 )stop('filter.H must be strictly positive and gretear than or equal to 1')
   if(filter.H != round(filter.H))stop('filter.H must be a integer')
   if(delta.t.min != round(delta.t.min))stop('delta.t.min must be a integer')
@@ -78,7 +80,7 @@ Extraction_recession <- function(H,
   diff_tmin=diff(data_min$tmin)
   units(diff_tmin) <- 'days'
 
-  if(any(diff_tmin<delta.t.min)){
+  if(any(diff_tmin<delta.t.min,na.rm = TRUE)){
     data_min_filter_1=data_min[-which(diff_tmin<delta.t.min),]
   }else{
     data_min_filter_1=data_min
