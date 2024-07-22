@@ -246,7 +246,7 @@ plotRC_ModelAndSegmentation=function(summary,
                                      autoscale=TRUE,
                                      logscale = FALSE){
 
-  if(identical(equation,BaRatin_Equation))stop('To plot the rating curve using Baratin method, you must to use the function PlotRCPrediction')
+  if(identical(equation,BaRatin_Equation))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
 
   # Check discretization
   if(H_step_discretization<=0)stop('The discretization must be a positive non-zero value')
@@ -596,6 +596,79 @@ plotResidual_ModelAndSegmentation <- function(summary,
   return(plotresidual)
 }
 
+#' Plot all gaugings after segmentation
+#'
+#' @param summary list, summary data resulting from the `recursive.ModelAndSegmentation` function
+#' @param show_gauging logical, if `TRUE` : gaugings are plotted
+#' @param show_RC logical, if `TRUE` : rating curves estimation are plotted
+#' @param logscale logical, if `TRUE` : log scale is applied
+#'
+#' @return ggplot, gaugings after segmentation
+#' @export
+plotGaugingsSegmented <- function(summary,
+                                  show_gauging=TRUE,
+                                  show_RC=FALSE,
+                                  logscale=FALSE){
+
+  if(is.null(summary$data))stop('Input data does not match the format of the "recursive.ModelAndSegmentation" results')
+  plot_RC_customized = ggplot(summary$data, aes(x=H,
+                                                y=Q,
+                                                ymin=Q_I95_lower,
+                                                ymax=Q_I95_upper,
+                                                col=factor(period),
+                                                fill=factor(period)))
+  if(show_RC){
+    plot_RC_customized = plot_RC_customized +
+      geom_ribbon(aes(ymin=Qsim_I95_lower,
+                      ymax=Qsim_I95_upper,
+                      col=NULL),
+                  alpha=0.3)
+  }
+
+  if(show_gauging){
+    plot_RC_customized = plot_RC_customized +
+      geom_errorbar()+
+      geom_point()
+  }
+
+  if(logscale){
+
+    breaks <- 10^seq(floor(log10(min(summary$data$Q))), ceiling(log10(max(summary$data$Q))), by = 1)
+
+    # Custom label formatting function
+    custom_format <- function(x) {
+      ifelse(x >= 1,
+             as.character(round(x)),
+             sapply(x, function(val) {
+               formatted <- format(val, scientific = FALSE)
+               if (grepl("\\.0+$", formatted)) {
+                 formatted <- sub("\\.0+$", "", formatted)
+               }
+               formatted
+             })
+      )
+    }
+    plot_RC_customized= plot_RC_customized +
+      scale_y_continuous(trans = "log10", breaks = breaks, labels=custom_format)
+
+  }
+
+  # Plot customized
+  colourCount_obs = length(unique(summary$data$period))
+  getPalette_obs =  scales::viridis_pal(option='D')
+
+  plot_RC_customized=plot_RC_customized+
+    scale_color_manual(values = getPalette_obs(colourCount_obs),
+                       name = 'Period')+
+    scale_fill_manual(values = getPalette_obs(colourCount_obs),
+                      name = 'Period')+
+    labs(x='Stage (m)',
+         y='Discharge (m3/s)')+
+    theme_bw()+
+    guides(color = guide_legend(override.aes = list(fill = NA)))
+
+  return(plot_RC_customized)
+}
 
 
 #' Plot rating curve from a tree structure
@@ -616,7 +689,7 @@ plotResidual_ModelAndSegmentation <- function(summary,
 #' Gauging data used for calibration during segmentation have been plotted. Hence, the smaller the number of the node, the more gauging data have been used for calibration.
 #' @export
 #' @importFrom RBaM prediction
-PlotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
+plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                              autoscale=FALSE,
                              temp.folder=file.path(tempdir(),'BaM'),
                              CalibrationData='CalibrationData.txt',
