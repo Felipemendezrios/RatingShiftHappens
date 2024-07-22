@@ -301,7 +301,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #' @param H real vector, stage
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#' @param HmaxGrid real value, maximum stage of all data
+#' @param HmaxGrid real value, maximum stage of all data in the historical record
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
 #'
 #' @return List with the following components :
@@ -340,7 +340,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
 
   # Extra information to lunch model
   controlMatrix = rbind(c(1))
-  hmax_grid = abs(HmaxGrid)*10 # 10 -> arbitrary factor value to avoid some bugs of unfeasible starting point due to this parameters
+  hmax_grid = abs(HmaxGrid)+10 # 10 -> arbitrary factor value to avoid some bugs of unfeasible starting point due to this parameters
 
   # Declare a prior information about each parameter
   b1=RBaM::parameter(name='b1',
@@ -488,7 +488,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
 #' @param H real vector, stage
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#' @param HmaxGrid real value, maximum stage of all data
+#' @param HmaxGrid real value, maximum stage of all data in the historical record
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
 #' @param a.object object, created by `prior_infor_param_builder` for describing prior information about the geometry properties
 #' @param b.object object, created by `prior_infor_param_builder` for describing prior information about the offset (thalweg or streambed)
@@ -535,7 +535,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
 
   # Extra information to lunch model
   controlMatrix = rbind(c(1))
-  hmax_grid = abs(HmaxGrid)*10 # 10 -> arbitrary factor value to avoid some bugs of unfeasible starting point due to this parameters
+  hmax_grid = abs(HmaxGrid)+10 # 10 -> arbitrary factor value to avoid some bugs of unfeasible starting point due to this parameters
 
   # Declare a prior information about each parameter
   b1=b.object
@@ -668,7 +668,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
 #' @param H real vector, stage
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
-#' @param HmaxGrid real value, maximum stage of all data
+#' @param HmaxGrid real value, maximum stage of all data in the historical record
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
 #' @param a.object list of object, created by `prior_infor_param_builder` for describing prior information about the geometry properties for each hydraulic control
 #' @param b.object list of object, created by `prior_infor_param_builder` for describing prior information about the offset (thalweg or streambed) for each hydraulic control
@@ -718,7 +718,7 @@ fitRC_BaRatin<- function(time,H,Q,uQ,
                   data.dir=temp.folder.RC)
 
   # Extra information to lunch model
-  hmax_grid = abs(HmaxGrid)*10 # 10 -> arbitrary factor value to avoid some bugs of unfeasible starting point due to this parameters
+  hmax_grid = abs(HmaxGrid)+10 # 10 -> arbitrary factor value to avoid some bugs of unfeasible starting point due to this parameters
 
   ncontrols=ncol(controlMatrix)
   # Initialize an empty list for the final result

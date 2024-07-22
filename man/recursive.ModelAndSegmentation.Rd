@@ -228,4 +228,7 @@ plot_Q_ModelAndSegmentation(summary=resultsBaRatin$summary,
 # Plot residual
 plotResidual_ModelAndSegmentation(summary=resultsBaRatin$summary,
                                   plot_summary=resultsBaRatin$plot)
+
+# Plot all gaugings after segmentation in a plot H-Q
+plotGaugingsSegmented(summary=resultsBaRatin$summary)
 }

@@ -22,7 +22,7 @@ fitRC_SimplifiedBaRatin(
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 
-\item{HmaxGrid}{real value, maximum stage of all data}
+\item{HmaxGrid}{real value, maximum stage of all data in the historical record}
 
 \item{temp.folder.RC}{directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve}
 }

@@ -25,7 +25,7 @@ fitRC_SimplifiedBaRatinWithPrior(
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 
-\item{HmaxGrid}{real value, maximum stage of all data}
+\item{HmaxGrid}{real value, maximum stage of all data in the historical record}
 
 \item{a.object}{object, created by \code{prior_infor_param_builder} for describing prior information about the geometry properties}
 
