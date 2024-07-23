@@ -4,12 +4,14 @@
 \alias{plotSegmentation}
 \title{Plots segmentation}
 \usage{
-plotSegmentation(summary, plot_summary)
+plotSegmentation(summary, plot_summary, shift_data_reported = NULL)
 }
 \arguments{
 \item{summary}{data frame, summary data resulting from any segmentation function without estimation of rating curve}
 
 \item{plot_summary}{list, plot data resulting from any segmentation function}
+
+\item{shift_data_reported}{vector, shift declared and stored by the hydrometric unit}
 }
 \value{
 List with the following components :

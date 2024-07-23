@@ -63,6 +63,7 @@ plotTree <- function(tree){
 #'
 #' @param summary data frame, summary data resulting from any segmentation function without estimation of rating curve
 #' @param plot_summary list, plot data resulting from any segmentation function
+#' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
 #'
 #' @return  List with the following components :
 #' \enumerate{
@@ -77,12 +78,102 @@ plotTree <- function(tree){
 #' @importFrom scales viridis_pal
 #' @importFrom stats setNames
 plotSegmentation <- function(summary,
-                             plot_summary) {
+                             plot_summary,
+                             shift_data_reported=NULL) {
+  # Verify if shift has been declared
+  if(!is.null(shift_data_reported)){
+    if(is.data.frame(shift_data_reported))stop('shift_data_reported should not be a data frame')
+    if(any(class(shift_data_reported)!=class(summary$data$time)))stop('shift_data_reported should be in the same format as the time stored in summary')
+  }
+
+  if(nrow(summary$shift)==0){
+
+   data=summary$data
+
+   obs_shift_plot=ggplot(data=data)+
+     geom_point(aes(x=time,
+                    y=obs,
+                    col=factor(period)))+
+     geom_errorbar(aes(x=time,
+                       y=obs,
+                       ymin=I95_lower,
+                       ymax=I95_upper,
+                       col=factor(period)),
+                   width=3)
+
+   #Add shift declared
+   if(!is.null(shift_data_reported)){
+
+     shift_reported <- data.frame(
+       time = shift_data_reported,
+       period = 'Shift(s) declared'
+     )
+
+     obs_shift_plot=obs_shift_plot +
+       geom_point(data=shift_reported,
+                  aes(x=time,
+                      y=min(data$I95_lower)*0.9,
+                      col=factor(period)),
+                  shape=4,
+                  size=3)
+   }
+
+   obs_shift_plot=obs_shift_plot+
+     labs(y='Observation',
+          x='Time',
+          col='Period',
+          title = 'Segmentation')+
+     scale_color_manual(values = c(getPalette_obs(1),'black'))+
+     coord_cartesian(xlim = c(min(data$time),max(data$time)))+
+     theme_bw()+
+     theme(plot.title = element_text(hjust=0.5,
+                                     face='bold',
+                                     size=15),
+           legend.title.align=0.5)
+
+   pdf_shift_plot = ggplot(data=data,
+                           aes(x=time,
+                               y=obs))+
+     coord_cartesian(xlim = c(min(data$time),max(data$time)))+
+     labs(x='Time',
+          y='Probability density',
+          fill=NULL,
+          col=NULL)+
+     theme_bw()+
+     theme(axis.text.y = element_blank(),
+           axis.ticks.y = element_blank(),
+           panel.grid.major = element_blank(),
+           panel.grid.minor = element_blank())
+
+   #Add shift declared
+   if(!is.null(shift_data_reported)){
+
+     pdf_shift_plot=pdf_shift_plot +
+       geom_point(data=shift_reported,
+                  aes(x=time,
+                      y=0,
+                      col=factor(period)),
+                  shape=4,
+                  size=3)+
+       scale_color_manual(values = c('black'))
+   }
+
+   return(list(final_plot=obs_shift_plot/pdf_shift_plot,
+               observation_and_shift=obs_shift_plot,
+               shift_time_density=pdf_shift_plot))
+  }
 
   # Plot Segmentation showing shift time and observed data indexed by period
   data=summary$data
   shift=summary$shift
+  shift$period='Shift(s) detected'
 
+  if(!is.null(shift_data_reported)){
+    shift_reported <- data.frame(
+      time = shift_data_reported,
+      period = 'Shift(s) declared'
+    )
+  }
   # Add some colors to the palette for observations
   colourCount_obs = length(unique(data$period))
   getPalette_obs =  scales::viridis_pal(option='D')
@@ -99,27 +190,75 @@ plotSegmentation <- function(summary,
                alpha=0.8)+
     geom_point(data=shift,
                aes(x=tau,
-                   y=min(data$I95_lower)),
-               col='red',
+                   y=min(data$I95_lower),
+                   col=factor(period)),
                shape=4,
                size=3)+
     coord_cartesian(ylim = c(min(data$I95_lower),max(data$I95_upper)))+
-    labs(col='Global shift time')
+    labs(col='Global shift(s) time')
 
-  if(is.numeric(shift$tau)){
-    obs_shift_plot=obs_shift_plot+
-      scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
-                         labels=round(shift$tau,2))
+  # Add shift declared
+  if(!is.null(shift_data_reported)){
+    obs_shift_plot=obs_shift_plot +
+      geom_point(data=shift_reported,
+                 aes(x=time,
+                     y=min(data$I95_lower)*0.9,
+                     col=factor(period)),
+                 shape=4,
+                 size=3)
 
-  }else if(lubridate::is.POSIXct(shift$tau)){
-    obs_shift_plot=obs_shift_plot+
-      scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
-                         labels=round(shift$tau,units='days'))
+    if(is.numeric(shift$tau)){
+      obs_shift_plot=
+        obs_shift_plot+
+        scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
+                                    'red',
+                                    'black'),
+                           labels=c(round(shift$tau,2),
+                                    'Shift(s) detected',
+                                    'Shift(s) declared'))
+
+    }else if(lubridate::is.POSIXct(shift$tau)){
+      obs_shift_plot=obs_shift_plot+
+        scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
+                                    'red',
+                                    'black'),
+                           labels=c(as.character(round(shift$tau,units='days')),
+                                    'Shift(s) detected',
+                                    'Shift(s) declared'))
+    }else{
+      obs_shift_plot=obs_shift_plot+
+        scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
+                                    'red',
+                                    'black'),
+                           labels=c(as.character(shift$tau),
+                                    'Shift(s) detected',
+                                    'Shift(s) declared'))
+    }
+
   }else{
-    obs_shift_plot=obs_shift_plot+
-      scale_color_manual(values=getPalette_tau_MAP(colourCount_tau),
-                         labels=shift$tau)
+    # Any shift declared
+    if(is.numeric(shift$tau)){
+      obs_shift_plot=obs_shift_plot+
+        scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
+                                    'red'),
+                           labels=c(round(shift$tau,2),
+                                    'Shift(s) detected'))
+
+    }else if(lubridate::is.POSIXct(shift$tau)){
+      obs_shift_plot=obs_shift_plot+
+        scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
+                           'red'),
+                           labels=c(as.character(round(shift$tau,units='days')),
+                                    'Shift(s) detected'))
+    }else{
+      obs_shift_plot=obs_shift_plot+
+        scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
+                           'red'),
+                           labels=c(as.character(shift$tau),
+                                    'Shift(s) detected'))
+    }
   }
+
 
   # Plot observations by period
   obs_shift_plot=
@@ -148,52 +287,60 @@ plotSegmentation <- function(summary,
   # Plot probability density function of the shift time
   colourCount_shift = length(unique(plot_summary$density.inc.tau$Shift))
 
-  getPalette_tau_density = scales::viridis_pal(option = "H")
-  getPalette_tau_trait =  scales::viridis_pal(option='E')
-
   # Customize labels
   label_shift <- paste0('Shift ',seq(1,colourCount_shift))
   if(length(which(colnames(plot_summary$density.inc.tau)=='id_iteration'))!=0){
-    label_wrap <- stats::setNames(paste('Shift detected in this node : ',
-                                        unique(plot_summary$density.inc.tau$id_iteration)),
+    label_wrap <- stats::setNames(paste('Shift(s) detected in node',
+                                        unique(plot_summary$density.inc.tau$id_iteration),':'),
                                   unique(plot_summary$density.inc.tau$id_iteration))
   }
 
-  pdf_shift_plot= ggplot(plot_summary$density.tau,
-                         aes(x=Value,
-                             y = Density,
-                             fill=Shift))+
-    geom_area(alpha=0.4,
+  # Plot density
+  plot_summary$density.inc.tau$period='Shift(s) detected'
+
+  pdf_shift_plot = ggplot(plot_summary$density.tau,
+                          aes(x=Value,
+                              y = Density))+
+    geom_area(aes(fill=factor(Shift)),
+              alpha=0.4,
               position = "identity")+
-    geom_segment(data=plot_summary$density.inc.tau,
-                 aes(x=tau_lower_inc,
-                     y=0 ,
-                     xend=tau_lower_inc,
-                     yend=density_tau_lower_inc,
-                     col=factor(Shift)),
-                 alpha=0.7)+
-    geom_segment(data=plot_summary$density.inc.tau,
-                 aes(x=tau_upper_inc,
-                     y=0 ,
-                     xend=tau_upper_inc,
-                     yend=density_tau_upper_inc,
-                     col=factor(Shift)),
-                 alpha=0.7)+
     geom_point(data=plot_summary$density.inc.tau,
-                 aes(x=taU_MAP,
-                     y=density_taU_MAP),
-                 col='red',
+               aes(x=taU_MAP,
+                   y=density_taU_MAP,
+                   col=factor(period)),
                shape=4,
-               size=2)+
-    scale_fill_manual(values=getPalette_tau_density(colourCount_shift),
+               size=3)
+
+  # Add shift declared
+  if(!is.null(shift_data_reported)){
+    pdf_shift_plot =
+      pdf_shift_plot +
+      geom_point(data=shift_reported,
+                 aes(x=time,
+                     y=min(plot_summary$density.tau$Density)*0.9,
+                     col=factor(period)),
+                 shape=4,
+                 size=3)+
+      scale_color_manual(values=c('red',
+                                  'black'),
+                         labels=c('Shift(s) detected',
+                                  'Shift(s) declared'))
+  }else{
+    pdf_shift_plot=
+      pdf_shift_plot+
+      scale_color_manual(values='red',
+                         labels='Shift(s) detected')
+  }
+
+  pdf_shift_plot=
+    pdf_shift_plot+
+    scale_fill_manual(values=getPalette_tau_MAP(colourCount_shift),
                       labels=label_shift)+
-    scale_color_manual(values=getPalette_tau_trait(colourCount_shift),
-                       labels=label_shift)+
     theme_bw()+
     coord_cartesian(xlim = c(min(data$time),max(data$time)))+
     labs(x='Time',
          y='Probability density',
-         fill=NULL,
+         fill='Posterior distribution',
          col=NULL)+
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
@@ -493,7 +640,7 @@ plotRC_ModelAndSegmentation=function(summary,
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
 #' @param uH vector or value, uncertainty concerning the observed stage in meters
-#'
+#' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
 #'
 #' @return  List with the following components :
 #' \enumerate{
@@ -505,7 +652,8 @@ plotRC_ModelAndSegmentation=function(summary,
 #' @export
 plot_H_ModelAndSegmentation <- function(summary,
                                         plot_summary,
-                                        uH=NA){
+                                        uH=0,
+                                        shift_data_reported=NULL){
   # Adapt summary to use PlotSegmentation function to plot segmentation of stage time series
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$H,
@@ -514,10 +662,11 @@ plot_H_ModelAndSegmentation <- function(summary,
                              period=summary$data$period)
 
   summary_plot = list(data=data_adapted,
-                        shift=summary$shift)
+                      shift=summary$shift)
 
   plot_segmentation=plotSegmentation(summary = summary_plot,
-                                     plot_summary = plot_summary)
+                                     plot_summary = plot_summary,
+                                     shift_data_reported=shift_data_reported)
 
   plot_segmentation[[1]][[1]]$labels$y='Stage record (m)'
   plot_segmentation[[2]]$labels$y='Stage record (m)'
@@ -531,7 +680,7 @@ plot_H_ModelAndSegmentation <- function(summary,
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
 #' @param uH vector or value, uncertainty concerning the observed stage in meters
-#'
+#' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
 #'
 #' @return  List with the following components :
 #' \enumerate{
@@ -543,7 +692,8 @@ plot_H_ModelAndSegmentation <- function(summary,
 #' @export
 plot_Q_ModelAndSegmentation <- function(summary,
                                         plot_summary,
-                                        uH=NA){
+                                        uH=NA,
+                                        shift_data_reported=NULL){
   # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$Q,
@@ -555,7 +705,8 @@ plot_Q_ModelAndSegmentation <- function(summary,
                       shift=summary$shift)
 
   plot_segmentation=plotSegmentation(summary = summary_plot,
-                                     plot_summary = plot_summary)
+                                     plot_summary = plot_summary,
+                                     shift_data_reported = shift_data_reported)
 
   plot_segmentation[[1]][[1]]$labels$y='Discharge (m3/s)'
   plot_segmentation[[2]]$labels$y='Discharge (m3/s)'
@@ -569,11 +720,13 @@ plot_Q_ModelAndSegmentation <- function(summary,
 #'
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
+#' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
 #'
 #' @return ggplot, residual segmentation
 #' @export
 plotResidual_ModelAndSegmentation <- function(summary,
-                                              plot_summary){
+                                              plot_summary,
+                                              shift_data_reported=NULL){
 
   if(is.null(summary$shift))stop('Any shift time detected')
 
@@ -588,7 +741,8 @@ plotResidual_ModelAndSegmentation <- function(summary,
                       shift=summary$shift)
 
   plotresidual=plotSegmentation(summary = summary_plot,
-                                plot_summary = plot_summary)
+                                plot_summary = plot_summary,
+                                shift_data_reported = shift_data_reported)
 
   plotresidual[[1]][[1]]$labels$y='Residual (m3/s) : Observed - simulated '
   plotresidual[[2]]$labels$y='Residual (m3/s) : Observed - simulated'
@@ -836,8 +990,8 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
              y='Q[m3/s]',
              fill='Uncertainty',
              col=NULL)+
-        scale_fill_manual(values=c('yellow', 'red'))+
-        scale_color_manual(values=c('black','blue'))+
+        scale_fill_manual(values=c('pink', 'red'))+
+        scale_color_manual(values=c('blue','black'))+
         theme_bw()+
         theme(plot.title = element_text(hjust = 0.5))
     })
