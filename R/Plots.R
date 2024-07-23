@@ -759,7 +759,10 @@ plotResidual_ModelAndSegmentation <- function(summary,
 #'
 #' @return ggplot, gaugings after segmentation
 #' @export
+<<<<<<< HEAD
 #' @importFrom scales viridis_pal
+=======
+>>>>>>> fc49be1f377e3e839c66ef78f42d6f1f1b73aeda
 plotGaugingsSegmented <- function(summary,
                                   show_gauging=TRUE,
                                   show_RC=FALSE,
