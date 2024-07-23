@@ -4,12 +4,7 @@
 \alias{plot_Q_ModelAndSegmentation}
 \title{Plot discharge time series after segmentation}
 \usage{
-plot_Q_ModelAndSegmentation(
-  summary,
-  plot_summary,
-  uH = NA,
-  shift_data_reported = NULL
-)
+plot_Q_ModelAndSegmentation(summary, plot_summary, uH = NA, ...)
 }
 \arguments{
 \item{summary}{list, summary data resulting from model and segmentation function}
@@ -18,7 +13,7 @@ plot_Q_ModelAndSegmentation(
 
 \item{uH}{vector or value, uncertainty concerning the observed stage in meters}
 
-\item{shift_data_reported}{vector, shift declared and stored by the hydrometric unit}
+\item{...}{optional arguments, as vector, to consider shift declared and stored by the hydrometric unit}
 }
 \value{
 List with the following components :

@@ -4,18 +4,14 @@
 \alias{plotResidual_ModelAndSegmentation}
 \title{Plot residuals with updating rating curve}
 \usage{
-plotResidual_ModelAndSegmentation(
-  summary,
-  plot_summary,
-  shift_data_reported = NULL
-)
+plotResidual_ModelAndSegmentation(summary, plot_summary, ...)
 }
 \arguments{
 \item{summary}{list, summary data resulting from model and segmentation function}
 
 \item{plot_summary}{list, plot data resulting from any segmentation function}
 
-\item{shift_data_reported}{vector, shift declared and stored by the hydrometric unit}
+\item{...}{optional arguments, as vector, to consider shift declared and stored by the hydrometric unit}
 }
 \value{
 ggplot, residual segmentation

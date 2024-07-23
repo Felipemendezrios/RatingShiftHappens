@@ -640,7 +640,7 @@ plotRC_ModelAndSegmentation=function(summary,
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
 #' @param uH vector or value, uncertainty concerning the observed stage in meters
-#' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
+#' @param ... optional arguments, as vector, to consider shift declared and stored by the hydrometric unit
 #'
 #' @return  List with the following components :
 #' \enumerate{
@@ -653,7 +653,7 @@ plotRC_ModelAndSegmentation=function(summary,
 plot_H_ModelAndSegmentation <- function(summary,
                                         plot_summary,
                                         uH=0,
-                                        shift_data_reported=NULL){
+                                        ...){
   # Adapt summary to use PlotSegmentation function to plot segmentation of stage time series
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$H,
@@ -666,7 +666,7 @@ plot_H_ModelAndSegmentation <- function(summary,
 
   plot_segmentation=plotSegmentation(summary = summary_plot,
                                      plot_summary = plot_summary,
-                                     shift_data_reported=shift_data_reported)
+                                     ...)
 
   plot_segmentation[[1]][[1]]$labels$y='Stage record (m)'
   plot_segmentation[[2]]$labels$y='Stage record (m)'
@@ -680,7 +680,7 @@ plot_H_ModelAndSegmentation <- function(summary,
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
 #' @param uH vector or value, uncertainty concerning the observed stage in meters
-#' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
+#' @param ... optional arguments, as vector, to consider shift declared and stored by the hydrometric unit
 #'
 #' @return  List with the following components :
 #' \enumerate{
@@ -693,7 +693,7 @@ plot_H_ModelAndSegmentation <- function(summary,
 plot_Q_ModelAndSegmentation <- function(summary,
                                         plot_summary,
                                         uH=NA,
-                                        shift_data_reported=NULL){
+                                        ...){
   # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$Q,
@@ -706,7 +706,7 @@ plot_Q_ModelAndSegmentation <- function(summary,
 
   plot_segmentation=plotSegmentation(summary = summary_plot,
                                      plot_summary = plot_summary,
-                                     shift_data_reported = shift_data_reported)
+                                     ...)
 
   plot_segmentation[[1]][[1]]$labels$y='Discharge (m3/s)'
   plot_segmentation[[2]]$labels$y='Discharge (m3/s)'
@@ -720,13 +720,13 @@ plot_Q_ModelAndSegmentation <- function(summary,
 #'
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
-#' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
+#' @param ... optional arguments, as vector, to consider shift declared and stored by the hydrometric unit
 #'
 #' @return ggplot, residual segmentation
 #' @export
 plotResidual_ModelAndSegmentation <- function(summary,
                                               plot_summary,
-                                              shift_data_reported=NULL){
+                                              ...){
 
   if(is.null(summary$shift))stop('Any shift time detected')
 
@@ -742,7 +742,7 @@ plotResidual_ModelAndSegmentation <- function(summary,
 
   plotresidual=plotSegmentation(summary = summary_plot,
                                 plot_summary = plot_summary,
-                                shift_data_reported = shift_data_reported)
+                                ...)
 
   plotresidual[[1]][[1]]$labels$y='Residual (m3/s) : Observed - simulated '
   plotresidual[[2]]$labels$y='Residual (m3/s) : Observed - simulated'

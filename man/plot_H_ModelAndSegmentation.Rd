@@ -4,12 +4,7 @@
 \alias{plot_H_ModelAndSegmentation}
 \title{Plot stage time series after segmentation}
 \usage{
-plot_H_ModelAndSegmentation(
-  summary,
-  plot_summary,
-  uH = 0,
-  shift_data_reported = NULL
-)
+plot_H_ModelAndSegmentation(summary, plot_summary, uH = 0, ...)
 }
 \arguments{
 \item{summary}{list, summary data resulting from model and segmentation function}
@@ -18,7 +13,7 @@ plot_H_ModelAndSegmentation(
 
 \item{uH}{vector or value, uncertainty concerning the observed stage in meters}
 
-\item{shift_data_reported}{vector, shift declared and stored by the hydrometric unit}
+\item{...}{optional arguments, as vector, to consider shift declared and stored by the hydrometric unit}
 }
 \value{
 List with the following components :
