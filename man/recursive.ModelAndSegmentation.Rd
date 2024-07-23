@@ -210,7 +210,7 @@ terminal = resultsBaRatin$tree$indx[which(resultsBaRatin$tree$nS==1)]
 terminal
 
 # Plot the rating curves after using BaRatin method. Function specially created to this method
-PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
                  autoscale=FALSE,
                  temp.folder=file.path(tempdir(),'BaM'),
                  CalibrationData='CalibrationData.txt',
