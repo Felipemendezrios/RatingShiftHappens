@@ -64,6 +64,7 @@ plotTree <- function(tree){
 #' @param summary data frame, summary data resulting from any segmentation function without estimation of rating curve
 #' @param plot_summary list, plot data resulting from any segmentation function
 #' @param shift_data_reported vector, shift declared and stored by the hydrometric unit
+#' @param show_unc_interval logical, plot of posterior shift estimation as : if `TRUE` uncertainty interval at 95% and if `FALSE` density distribution
 #'
 #' @return  List with the following components :
 #' \enumerate{
@@ -76,14 +77,18 @@ plotTree <- function(tree){
 #' @import patchwork
 #' @importFrom ggnewscale new_scale_color
 #' @importFrom scales viridis_pal
-#' @importFrom stats setNames
+#' @importFrom stats setNames quantile
 plotSegmentation <- function(summary,
                              plot_summary,
-                             shift_data_reported=NULL) {
+                             shift_data_reported=NULL,
+                             show_unc_interval=FALSE) {
   # Verify if shift has been declared
   if(!is.null(shift_data_reported)){
+    # Is a data frame?
     if(is.data.frame(shift_data_reported))stop('shift_data_reported should not be a data frame')
-    if(any(class(shift_data_reported)!=class(summary$data$time)))stop('shift_data_reported should be in the same format as the time stored in summary')
+    # Have they the same format and are they different to numeric format ?
+   if(any(class(shift_data_reported)!=class(summary$data$time)) &
+      is.numeric(shift_data_reported)!=is.numeric(summary$data$time))stop('shift_data_reported should be in the same format as the time stored in summary')
   }
 
   if(nrow(summary$shift)==0){
@@ -136,7 +141,6 @@ plotSegmentation <- function(summary,
                                y=obs))+
      coord_cartesian(xlim = c(min(data$time),max(data$time)))+
      labs(x='Time',
-          y='Probability density',
           fill=NULL,
           col=NULL)+
      theme_bw()+
@@ -145,6 +149,16 @@ plotSegmentation <- function(summary,
            panel.grid.major = element_blank(),
            panel.grid.minor = element_blank())
 
+   # Check type of plot defined by user
+   if(show_unc_interval==TRUE){
+     pdf_shift_plot =
+       pdf_shift_plot +
+       labs(y=NULL)
+   }else{
+     pdf_shift_plot =
+       pdf_shift_plot +
+       labs(y='Probability density')
+   }
    #Add shift declared
    if(!is.null(shift_data_reported)){
 
@@ -194,7 +208,6 @@ plotSegmentation <- function(summary,
                    col=factor(period)),
                shape=4,
                size=3)+
-    coord_cartesian(ylim = c(min(data$I95_lower),max(data$I95_upper)))+
     labs(col='Global shift(s) time')
 
   # Add shift declared
@@ -298,54 +311,198 @@ plotSegmentation <- function(summary,
   # Plot density
   plot_summary$density.inc.tau$period='Shift(s) detected'
 
-  pdf_shift_plot = ggplot(plot_summary$density.tau,
-                          aes(x=Value,
-                              y = Density))+
-    geom_area(aes(fill=factor(Shift)),
-              alpha=0.4,
-              position = "identity")+
-    geom_point(data=plot_summary$density.inc.tau,
-               aes(x=taU_MAP,
-                   y=density_taU_MAP,
-                   col=factor(period)),
-               shape=4,
-               size=3)
+  # Check type of plot defined by user
+  if(show_unc_interval==TRUE){
+
+    if(length(which(colnames(plot_summary$density.inc.tau)=='id_iteration'))!=0){
+
+      # Assign a "yplot" increasing depending if more than one shift time is detected in a same node
+      DF_yplot_assigned=plot_summary$density.tau %>%
+        group_by(Shift,id_iteration)%>%
+        summarize(.groups = 'drop_last')%>%arrange(id_iteration, Shift) %>%
+        mutate(yplot = cur_group_id() )
+
+      IC_data=merge(data.frame(plot_summary$density.tau %>%
+                                 group_by(Shift,id_iteration)%>%
+                                 summarize(
+                                   Lower_inc = stats::quantile(Value, probs=0.025),
+                                   .groups = 'drop_last'
+                                   )),
+                    data.frame(plot_summary$density.tau %>%
+                                 group_by(Shift,id_iteration)%>%
+                                 summarize(
+                                   Upper_inc = stats::quantile(Value,probs= 0.975),
+                                   .groups = 'drop_last',
+                                 )))
+
+      IC_to_merge=full_join(IC_data,
+                            DF_yplot_assigned,
+                            by=c('Shift','id_iteration'))
+
+      plot_summary$density.tau =
+        full_join(plot_summary$density.tau,
+                  IC_to_merge,
+                  by=c('Shift','id_iteration'))
+      # Assign a "yplot" increasing depending if more than one shift time is detected in a same node
+      DF_unc_yplot_assigned=
+        plot_summary$density.inc.tau%>%
+        group_by(Shift,id_iteration)%>%
+        summarize(.groups = 'drop_last')%>%arrange(id_iteration, Shift) %>%
+        mutate(yplot = cur_group_id() )
+
+      plot_summary$density.inc.tau =
+        full_join(plot_summary$density.inc.tau ,
+                  DF_unc_yplot_assigned,
+                  by=c('Shift','id_iteration'))
+    }else{
+      IC_data=merge(data.frame(plot_summary$density.tau %>%
+                                 group_by(Shift)%>%
+                                 summarize(
+                                   Lower_inc = stats::quantile(Value, probs=0.025)
+                                 )),
+                    data.frame(plot_summary$density.tau %>%
+                                 group_by(Shift)%>%
+                                 summarize(
+                                   Upper_inc = stats::quantile(Value,probs= 0.975)
+                                 )
+                    ))
+      # Add yplot to add for plotting
+      IC_data$yplot = seq(nrow(IC_data),1)
+      plot_summary$density.inc.tau$yplot= seq(nrow(IC_data),1)
+
+      plot_summary$density.tau =
+        full_join(plot_summary$density.tau ,
+                  IC_data,
+                  by='Shift')
+    }
+
+
+    # Plot limits
+    minxplot=min(min(data$time),min(plot_summary$density.tau$Lower_inc))
+    maxxplot=max(max(data$time),max(plot_summary$density.tau$Upper_inc))
+
+    pdf_shift_plot =
+      ggplot(plot_summary$density.tau,
+             aes(x=Value,
+                 y = yplot))+
+      # Interval
+      geom_errorbar(aes(xmin=Lower_inc,
+                        xmax=Upper_inc,
+                        col=factor(Shift)),
+                width=0.08)+
+      # MaxPost
+      geom_point(data=plot_summary$density.inc.tau,
+                 aes(x=taU_MAP,
+                     y=yplot,
+                     col=factor(period)),
+                 shape=4,
+                 size=4)
+  }else{
+
+    # Plot limits
+    minxplot=min(min(data$time),min(plot_summary$density.tau$Value))
+    maxxplot=max(max(data$time),max(plot_summary$density.tau$Value))
+
+    pdf_shift_plot = ggplot(plot_summary$density.tau,
+                            aes(x=Value,
+                                y = Density))+
+      geom_area(aes(fill=factor(Shift)),
+                alpha=0.4,
+                position = "identity")+
+      geom_point(data=plot_summary$density.inc.tau,
+                 aes(x=taU_MAP,
+                     y=density_taU_MAP,
+                     col=factor(period)),
+                 shape=4,
+                 size=3)
+  }
 
   # Add shift declared
   if(!is.null(shift_data_reported)){
-    pdf_shift_plot =
-      pdf_shift_plot +
-      geom_point(data=shift_reported,
-                 aes(x=time,
-                     y=min(plot_summary$density.tau$Density)*0.9,
-                     col=factor(period)),
-                 shape=4,
-                 size=3)+
-      scale_color_manual(values=c('red',
-                                  'black'),
-                         labels=c('Shift(s) detected',
-                                  'Shift(s) declared'))
+
+    # Check type of plot defined by user
+    if(show_unc_interval==TRUE){
+      label_unc_interval <- paste0('Uncertainty interval Shift ',seq(1,colourCount_shift))
+
+      pdf_shift_plot=
+        pdf_shift_plot +
+        geom_point(data=shift_reported,
+                   aes(x=time,
+                       y=0.8,
+                       col=factor(period)),
+                   shape=4,
+                   size=3)+
+        scale_color_manual(values=c(getPalette_tau_MAP(colourCount_shift),
+                           'red',
+                           'black'),
+                          labels=c(label_unc_interval,
+                          'Shift(s) detected',
+                          'Shift(s) declared'))+
+        labs(y=NULL,
+             fill=NULL,
+             col=NULL)
+
+    }else{
+      pdf_shift_plot =
+        pdf_shift_plot +
+        geom_point(data=shift_reported,
+                   aes(x=time,
+                       y=min(plot_summary$density.tau$Density)*0.9,
+                       col=factor(period)),
+                   shape=4,
+                   size=3)+
+        scale_color_manual(values=c('red',
+                                    'black'),
+                           labels=c('Shift(s) detected',
+                                    'Shift(s) declared'))+
+        scale_fill_manual(values=getPalette_tau_MAP(colourCount_shift),
+                          labels=label_shift)+
+        labs(y='Probability density',
+             fill='Posterior distribution',
+             col=NULL)
+    }
+
+
+  }else if(show_unc_interval==TRUE){
+    pdf_shift_plot=
+      pdf_shift_plot+
+      scale_color_manual(values=c(getPalette_tau_MAP(colourCount_shift),
+                                  'red'),
+                         labels=c(label_unc_interval,
+                                  'Shift(s) detected'))+
+      labs(y=NULL,
+           fill=NULL,
+           col=NULL)
   }else{
     pdf_shift_plot=
       pdf_shift_plot+
       scale_color_manual(values='red',
-                         labels='Shift(s) detected')
+                         labels='Shift(s) detected')+
+      scale_fill_manual(values=getPalette_tau_MAP(colourCount_shift),
+                        labels=label_shift)+
+      labs(y='Probability density',
+           fill='Posterior distribution',
+           col=NULL)
   }
 
   pdf_shift_plot=
     pdf_shift_plot+
-    scale_fill_manual(values=getPalette_tau_MAP(colourCount_shift),
-                      labels=label_shift)+
+    labs(x='Time')+
     theme_bw()+
-    coord_cartesian(xlim = c(min(data$time),max(data$time)))+
-    labs(x='Time',
-         y='Probability density',
-         fill='Posterior distribution',
-         col=NULL)+
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank())
+
+  # Adjust X axis plot
+  obs_shift_plot =
+    obs_shift_plot +
+    coord_cartesian(xlim=c(minxplot,maxxplot),
+                    ylim = c(min(data$I95_lower),max(data$I95_upper)))
+
+  pdf_shift_plot =
+    pdf_shift_plot+
+    coord_cartesian(xlim=c(minxplot,maxxplot))
 
   if(length(which(colnames(plot_summary$density.inc.tau)=='id_iteration'))!=0){
     pdf_shift_plot=pdf_shift_plot+
@@ -392,6 +549,8 @@ plotRC_ModelAndSegmentation=function(summary,
                                      H_step_discretization=0.01,
                                      autoscale=TRUE,
                                      logscale = FALSE){
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+                                           If not please use plotSegmentation() function')
 
   if(identical(equation,BaRatin_Equation))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
 
@@ -654,6 +813,8 @@ plot_H_ModelAndSegmentation <- function(summary,
                                         plot_summary,
                                         uH=0,
                                         ...){
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+                                           If not please use plotSegmentation() function')
   # Adapt summary to use PlotSegmentation function to plot segmentation of stage time series
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$H,
@@ -694,6 +855,8 @@ plot_Q_ModelAndSegmentation <- function(summary,
                                         plot_summary,
                                         uH=NA,
                                         ...){
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+                                           If not please use plotSegmentation() function')
   # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$Q,
@@ -727,6 +890,8 @@ plot_Q_ModelAndSegmentation <- function(summary,
 plotResidual_ModelAndSegmentation <- function(summary,
                                               plot_summary,
                                               ...){
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+                                           If not please use plotSegmentation() function')
 
   if(is.null(summary$shift))stop('Any shift time detected')
 
@@ -765,7 +930,8 @@ plotGaugingsSegmented <- function(summary,
                                   show_gauging=TRUE,
                                   show_RC=FALSE,
                                   logscale=FALSE){
-
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+                                           If not please use plotSegmentation() function')
   if(is.null(summary$data))stop('Input data does not match the format of the "recursive.ModelAndSegmentation" results')
   plot_RC_customized = ggplot(summary$data, aes(x=H,
                                                 y=Q,
@@ -851,6 +1017,8 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                              CalibrationData='CalibrationData.txt',
                              allnodes=FALSE,
                              nodes=1){
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+                                           If not please use plotSegmentation() function')
 
   if(!is.data.frame(Hgrid))(stop('Hgrid must be a data frame'))
   if(!dir.exists(file.path(temp.folder,'it_1')))(stop('Segmentation using the BaRatin method is required before using this function.

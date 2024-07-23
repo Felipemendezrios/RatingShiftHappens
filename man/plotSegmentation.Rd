@@ -4,7 +4,12 @@
 \alias{plotSegmentation}
 \title{Plots segmentation}
 \usage{
-plotSegmentation(summary, plot_summary, shift_data_reported = NULL)
+plotSegmentation(
+  summary,
+  plot_summary,
+  shift_data_reported = NULL,
+  show_unc_interval = FALSE
+)
 }
 \arguments{
 \item{summary}{data frame, summary data resulting from any segmentation function without estimation of rating curve}
@@ -12,6 +17,8 @@ plotSegmentation(summary, plot_summary, shift_data_reported = NULL)
 \item{plot_summary}{list, plot data resulting from any segmentation function}
 
 \item{shift_data_reported}{vector, shift declared and stored by the hydrometric unit}
+
+\item{show_unc_interval}{logical, plot of posterior shift estimation as : if \code{TRUE} uncertainty interval at 95\% and if \code{FALSE} density distribution}
 }
 \value{
 List with the following components :
