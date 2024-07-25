@@ -28,7 +28,8 @@ Imports:
 	ggnewscale,
 	RColorBrewer,
 	xlsx,
-	stringr
+	stringr,
+	scales
 Suggests: 
     knitr,
     rmarkdown
