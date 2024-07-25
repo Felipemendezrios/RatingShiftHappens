@@ -7,13 +7,13 @@
 plotTree(tree)
 }
 \arguments{
-\item{tree}{data frame, tree resulting from the call of recursive.segmentation}
+\item{tree}{data frame, tree resulting from the call of recursive.segmentation and recursive.ModelAndSegmentation}
 }
 \value{
 a ggplot
 }
 \description{
-Plot the tree resulting from the recursive segmentation procedure
+Plot the tree resulting from both recursive segmentation procedures
 }
 \examples{
 
