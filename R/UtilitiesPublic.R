@@ -258,7 +258,7 @@ control_matrix_builder <- function(ncontrols) {
         1 to active control
         0 to inactive control
         The number must be separed by a space and must be the same size as the number of controls')
-      control_i_input <- c(readline(prompt = paste0('Hydraulic control N° ',i,' \n')))
+      control_i_input <- c(readline(prompt = paste0('Hydraulic control Number ',i,' \n')))
       control_i <- as.numeric(strsplit(control_i_input, " ")[[1]])
 
       if(ncontrols!=length(control_i)){
