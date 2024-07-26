@@ -13,12 +13,15 @@ plotTree(tree)
 a ggplot
 }
 \description{
-Plot the tree resulting from both recursive segmentation procedures
+Plot the tree resulting from any recursive segmentation procedures
 }
 \examples{
 
 # Apply recursive segmentation
-results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH)
+results=recursive.segmentation(obs=CongoRiverBrazzavilleMINAN$Q,
+                               time=CongoRiverBrazzavilleMINAN$year,
+                               u=CongoRiverBrazzavilleMINAN$uQ,
+                               nSmax=2)
 
 # plot recursion tree
 plotTree(results$tree)

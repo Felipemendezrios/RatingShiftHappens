@@ -9,7 +9,10 @@
 #' @examples
 #'
 #' # Apply recursive segmentation
-#' results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH)
+#' results=recursive.segmentation(obs=CongoRiverBrazzavilleMINAN$Q,
+#'                                time=CongoRiverBrazzavilleMINAN$year,
+#'                                u=CongoRiverBrazzavilleMINAN$uQ,
+#'                                nSmax=2)
 #'
 #' # plot recursion tree
 #' plotTree(results$tree)
@@ -1072,8 +1075,6 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                              CalibrationData='CalibrationData.txt',
                              allnodes=FALSE,
                              nodes=1){
-  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
-                                           If not please use plotSegmentation() function')
 
   if(!is.data.frame(Hgrid))(stop('Hgrid must be a data frame'))
   if(!dir.exists(file.path(temp.folder,'it_1')))(stop('Segmentation using the BaRatin method is required before using this function.
