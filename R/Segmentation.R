@@ -650,7 +650,7 @@ recursive.segmentation <- function(obs,
     }
     shift <- shift[order(shift$tau),]
   }else{
-    shift=NULL
+    shift=density.tau=density.inc.tau=DF.origin.date=NULL
   }
 
   return(list(summary=list(data=data,
