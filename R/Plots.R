@@ -19,7 +19,7 @@
 #' @export
 #' @import ggplot2
 #' @importFrom stats rnorm setNames
-#' @importFrom RColorBrewer brewer.pal
+#' @importFrom scales viridis_pal
 plotTree <- function(tree){
   DF=tree
   n=NROW(DF)
@@ -74,7 +74,7 @@ plotTree <- function(tree){
   DF$fontface='plain';DF$fontface[DF$isTerminal]='bold'
   # Define the colors and remove the level 0
   tree_levels <- unique(DF$parent)[-1]
-  tree_colors <- RColorBrewer::brewer.pal(name='Set1',n=length(tree_levels))
+  tree_colors <-scales::viridis_pal(option='D')(length(tree_levels))
 
   # Create a named vector of colors for the legend
   color_legend <- stats::setNames(tree_colors, as.character(tree_levels))
