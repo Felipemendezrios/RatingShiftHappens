@@ -290,13 +290,14 @@ be used to estimate the rating curve.
 ``` r
 # Get model available to estimate the rating curve
 GetCatalog()$models
-#> [1] "fitRC_loess"            "fitRC_BaRatin"          "fitRC_exponential"     
-#> [4] "fitRC_LinearRegression"
+#> [1] "fitRC_loess"            "fitRC_BaRatinBAC"       "fitRC_BaRatinKAC"      
+#> [4] "fitRC_exponential"      "fitRC_LinearRegression"
 
 # Get equation of each model
 GetCatalog()$Equations
-#> [1] "Loess_Equation"            "BaRatin_Equation"         
-#> [3] "Exponential_Equation"      "LinearRegression_Equation"
+#> [1] "Loess_Equation"            "BaRatinBAC_Equation"      
+#> [3] "BaRatinKAC_Equation"       "Exponential_Equation"     
+#> [5] "LinearRegression_Equation"
 ```
 
 All these equations Q(h) allow for the proper transformation of stage to
@@ -304,7 +305,7 @@ discharge, following the specified assumption for each fitting model.
 
 Models can either be non-parametric, such as as `fitRC_loess`, which
 relies solely on data for calculation, or parametric, like
-`fitRC_BaRatin` with three parameters (a,b,c) per hydraulic control,
+`fitRC_BaRatinKAC` with three parameters (a,b,c) per hydraulic control,
 integrating physics and geometry proprieties of the river in the
 estimation process.
 
@@ -525,7 +526,8 @@ rating curve.
 Firstly, a hydraulic analysis of the gauging station is required to set
 the hydraulic control matrix. The Ardèche River at Meyras station is of
 interest because it illustrates a frequently-encountered 3-control
-configuration (riffle, main channel, floodway).
+configuration (riffle, main channel, floodway) and it has been already
+studied by Le Coz et al. (2014) and Mansanarez et al. (2016) .
 
 At low flows, the stage-discharge relation is controlled by the geometry
 of a critical section induced by a natural riffle.
@@ -549,7 +551,7 @@ controlMatrix=matrix(c(1,0,0,0,1,1,0,0,1),ncol=3,nrow=3)
 
 #### Prior information
 
-The method required prior information on the parameters *a*, *b* and *c*
+The method required prior information on the parameters *a*, *k* and *c*
 per hydraulic control following this equation:
 
 $Q(h) = a*(h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)$
@@ -574,18 +576,18 @@ station](https://baratin-tools.github.io/en/doc/case/ardeche-meyras/#prior-speci
 ``` r
 # Set prior information to each hydraulic control 
 a1=RBaM::parameter(name='a1',init=14.17,prior.dist='LogNormal',prior.par=c(2.66,1.54))
-b1=RBaM::parameter(name='b1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.58,1.49))
+k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,1))
 c1=RBaM::parameter(name='c1',init=1.5,prior.dist='Gaussian',prior.par=c(1.5,0.025))
 a2=RBaM::parameter(name='a2',init=26.5165,prior.dist='LogNormal',prior.par=c(3.28,0.36))
-b2=RBaM::parameter(name='b2',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.58,1.49))
+k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,1))
 c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 a3=RBaM::parameter(name='a3',init=31.82,prior.dist='LogNormal',prior.par=c(3.46,0.397))
-b3=RBaM::parameter(name='b3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2))
+k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.4))
 c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 
 # Set a list of the same parameters for all controls
 a.object=list(a1,a2,a3)
-b.object=list(b1,b2,b3)
+k.object=list(k1,k2,k3)
 c.object=list(c1,c2,c3)
 ```
 
@@ -600,10 +602,9 @@ resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
                                               uQ=ArdecheRiverMeyrasGaugings$uQ,
                                               nSmax=3,
                                               nMin=2,
-                                              funk=fitRC_BaRatin,
-                                              HmaxGrid=max(ArdecheRiverMeyrasGaugings$H),
+                                              funk=fitRC_BaRatinKAC,
                                               a.object=a.object,
-                                              b.object=b.object,
+                                              k.object=k.object,
                                               c.object=c.object,
                                               controlMatrix=controlMatrix
                                               )
@@ -619,7 +620,7 @@ resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
  # Terminal nodes
  terminal = resultsBaRatin$tree$indx[which(resultsBaRatin$tree$nS==1)]
  terminal
-#> [1] 2 3 5 7 8
+#> [1]  2  5  7  8  9 11 12
 ```
 
 Plot the rating curves after using BaRatin method. It is possible to
@@ -628,7 +629,7 @@ reduce calculation time, it is advisable to specify the vector of nodes
 for plotting the rating curve.
 
 ``` r
-PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+ plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
                   autoscale=FALSE,
                   temp.folder=file.path(tempdir(),'BaM'),
                   CalibrationData='CalibrationData.txt',
@@ -659,6 +660,16 @@ PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
 
 <img src="man/readme/README-unnamed-chunk-12-5.png" width="100%" />
 
+    #> 
+    #> [[6]]
+
+<img src="man/readme/README-unnamed-chunk-12-6.png" width="100%" />
+
+    #> 
+    #> [[7]]
+
+<img src="man/readme/README-unnamed-chunk-12-7.png" width="100%" />
+
 ``` r
 
  # Plot shift times in stage record
@@ -666,7 +677,7 @@ PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
                              plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
-<img src="man/readme/README-unnamed-chunk-12-6.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-12-8.png" width="100%" />
 
 ``` r
 
@@ -675,7 +686,7 @@ PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
                              plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
-<img src="man/readme/README-unnamed-chunk-12-7.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-12-9.png" width="100%" />
 
 ``` r
 
@@ -684,7 +695,7 @@ PlotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
                                    plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
-<img src="man/readme/README-unnamed-chunk-12-8.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-12-10.png" width="100%" />
 
 ## Références
 
@@ -715,6 +726,15 @@ Le Coz, J., B. Renard, L. Bonnifait, F. Branger, and R. Le Boursicaud.
 Estimation of Hydrometric Rating Curves: A Bayesian Approach.” *Journal
 of Hydrology* 509 (February): 573–87.
 <https://doi.org/10.1016/j.jhydrol.2013.11.016>.
+
+</div>
+
+<div id="ref-mansanarezBayesianAnalysisStage2016" class="csl-entry">
+
+Mansanarez, V., J. Le Coz, B. Renard, M. Lang, G. Pierrefeu, and P.
+Vauchel. 2016. “Bayesian Analysis of Stage-Fall-Discharge Rating Curves
+and Their Uncertainties.” *Water Resources Research* 52 (9): 7424–43.
+<https://doi.org/10.1002/2016WR018916>.
 
 </div>
 

@@ -127,8 +127,8 @@
 #'                                   plot_summary=results$plot)
 #'
 #'
-#' # example with Baratin method
-#' fit=fitRC_BaRatin
+#' # example with Baratin method (k-a-c)
+#' fit=fitRC_BaRatinKAC
 #'
 #' # Hydraulic matrix control is also required.
 #' # The `control_matrix_builder` was developed to help the user to create this matrix.
@@ -141,17 +141,17 @@
 #' #' # Prior information for Ardeche River at Meyras
 #'
 #' a1=RBaM::parameter(name='a1',init=14.17,prior.dist='LogNormal',prior.par=c(2.66,1.54))
-#' b1=RBaM::parameter(name='b1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.58,1.49))
+#' k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,1))
 #' c1=RBaM::parameter(name='c1',init=1.5,prior.dist='Gaussian',prior.par=c(1.5,0.025))
 #' a2=RBaM::parameter(name='a2',init=26.5165,prior.dist='LogNormal',prior.par=c(3.28,0.36))
-#' b2=RBaM::parameter(name='b2',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.58,1.49))
+#' k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,1))
 #' c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 #' a3=RBaM::parameter(name='a3',init=31.82,prior.dist='LogNormal',prior.par=c(3.46,0.397))
-#' b3=RBaM::parameter(name='b3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2))
+#' k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.4))
 #' c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 #'
 #' a.object=list(a1,a2,a3)
-#' b.object=list(b1,b2,b3)
+#' k.object=list(k1,k2,k3)
 #' c.object=list(c1,c2,c3)
 #'
 #' resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
@@ -161,9 +161,8 @@
 #'                                               nSmax=3,
 #'                                               nMin=2,
 #'                                               funk=fit,
-#'                                               HmaxGrid=max(ArdecheRiverMeyrasGaugings$H),
 #'                                               a.object=a.object,
-#'                                               b.object=b.object,
+#'                                               k.object=k.object,
 #'                                               c.object=c.object,
 #'                                               controlMatrix=controlMatrix
 #'                                               )
@@ -239,7 +238,7 @@ recursive.ModelAndSegmentation <- function(H,
   residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,...) # initialize first residual data to be segmented
 
   # Save results from first prediction using the grid for plotting rating curve
-  if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatin)){
+  if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
     dir.destination=file.path(temp.folder,'it_1/')
     # Ensure the destination directory exists
     if (!dir.exists(dir.destination)) {
@@ -300,7 +299,7 @@ recursive.ModelAndSegmentation <- function(H,
           # Update rating curve estimation
           residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
           # Save results from first prediction using the grid for plotting rating curve
-          if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatin)){
+          if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
             dir.destination=file.path(temp.folder,paste0('it_',p,'/'))
             # Ensure the destination directory exists
             if (!dir.exists(dir.destination)) {

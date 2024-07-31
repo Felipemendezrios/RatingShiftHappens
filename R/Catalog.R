@@ -15,12 +15,14 @@
 GetCatalog<-function(printOnly=FALSE){
   # available models
   models=c('fitRC_loess',
-           'fitRC_BaRatin',
+           'fitRC_BaRatinBAC',
+           'fitRC_BaRatinKAC',
            'fitRC_exponential',
            'fitRC_LinearRegression')
 
   Equations=c('Loess_Equation',
-              'BaRatin_Equation',
+              'BaRatinBAC_Equation',
+              'BaRatinKAC_Equation',
               'Exponential_Equation',
               'LinearRegression_Equation')
   if(printOnly){

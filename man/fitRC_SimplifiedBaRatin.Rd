@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit.R
 \name{fitRC_SimplifiedBaRatin}
 \alias{fitRC_SimplifiedBaRatin}
-\title{Fit rating curve using simplified BaRatin method with non-informative prior information with only a rectangular hydraulic control}
+\title{Fit rating curve using simplified BaRatin method (b-a-c) with non-informative prior information with only a rectangular hydraulic control}
 \usage{
 fitRC_SimplifiedBaRatin(
   time,
@@ -41,9 +41,12 @@ List with the following components :
 }
 \item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ c}
 \itemize{
-\item a : real value, parameter of geometry component
-\item b : real value, parameter of offset (thalweg or streambed)
-\item c : real value, parameter of exponent describing the type of hydraulic control
+\item a : real value, parameter of the geometry component
+\item b : real value, parameter of the offset (thalweg or streambed)
+\item c : real value, parameter of the exponent describing the type of hydraulic control
+\item k : real value, parameter of the activation stage for each hydraulic control
+\item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+\item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
 }
 }
 }

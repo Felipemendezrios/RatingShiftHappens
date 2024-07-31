@@ -30,7 +30,7 @@ Exponential_Equation <- function(H,a,b){
   a*exp(b*H)
 }
 
-#' Equation of BaRatin model
+#' Equation of BaRatin model (b-a-c)
 #'
 #' @param H real value, stage
 #' @param a real value, coefficient describing geometry characteristics
@@ -39,6 +39,20 @@ Exponential_Equation <- function(H,a,b){
 #'
 #' @return equation, \deqn{Q(h)=a \cdot (H - b)^ c}
 #' @export
-BaRatin_Equation <- function(H,a,b,c){
+BaRatinBAC_Equation <- function(H,a,b,c){
   a*(H-b)^c
 }
+
+#' Equation of BaRatin model (k-a-c)
+#'
+#' @param H real value, stage
+#' @param a real value, coefficient describing geometry characteristics
+#' @param b real value, offset
+#' @param c real value, exponent
+#'
+#' @return equation, \deqn{Q(h)=a \cdot (H - b)^ c}
+#' @export
+BaRatinKAC_Equation <- function(H,a,b,c){
+  a*(H-b)^c
+}
+

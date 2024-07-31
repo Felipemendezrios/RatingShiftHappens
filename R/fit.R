@@ -293,7 +293,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
               parameters=parameters))
 }
 
-#' Fit rating curve using simplified BaRatin method with non-informative prior information with only a rectangular hydraulic control
+#' Fit rating curve using simplified BaRatin method (b-a-c) with non-informative prior information with only a rectangular hydraulic control
 #'
 #' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} non-informative prior information on the parameters estimated automatically, using stage record and gauging information. Only a rectangular hydraulic control is considered
 #'
@@ -318,9 +318,12 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #'        }
 #'   \item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ c}
 #'   \itemize{
-#'        \item a : real value, parameter of geometry component
-#'        \item b : real value, parameter of offset (thalweg or streambed)
-#'        \item c : real value, parameter of exponent describing the type of hydraulic control
+#'        \item a : real value, parameter of the geometry component
+#'        \item b : real value, parameter of the offset (thalweg or streambed)
+#'        \item c : real value, parameter of the exponent describing the type of hydraulic control
+#'        \item k : real value, parameter of the activation stage for each hydraulic control
+#'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+#'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
 #'        }
 #' }
 #' @importFrom RBaM dataset parameter xtraModelInfo model mcmcOptions mcmcCooking remnantErrorModel BaM prediction
@@ -480,7 +483,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
 
 }
 
-#' Fit rating curve using simplified BaRatin method with prior information with only a hydraulic control
+#' Fit rating curve using simplified BaRatin method (b-a-c)  with prior information with only a hydraulic control
 #'
 #' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} with prior information on the parameters. Only one hydraulic control is considered
 #'
@@ -508,9 +511,12 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
 #'        }
 #'   \item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ c}
 #'   \itemize{
-#'        \item a : real value, parameter of geometry component
-#'        \item b : real value, parameter of offset (thalweg or streambed)
-#'        \item c : real value, parameter of exponent describing the type of hydraulic control
+#'        \item a : real value, parameter of the geometry component
+#'        \item b : real value, parameter of the offset (thalweg or streambed)
+#'        \item c : real value, parameter of the exponent describing the type of hydraulic control
+#'        \item k : real value, parameter of the activation stage for each hydraulic control
+#'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+#'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
 #'        }
 #' }
 #' @export
@@ -660,9 +666,10 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
 
 }
 
-#' Fit rating curve using BaRatin method with prior information multi-hydraulic controls
+#' Fit rating curve using BaRatin method (b-a-c)  with prior information multi-hydraulic controls
 #'
-#' Rating curve estimated by the equation \deqn{Q(h)=a \cdot (h-b)^c} with prior information on the parameters. Multi-hydraulic control is considered
+#' Rating curve estimated by the equation \deqn{Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)}
+#' with prior information on the parameters. Multi-hydraulic control is considered
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
@@ -689,20 +696,22 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
 #'        }
 #'   \item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ c}
 #'   \itemize{
-#'        \item a : list, real value of the parameter of geometry component for each hydraulic control
-#'        \item b : list, real value of the parameter of offset (thalweg or streambed) for each hydraulic control
-#'        \item c : list, real value of the parameter of exponent describing the type of hydraulic control for each hydraulic control
+#'        \item a : list, real value of the parameter of the geometry component for each hydraulic control
+#'        \item b : list, real value of the parameter of the offset (thalweg or streambed) for each hydraulic control
+#'        \item c : list, real value of the parameter of the exponent describing the type of hydraulic control for each hydraulic control
+#'        \item k : list, real value of the parameter of the activation stage for each hydraulic control
+#'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+#'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
 #'        }
 #' }
 #' @export
-fitRC_BaRatin<- function(time,H,Q,uQ,
-                         HmaxGrid,
-                         a.object,
-                         b.object,
-                         c.object,
-                         controlMatrix,
-                         temp.folder.RC=file.path(tempdir(),'BaM','RC')){
-
+fitRC_BaRatinBAC<- function(time,H,Q,uQ,
+                            HmaxGrid,
+                            a.object,
+                            b.object,
+                            c.object,
+                            controlMatrix,
+                            temp.folder.RC=file.path(tempdir(),'BaM','RC')){
   if(is.null(check_vector_lengths(a.object,b.object,c.object)))stop('It must be specified three times the number of hydraulic controls')
   if(!is.matrix(controlMatrix))stop('Control matrix must be a matrix')
   if(ncol(controlMatrix)!=length(a.object))stop('The number of the columns in the control matrix must be identical to the number of objects describing the parameters')
@@ -829,6 +838,206 @@ fitRC_BaRatin<- function(time,H,Q,uQ,
                                      summary.MCMC.MAP[,which(b.object[[i]]$name==colnames(summary.MCMC.MAP))],
                                      summary.MCMC.MAP[,which(c.object[[i]]$name==colnames(summary.MCMC.MAP))],
                                      summary.MCMC.MAP[,which(paste0('k',i)==colnames(summary.MCMC.MAP))])
+
+    colnames(local.parameters.temp) <- c(paste0('a',i),paste0('b',i),paste0('c',i),paste0('k',i))
+    if(i==1){
+      local.parameters <- local.parameters.temp
+    }else{
+      local.parameters <- cbind(local.parameters,local.parameters.temp)
+    }
+  }
+
+  parameters=cbind(local.parameters,
+                   gamma1=summary.MCMC.MAP$Y1_gamma1,
+                   gamma2=summary.MCMC.MAP$Y1_gamma2)
+
+  # Save results from first prediction
+  copy_files_to_folder(dir.source=temp.folder.RC,
+                       dir.destination=file.path(temp.folder.RC, 'Residual'))
+
+  # Second prediction : Hgrid :
+  invisible(remove_files(dir.source = temp.folder.RC ,
+                         files_to_keep=c('Results_Cooking.txt',
+                                         'Results_Residuals.txt',
+                                         'Results_Summary.txt',
+                                         'CalibrationData.txt',
+                                         'ModelObject.RData',
+                                         'DataObject.RData',
+                                         'Residual')))
+
+  return(list(ResultsResiduals=ResultsResiduals,
+              parameters=parameters))
+
+}
+
+#' Fit rating curve using BaRatin method (k-a-c) with prior information multi-hydraulic controls
+#'
+#' Rating curve estimated by the equation
+#' \deqn{Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)}
+#' with prior information on the parameters. Multi-hydraulic control is considered
+#'
+#' @param time real vector, time
+#' @param H real vector, stage
+#' @param Q real vector, discharge
+#' @param uQ real vector, uncertainty in discharge (as a standard deviation)
+#' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
+#' @param a.object list of object, created by `prior_infor_param_builder` for describing prior information about the geometry properties for each hydraulic control
+#' @param k.object list of object, created by `prior_infor_param_builder` for describing prior information about the activation stage for each hydraulic control; when the water level falls below , the control becomes inactive;
+#' @param c.object list of object, created by `prior_infor_param_builder` for describing prior information about the type of hydraulic control for each hydraulic control
+#' @param controlMatrix matrix, hydraulic control. The function `control_matrix_builder` was developed to help the user to created this control matrix
+#'
+#' @return List with the following components :
+#' \enumerate{
+#'   \item ResultsResiduals : data frame, results after fitting curve
+#'   \itemize{
+#'        \item time: real value, time
+#'        \item H: real value, stage
+#'        \item Q_obs: real value, discharge observed
+#'        \item Q_sim: real value, discharge simulated
+#'        \item Q_res: real value, residual between discharge observed and simulated
+#'        \item uQ_obs: real value, uncertainty in discharge observed (as a standard deviation)
+#'        \item uQ_sim: real value, uncertainty in discharge simulated (as a standard deviation)
+#'        }
+#'   \item parameters : data frame, parameters of the simplified BaRatin model : \deqn{Q(h)=a \cdot (H - b)^ c}
+#'   \itemize{
+#'        \item a : list, real value of the parameter of the geometry component for each hydraulic control
+#'        \item b : list, real value of the parameter of the offset (thalweg or streambed) for each hydraulic control
+#'        \item c : list, real value of the parameter of the exponent describing the type of hydraulic control for each hydraulic control
+#'        \item k : list, real value of the parameter of the activation stage for each hydraulic control
+#'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+#'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
+#'        }
+#' }
+#' @export
+fitRC_BaRatinKAC<- function(time,H,Q,uQ,
+                            a.object,
+                            k.object,
+                            c.object,
+                            controlMatrix,
+                            temp.folder.RC=file.path(tempdir(),'BaM','RC')){
+
+  if(is.null(check_vector_lengths(a.object,k.object,c.object)))stop('It must be specified three times the number of hydraulic controls')
+  if(!is.matrix(controlMatrix))stop('Control matrix must be a matrix')
+  if(ncol(controlMatrix)!=length(a.object))stop('The number of the columns in the control matrix must be identical to the number of objects describing the parameters')
+  if(is.null(check_square_matrix(controlMatrix)))stop('Hydraulic control must be a square matrix')
+  if(any(controlMatrix!=0 & controlMatrix!=1))stop('Hydraulic control must be filled by 1 (active) and 0 (inactive) for describing hydraulic controls')
+
+  data=data.frame(time=time,H=H,Q=Q,uQ=uQ)
+
+  # Define the calibration dataset by specifying
+  D=RBaM::dataset(X=data['H'],
+                  Y=data['Q'],
+                  Yu=data['uQ'],
+                  data.dir=temp.folder.RC)
+
+  ncontrols=ncol(controlMatrix)
+  # Initialize an empty list for the final result
+  priors <- list()
+
+  # Put the lists in a list to iterate over them
+  lists <- list(k.object,a.object, c.object)
+
+  # Use a loop to add the elements to the final list
+  for(i in 1:ncontrols){
+    for (lst in lists) {
+      priors <- append(priors, lst[i])
+    }
+  }
+
+  # Config_xtra
+  xtra=RBaM::xtraModelInfo(object=controlMatrix)
+
+  # Stitch it all together into a model object
+  M=RBaM::model(ID='BaRatin',
+                nX=1,nY=1, # number of input/output variables
+                par=priors, # list of model parameters
+                xtra=xtra) # use xtraModelInfo() to pass the control matrix
+
+  # Cooking
+  nCycles=100
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+
+
+  cook_temp=RBaM::mcmcCooking(burn=0.5,
+                              nSlim=10)
+
+  # Error model
+  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
+                                                par = list(RBaM::parameter(name="gamma1",
+                                                                           init=1,
+                                                                           prior.dist = "FlatPrior+"),
+                                                           RBaM::parameter(name="gamma2",
+                                                                           init=0.1,
+                                                                           prior.dist = "FlatPrior+"))))
+  # Run BaM executable
+  RBaM:: BaM(mod=M,
+             data=D,
+             workspace = temp.folder.RC,
+             mcmc=mcmc_temp,
+             cook = cook_temp,
+             dir.exe = file.path(find.package("RBaM"), "bin"),
+             remnant = remnant_prior)
+
+  # Save data object and model object
+  save(D,file = file.path(temp.folder.RC,'DataObject.RData'))
+  save(M,file = file.path(temp.folder.RC,'ModelObject.RData'))
+
+  # PREDICTIONS : two steps
+  # First prediction : estimate total uncertainty of simulation (u_sim = u_total) at observed stages to returned as u_sim for segmentation
+  # Second prediction : estimate total uncertainty of simulation discretized at Hgrid to plot (manage in PlotRCPrediction function)
+
+  # First prediction : observed data :
+  # Define a 'prediction' object for total predictive uncertainty only for observed stages
+  # mcmc.segm    <- utils::read.table(file=file.path(temp.folder.RC,"Results_Cooking.txt"),header=TRUE)
+  # mcmc.DIC     <- utils::read.table(file=file.path(temp.folder.RC,"Results_DIC.txt"),header=FALSE)
+  resid.segm   <- utils::read.table(file=file.path(temp.folder.RC,"Results_Residuals.txt"),header=TRUE)
+  summary.MCMC   <- utils::read.table(file=file.path(temp.folder.RC,"Results_Summary.txt"),header=TRUE)
+  summary.MCMC.MAP <- summary.MCMC[nrow(summary.MCMC),]
+
+  totalU=RBaM::prediction(X=data['H'], # stage values
+                          spagFiles='QRC_TotalU.spag', # file where predictions are saved
+                          data.dir=temp.folder.RC, # a copy of data files will be saved here
+                          doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                          doStructural=TRUE) # propagate structural uncertainty ?
+
+  RBaM:: BaM(mod=M,
+             data=D,
+             workspace = temp.folder.RC,
+             dir.exe = file.path(find.package("RBaM"), "bin"),
+             pred=totalU, # list of predictions
+             # pred=list(totalU,paramU,maxpost), # list of predictions
+             doCalib=FALSE,
+             doPred=TRUE)
+
+  # Total uncertainty propagation
+  env_QRC_TotalU=utils::read.table(file.path(temp.folder.RC,'QRC_TotalU.env'),header=TRUE)
+
+  # Discharge simulation
+  qsim <- resid.segm$Y1_sim
+
+  # Residual calculation
+  residuals <- resid.segm$Y1_res
+
+  # Residual standard deviation
+  residual_sd <- env_QRC_TotalU$Stdev
+
+  # residual data frame
+  ResultsResiduals=data.frame(time=data$time,
+                              H=data$H,
+                              Q_obs=data$Q,
+                              Q_sim=qsim,
+                              Q_res=residuals,
+                              uQ_obs=uQ,
+                              uQ_sim=residual_sd
+  )
+
+
+  for(i in 1:ncontrols){
+    local.parameters.temp=data.frame(summary.MCMC.MAP[,which(a.object[[i]]$name==colnames(summary.MCMC.MAP))],
+                                     summary.MCMC.MAP[,which(paste0('b',i)==colnames(summary.MCMC.MAP))],
+                                     summary.MCMC.MAP[,which(c.object[[i]]$name==colnames(summary.MCMC.MAP))],
+                                     summary.MCMC.MAP[,which(k.object[[i]]$name==colnames(summary.MCMC.MAP))])
+
 
     colnames(local.parameters.temp) <- c(paste0('a',i),paste0('b',i),paste0('c',i),paste0('k',i))
     if(i==1){

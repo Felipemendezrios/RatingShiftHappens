@@ -610,7 +610,7 @@ plotRC_ModelAndSegmentation=function(summary,
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
                                            If not please use plotSegmentation() function')
 
-  if(identical(equation,BaRatin_Equation))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
+  if(identical(equation,BaRatinKAC_Equation)||identical(equation,BaRatinBAC_Equation))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
 
   # Check discretization
   if(H_step_discretization<=0)stop('The discretization must be a positive non-zero value')
