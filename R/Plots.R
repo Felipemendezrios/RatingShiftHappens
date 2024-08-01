@@ -1230,13 +1230,13 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
 #' @param Rec_extracted data frame, recession extracted after using `Extraction_recession`
 #' @param error_bar_plot logical, `TRUE` = plot error bar.
 #'
-#' @return list, plots of recession extracted
+#' @return list, plots of recession extracted. First plot indicates recession following stage record, second plot shows recession time and stage and third plot indicates the minimum recession stage.
 #' @export
-#' @import RColorBrewer
+#' @importFrom RColorBrewer brewer.pal
 plot_rec_extracted <- function(Rec_extracted,
                                error_bar_plot = FALSE){
 
-  colors=brewer.pal(10,'Paired')
+  colors=RColorBrewer::brewer.pal(10,'Paired')
 
   # Plot of the extracted stage-recession
   rec.plot=ggplot(Rec_extracted,
@@ -1300,6 +1300,32 @@ plot_rec_extracted <- function(Rec_extracted,
          col = '# Recession')+
     scale_color_gradientn(colors=colors)
 
+
+  DF_h_min_rec <- data.frame(Rec_extracted %>%
+                                 group_by(Rec_id) %>%
+                                 arrange(hrec, desc(time_rec)) %>% # Trier par hrec croissant puis par time_rec décroissant
+                                 slice_head(n = 1) %>%
+                                 ungroup())
+
+  # Plot minimum h recession values
+  plot_min_h_rec=
+    ggplot(DF_h_min_rec,aes(x=date,
+                            y=hrec,
+                            ymin=hrec-uHrec,
+                            ymax=hrec+uHrec))+
+    geom_point()
+
+  if(error_bar_plot){
+    plot_min_h_rec=plot_min_h_rec+
+      geom_errorbar()
+  }
+
+  plot_min_h_rec=plot_min_h_rec +
+    theme_bw()+
+    labs(x = 'Time [date]',
+         y = 'Minimum Recession Stage H[m]')
+
   return(list(rec.plot,
-              rec.plot2))
+              rec.plot2,
+              plot_min_h_rec))
 }

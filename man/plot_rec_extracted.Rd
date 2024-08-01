@@ -12,7 +12,7 @@ plot_rec_extracted(Rec_extracted, error_bar_plot = FALSE)
 \item{error_bar_plot}{logical, \code{TRUE} = plot error bar.}
 }
 \value{
-list, plots of recession extracted
+list, plots of recession extracted. First plot indicates recession following stage record, second plot shows recession time and stage and third plot indicates the minimum recession stage.
 }
 \description{
 Plot recession extracted
