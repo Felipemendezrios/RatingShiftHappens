@@ -1,6 +1,6 @@
 #' RatingShiftHappens catalog
 #'
-#' Rating curve models with their equation available
+#' Rating curve and recession models with their equation available
 #'
 #' @param printOnly Logical, should the catalog be returned or only printed?
 #' @return If \code{printOnly==FALSE}, a list with the following fields:
@@ -18,7 +18,8 @@ GetCatalog<-function(printOnly=FALSE){
            'fitRC_BaRatinBAC',
            'fitRC_BaRatinKAC',
            'fitRC_exponential',
-           'fitRC_LinearRegression')
+           'fitRC_LinearRegression',
+           'fitRecession_M2')
 
   Equations=c('Loess_Equation',
               'BaRatinBAC_Equation',
