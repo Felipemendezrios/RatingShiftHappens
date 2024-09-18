@@ -1069,3 +1069,121 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
               parameters=parameters))
 
 }
+
+#' Title
+#'
+#' @param time
+#' @param H
+#' @param Q
+#' @param uQ
+#' @param indx
+#' @param temp.folder.RC
+#'
+#' @details
+#' Prior values are the same for all recession for the parameter a1, a2 and a3
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fitRecession_M2 <- function(time_rec,hrec,uhrec,indx,
+                            a.object,
+                            b.object,
+                            temp.folder.Recession=file.path(tempdir(),'BaM','Recession')){
+
+  if(length(a.object)!=3)stop('a.object is fixed at three recession-specific parameters for this model (M2)')
+  if(length(b.object)!=2)stop('b.object is fixed at two stable parameters for this model (M2) ')
+
+  # Read the number of recessions
+  Ncurves=rev(indx)[1]
+
+  data=data.frame(time_rec=time_rec,hrec=hrec,uhrec=uhrec,indx=indx)
+
+  # Define the calibration dataset by specifying
+  D=RBaM::dataset(X=data['time_rec'],
+                  Y=data['hrec'],
+                  Yu=data['uhrec'],
+                  data.dir=temp.folder.Recession)
+
+  # Initialize an empty list for the final result
+  priors <- list()
+  prior_VAR_a1 <- list()
+  prior_VAR_a2 <- list()
+  prior_VAR_a3 <- list()
+
+  # Add new function to manage "VAR" distribution!! (help : Ben)
+
+  ## To add in Config_a1_VAR.txt (a2,a3) :
+  #  nVal: number of distinct values that the parameter can take
+  #  col: column in data file giving the index series
+
+  # Add in calibration data indx
+  # xtra configuration : indx column
+  for(i in 1:length(a.object)){
+    a.var.object = a.object[[i]]
+
+    for(j in 1:Ncurves){
+      a.var.object$name <- paste0(a.object[[i]]$name,'_',j)
+      if(i ==1){
+        prior_VAR_a1 [[j]] = a.var.object
+      }else if( i ==2){
+        prior_VAR_a2 [[j]] = a.var.object
+      }else{
+        prior_VAR_a3 [[j]] = a.var.object
+      }
+    }
+    # adapt to config_model
+    a.object[[i]]$prior$dist <- 'VAR'
+    a.object[[i]]$prior$par <- paste0('Config_a',i,'_VAR.txt')
+  }
+
+  # Put the lists in a list to iterate over them
+
+  lists <- list(a.object,b.object)
+
+  # Use a loop to add the elements to the final list
+  for(i in 1:length(a.object)){
+    for (lst in lists) {
+      priors <- append(priors, lst[i])
+    }
+  }
+
+  priors[[length(a.object)+length(b.object)+1]]=NULL
+
+  # Stitch it all together into a model object
+  M=RBaM::model(ID='Recession_h',
+                nX=1,nY=1, # number of input/output variables
+                par=priors) # list of model parameters
+
+  # Cooking
+  nCycles=100
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+
+
+  cook_temp=RBaM::mcmcCooking(burn=0.5,
+                              nSlim=10)
+
+  # Error model
+  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
+                                                par = list(RBaM::parameter(name="gamma1",
+                                                                           init=1,
+                                                                           prior.dist = "FlatPrior+"),
+                                                           RBaM::parameter(name="gamma2",
+                                                                           init=0.1,
+                                                                           prior.dist = "FlatPrior+"))))
+  # Run BaM executable
+  RBaM:: BaM(mod=M,
+             data=D,
+             workspace = temp.folder.Recession,
+             mcmc=mcmc_temp,
+             cook = cook_temp,
+             dir.exe = file.path(find.package("RBaM"), "bin"),
+             remnant = remnant_prior)
+
+  # Save data object and model object
+  save(D,file = file.path(temp.folder.Recession,'DataObject.RData'))
+  save(M,file = file.path(temp.folder.Recession,'ModelObject.RData'))
+
+
+
+}
