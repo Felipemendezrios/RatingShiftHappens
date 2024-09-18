@@ -18,19 +18,19 @@
 #'
 #' @examples
 #'
-#' Recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+#' recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
 #'                                 uH=0.5,
 #'                                 time=ArdecheRiverMeyrasStage$Date,
 #'                                 chi=1.5,
 #'                                 tgood=30)
-#' plot_rec_extracted(Rec_extracted = Recessions)
+#' plot_rec_extracted(Rec_extracted = recessions)
 Extraction_recession <- function(H,
                                  uH,
                                  time,
                                  filter.H=1,
                                  chi=stats::quantile(H,probs = 0.95,na.rm = TRUE),
                                  delta.t.min=0,
-                                 delta.t.max=10 ,
+                                 delta.t.max=10,
                                  tgood=20,
                                  Nmin.rec=10,
                                  tburn.rec=0.2){
@@ -150,4 +150,23 @@ Extraction_recession <- function(H,
     j = j+1
   }
   return(Rec_extracted = data_rec)
+}
+
+#' Title
+#'
+#' @return
+#' @export
+#'
+#' @examples
+ModelAndSegmentation.recession.regression <- function(recessions,
+                                                      nSmax=2,
+                                                      nMin= 1,
+                                                      nCycles=100,
+                                                      burn=0.5,
+                                                      nSlim=max(nCycles/10,1),
+                                                      temp.folder=file.path(tempdir(),'BaM'),
+                                                      funk=fitRecession_M2,...){
+
+
+
 }
