@@ -27,7 +27,6 @@ Imports:
 	patchwork,
 	ggnewscale,
 	RColorBrewer,
-	xlsx,
 	stringr,
 	scales
 Suggests: 
