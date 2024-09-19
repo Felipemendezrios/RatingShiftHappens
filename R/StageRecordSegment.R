@@ -152,21 +152,57 @@ Extraction_recession <- function(H,
   return(Rec_extracted = data_rec)
 }
 
-#' Title
+#' Model and segmentation of recession
 #'
-#' @return
+#' Recession modelling following a the exponential function specified as M3 according to (Darienzo, 2022):
+#' \deqn{h(t) = $\alpha_1$ (k) \cdot \exp (-$\lambda_1$ \cdot t) + $\alpha_2$ (k) \cdot \exp (-$\lambda_2$ \cdot t) + $\beta$}
+#' with three recession-specific parameters : $\alpha_1$, $\alpha_2$ and $\beta$
+#' and two stable parameters : $\lambda_1$ and  $\lambda_2$
+#'
+#' @param time_rec real vector, recession duration relative to the first data detected during the recession
+#' @param hrec real vector, stage value of the recessions
+#' @param uhrec real vector, uncertainty of stage value of the recessions
+#' @param indx  integer, factor used to gather the data of a same recession
+#' @param nSmax integer, maximum number of segments to assess
+#' @param nMin integer, minimum number of observations by segment
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim integer, MCMC slim step
+#' @param temp.folder directory, temporary directory to write computations
+#' @param funk the function for estimating the recession
+#' @param ... optional arguments to funk
+#'
+#' @return to complete!
 #' @export
 #'
 #' @examples
-ModelAndSegmentation.recession.regression <- function(recessions,
+#' recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+#'                                 uH=0.5,
+#'                                 time=ArdecheRiverMeyrasStage$Date,
+#'                                 chi=1.5,
+#'                                 tgood=30)
+#'
+#' model_rec=ModelAndSegmentation.recession.regression(nCyclesrec=1,
+#'                                                     time_rec=recessions$time_rec,
+#'                                                     hrec=recessions$hrec,
+#'                                                     uhrec=recessions$uHrec,
+#'                                                     indx=recessions$Rec_id,
+#'                                                     burnrec=0.1,
+#'                                                     nSlim=2)
+#'
+#'
+ModelAndSegmentation.recession.regression <- function(time_rec,
+                                                      hrec,
+                                                      uhrec,
+                                                      indx,
                                                       nSmax=2,
                                                       nMin= 1,
                                                       nCycles=100,
                                                       burn=0.5,
                                                       nSlim=max(nCycles/10,1),
                                                       temp.folder=file.path(tempdir(),'BaM'),
-                                                      funk=fitRecession_M2,...){
+                                                      funk=fitRecession_M3,...){
 
-
+return(fitRecession_M3(...))
 
 }

@@ -1072,30 +1072,41 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
 
 #' Title
 #'
-#' @param time
-#' @param H
-#' @param Q
-#' @param uQ
-#' @param indx
-#' @param temp.folder.RC
+#' @param time_rec real vector, recession duration relative to the first data detected during the recession
+#' @param hrec real vector, stage value of the recessions
+#' @param uhrec real vector, uncertainty of stage value of the recessions
+#' @param indx  integer, factor used to gather the data of a same recession
+#' @param nCyclesrec  integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burnrec real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlimrec integer, MCMC slim step
+#' @param temp.folder.Recession directory, temporary directory to write computations
 #'
 #' @details
 #' Prior values are the same for all recession for the parameter a1, a2 and a3
 #'
-#' @return
+#' @return to complete!!
 #' @export
 #'
 #' @examples
-fitRecession_M2 <- function(time_rec,hrec,uhrec,indx,
-                            a.object,
-                            b.object,
+#' time_rec = recessions$time_rec
+#' hrec = recessions$hrec
+#' uhrec = recessions$uHrec
+#' indx = recessions$Rec_id
+fitRecession_M3 <- function(time_rec,hrec,uhrec,indx,
+                            # rec.specific.par.object=NULL,
+                            # sta.par.object=NULL,
+                            # Dataset.object=NULL,
+                            nCyclesrec=100,
+                            burnrec=0.5,
+                            nSlimrec=max(nCycles/10,1),
                             temp.folder.Recession=file.path(tempdir(),'BaM','Recession')){
 
-  if(length(a.object)!=3)stop('a.object is fixed at three recession-specific parameters for this model (M2)')
-  if(length(b.object)!=2)stop('b.object is fixed at two stable parameters for this model (M2) ')
+  # if(any(!is.null(rec.specific.par.object,)))
+  # if(length(rec.specific.par.object)!=3)stop('rec.specific.par.object is fixed at three recession-specific parameters for this model (M3)')
+  # if(length(sta.par.object)!=2)stop('sta.par.object is fixed at two stable parameters for this model (M3) ')
 
   # Read the number of recessions
-  Ncurves=rev(indx)[1]
+  Ncurves=max(indx)
 
   data=data.frame(time_rec=time_rec,hrec=hrec,uhrec=uhrec,indx=indx)
 
@@ -1103,66 +1114,51 @@ fitRecession_M2 <- function(time_rec,hrec,uhrec,indx,
   D=RBaM::dataset(X=data['time_rec'],
                   Y=data['hrec'],
                   Yu=data['uhrec'],
+                  VAR.indx=data['indx'],
                   data.dir=temp.folder.Recession)
 
-  # Initialize an empty list for the final result
-  priors <- list()
-  prior_VAR_a1 <- list()
-  prior_VAR_a2 <- list()
-  prior_VAR_a3 <- list()
+  # Prior knowledge based on user manual of BayDERS (Darienzo, 2022) (Fixed)
+  alpha1=RBaM::parameter_VAR(name='alpha1',
+                             index='indx',
+                             d=D,
+                             init=rep(200,Ncurves), # first guesses
+                             prior.dist=rep('Uniform',Ncurves), # prior distributions
+                             prior.par=rep(list(c(0,1000)),Ncurves)) # prior parameters
 
-  # Add new function to manage "VAR" distribution!! (help : Ben)
+  alpha2=RBaM::parameter_VAR(name='alpha2',
+                             index='indx',
+                         d=D,
+                         init=rep(50,Ncurves), # first guesses
+                         prior.dist=rep('Uniform',Ncurves), # prior distributions
+                         prior.par=rep(list(c(0,500)),Ncurves)) # prior parameters
 
-  ## To add in Config_a1_VAR.txt (a2,a3) :
-  #  nVal: number of distinct values that the parameter can take
-  #  col: column in data file giving the index series
+  beta=RBaM::parameter_VAR(name='beta',
+                         index='indx',
+                         d=D,
+                         init=rep(1000,Ncurves), # first guesses
+                         prior.dist=rep('Uniform',Ncurves), # prior distributions
+                         prior.par=rep(list(c(-10000 , 10000)),Ncurves)) # prior parameters
 
-  # Add in calibration data indx
-  # xtra configuration : indx column
-  for(i in 1:length(a.object)){
-    a.var.object = a.object[[i]]
+  lambda1=RBaM::parameter(name='lambda1',
+                          init=exp(-log(0.5)+log(log(2))),
+                          prior.dist='LogNormal',
+                          prior.par=c(-log((0.5))+log(log(2)),1))
 
-    for(j in 1:Ncurves){
-      a.var.object$name <- paste0(a.object[[i]]$name,'_',j)
-      if(i ==1){
-        prior_VAR_a1 [[j]] = a.var.object
-      }else if( i ==2){
-        prior_VAR_a2 [[j]] = a.var.object
-      }else{
-        prior_VAR_a3 [[j]] = a.var.object
-      }
-    }
-    # adapt to config_model
-    a.object[[i]]$prior$dist <- 'VAR'
-    a.object[[i]]$prior$par <- paste0('Config_a',i,'_VAR.txt')
-  }
+  lambda2=RBaM::parameter(name='lambda2',
+                          init=exp(-log(50)+log(log(2))),
+                          prior.dist='LogNormal',
+                          prior.par=c( -log(80)+log(log(2)),0.5))
 
-  # Put the lists in a list to iterate over them
-
-  lists <- list(a.object,b.object)
-
-  # Use a loop to add the elements to the final list
-  for(i in 1:length(a.object)){
-    for (lst in lists) {
-      priors <- append(priors, lst[i])
-    }
-  }
-
-  priors[[length(a.object)+length(b.object)+1]]=NULL
-
+  priors=list(alpha1,lambda1,alpha2,lambda2,beta)
   # Stitch it all together into a model object
   M=RBaM::model(ID='Recession_h',
                 nX=1,nY=1, # number of input/output variables
                 par=priors) # list of model parameters
 
   # Cooking
-  nCycles=100
-  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
-
-
-  cook_temp=RBaM::mcmcCooking(burn=0.5,
-                              nSlim=10)
-
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCyclesrec)
+  cook_temp=RBaM::mcmcCooking(burn=burnrec,
+                              nSlim=nSlimrec)
   # Error model
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
                                                 par = list(RBaM::parameter(name="gamma1",
@@ -1184,6 +1180,134 @@ fitRecession_M2 <- function(time_rec,hrec,uhrec,indx,
   save(D,file = file.path(temp.folder.Recession,'DataObject.RData'))
   save(M,file = file.path(temp.folder.Recession,'ModelObject.RData'))
 
+  # PREDICTIONS : two steps
+  # First prediction : estimate total uncertainty of simulation (u_sim = u_total) at observed stages to returned as u_sim for segmentation
+  # Second prediction : estimate total uncertainty of simulation discretized at Hgrid to plot (manage in PlotRCPrediction function)
 
+  # First prediction : observed data :
+  # Define a 'prediction' object for total predictive uncertainty only for observed stages
+  MCMC    <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Cooking.txt"),header=TRUE)
+  residus   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)
+  summary.MCMC   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Summary.txt"),header=TRUE)
+  summary.MCMC.MAP <- summary.MCMC[nrow(summary.MCMC),]
 
+  # Way to handle prediction for VAR parameters :
+  ResultsResiduals = c()
+
+  for( i in 1:Ncurves){
+    alpha1_nonVAR=RBaM::parameter(name=alpha1$name,
+                                  init=alpha1$init[i],
+                                  prior.dist=alpha1$prior[[i]]$dist,
+                                  prior.par=alpha1$prior[[i]]$par)
+
+    alpha2_nonVAR=RBaM::parameter(name=alpha2$name,
+                                  init=alpha2$init[i],
+                                  prior.dist=alpha2$prior[[i]]$dist,
+                                  prior.par=alpha2$prior[[i]]$par)
+
+    beta_nonVAR=RBaM::parameter(name=beta$name,
+                                init=beta$init[i],
+                                prior.dist=beta$prior[[i]]$dist,
+                                prior.par=beta$prior[[i]]$par)
+
+    M_nonVAR=RBaM::model(ID='Recession_h',
+                  nX=1,
+                  nY=1,
+                  par=list(alpha1_nonVAR,
+                           lambda1,
+                           alpha2_nonVAR,
+                           lambda2,
+                           beta_nonVAR))
+    # Columns names to use during prediction
+    columns_indx=c(paste0('alpha1_',i),
+                   'lambda1',
+                   paste0('alpha2_',i),
+                   'lambda2',
+                   paste0('beta_',i),
+                   'Y1_gamma1',
+                   'Y1_gamma2',
+                   'LogPost')
+
+    parSamples=MCMC[columns_indx]
+
+    data.rec.spec=data[which(data$indx==i),]
+
+    # Define a 'prediction' object for total predictive uncertainty
+    totalU= RBaM::prediction(X=data.rec.spec['hrec'], # stage values
+                             spagFiles='hrec_TotalU.spag', # file where predictions are saved
+                             data.dir=temp.folder.Recession, # a copy of data files will be saved here
+                             doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                             doStructural=TRUE, # propagate structural uncertainty ?
+                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
+    )
+
+    RBaM::BaM(mod=M_nonVAR,
+               data=D,
+               workspace = temp.folder.Recession,
+               dir.exe = file.path(find.package("RBaM"), "bin"),
+               pred=totalU,
+               doCalib=FALSE,
+               doPred=TRUE)
+
+    # Total uncertainty propagation
+    env_hrec_TotalU=utils::read.table(file.path(temp.folder.Recession,'hrec_TotalU.env'),header=TRUE)
+
+    # Discharge simulation
+    hrecsim <-  residus['Y1_sim'][which(data$indx==i),]
+
+    # Residual calculation
+    residuals <- residus['Y1_res'][which(data$indx==i),]
+
+    # Residual standard deviation
+    residual_sd <- env_hrec_TotalU$Stdev
+
+    # residual data frame
+    ResultsResiduals[[i]]=data.frame(time=data.rec.spec['time_rec'],
+                                H=data.rec.spec['hrec'],
+                                H_rec_sim=hrecsim,
+                                H_res=residuals,
+                                uH_rec=data.rec.spec['uhrec'],
+                                uH_sim=residual_sd)
+
+    # Create a table to store the parameters for all recessions
+    local.parameters.temp=data.frame(alpha1=summary.MCMC.MAP[,which(paste0('alpha1_',i)==colnames(summary.MCMC.MAP))],
+                                     alpha2=summary.MCMC.MAP[,which(paste0('alpha2_',i)==colnames(summary.MCMC.MAP))],
+                                     beta=summary.MCMC.MAP[,which(paste0('beta_',i)==colnames(summary.MCMC.MAP))])
+
+    if(i==1){
+      local.parameters <- local.parameters.temp
+    }else{
+      local.parameters <- rbind(local.parameters,local.parameters.temp)
+    }
+  }
+
+  parameters= data.frame(
+    local.parameters['alpha1'],
+    lamda1=summary.MCMC.MAP[,which('lambda1'==colnames(summary.MCMC.MAP))],
+    local.parameters['alpha2'],
+    lamda2=summary.MCMC.MAP[,which('lambda2'==colnames(summary.MCMC.MAP))],
+    local.parameters['beta'],
+    gamma1=summary.MCMC.MAP$Y1_gamma1,
+    gamma2=summary.MCMC.MAP$Y1_gamma2)
+
+  # ggplot(ResultsResiduals[[39]],aes(x=time_rec))+
+  #   geom_point(aes(y=hrec),col='black')+
+  #   geom_point(aes(y=H_rec_sim),col='red')
+
+  # Save results from first prediction
+  copy_files_to_folder(dir.source=temp.folder.Recession,
+                       dir.destination=file.path(temp.folder.Recession, 'Residual'))
+
+  # Second prediction : Hgrid :
+  invisible(remove_files(dir.source = temp.folder.Recession ,
+                         files_to_keep=c('Results_Cooking.txt',
+                                         'Results_Residuals.txt',
+                                         'Results_Summary.txt',
+                                         'CalibrationData.txt',
+                                         'ModelObject.RData',
+                                         'DataObject.RData',
+                                         'Residual')))
+
+  return(list(ResultsResiduals=ResultsResiduals,
+              parameters=parameters))
 }
