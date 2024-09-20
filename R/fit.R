@@ -1070,11 +1070,18 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
 
 }
 
-#' Title
+#' Recession model with two exponential and asymptotic
+#'
+#' Recession modelling following a the exponential function specified as M3 according to (Darienzo, 2022):
+#' \deqn{h(t) = $\alpha_1$ (k) \cdot \exp (-$\lambda_1$ \cdot t) + $\alpha_2$ (k) \cdot \exp (-$\lambda_2$ \cdot t) + $\beta$}
+#' with three recession-specific parameters : $\alpha_1$, $\alpha_2$ and $\beta$
+#' and two stable parameters : $\lambda_1$ and  $\lambda_2$
+#'
+#' Default values for this recession are shown in ‘Details’
 #'
 #' @param time_rec real vector, recession duration relative to the first data detected during the recession
 #' @param hrec real vector, stage value of the recessions
-#' @param uhrec real vector, uncertainty of stage value of the recessions
+#' @param uHrec real vector, uncertainty of stage value of the recessions
 #' @param indx  integer, factor used to gather the data of a same recession
 #' @param nCyclesrec  integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burnrec real between 0 (included) and 1 (excluded), MCMC burning factor
@@ -1082,72 +1089,136 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
 #' @param temp.folder.Recession directory, temporary directory to write computations
 #'
 #' @details
-#' Prior values are the same for all recession for the parameter a1, a2 and a3
+#' By default, prior values are the same for all recession for the parameter alpha1, alpha2 and beta
 #'
-#' @return to complete!!
+#' Default values are :
+#' Starting in 200, we assume that $\alpha_1 \sim U(0, 1000)$.
+#' Starting in 50, we assume that $\alpha_2 \sim U(0, 500)$
+#' Starting in exp(-log(0.5)+log(log(2))), we assume that $\lambda_1 \sim \text{LogNormal}(\mu=-log((0.5))+log(log(2)), \sigma=1)$
+#' Starting in exp(-log(50)+log(log(2))), we assume that $\lambda_2 \sim \text{LogNormal}(\mu=-log((80))+log(log(2)), \sigma=0.5)$
+#' Starting in 1000, we assume that $\beta \sim U(-10000, 10000)$
+#'
+#' @return List with the following components :
+#' \enumerate{
+#'   \item ResultsResiduals : list, results after fitting the recession model to each recession observed
+#'   \itemize{
+#'        \item time: real value, time
+#'        \item H: real value, stage observed
+#'        \item H_rec_sim: real value, stage simulated
+#'        \item H_res: real value, residual between stage observed and simulated
+#'        \item uH_rec: real value, uncertainty in stage observed (as a standard deviation)
+#'        \item uH_sim: real value, uncertainty in stage simulated (as a standard deviation)
+#'        }
+#'   \item parameters : data frame, parameters of the recession model
+#'   \itemize{
+#'        \item alpha1 : real value, parameter representing the initial stage
+#'        \item lambda1 : real value, parameter representing the recession rate
+#'        \item alpha2 : real value, parameter representing the initial stage
+#'        \item lambda2 : real value, parameter representing the recession rate
+#'        \item beta : real value, parameter representing the asymptotic stage
+#'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+#'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
+#'        }
+#' }
 #' @export
-#'
-#' @examples
-#' time_rec = recessions$time_rec
-#' hrec = recessions$hrec
-#' uhrec = recessions$uHrec
-#' indx = recessions$Rec_id
-fitRecession_M3 <- function(time_rec,hrec,uhrec,indx,
-                            # rec.specific.par.object=NULL,
-                            # sta.par.object=NULL,
-                            # Dataset.object=NULL,
+fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
+                            alpha1.object=NULL,
+                            alpha2.object=NULL,
+                            beta.object=NULL,
+                            lambda1.object=NULL,
+                            lambda2.object=NULL,
+                            Dataset.object=NULL,
                             nCyclesrec=100,
                             burnrec=0.5,
                             nSlimrec=max(nCycles/10,1),
                             temp.folder.Recession=file.path(tempdir(),'BaM','Recession')){
 
-  # if(any(!is.null(rec.specific.par.object,)))
-  # if(length(rec.specific.par.object)!=3)stop('rec.specific.par.object is fixed at three recession-specific parameters for this model (M3)')
-  # if(length(sta.par.object)!=2)stop('sta.par.object is fixed at two stable parameters for this model (M3) ')
-
+  # Create data frame to used in all calculation
+  data=data.frame(time_rec=time_rec,hrec=hrec,uhrec=uhrec,indx=indx)
   # Read the number of recessions
   Ncurves=max(indx)
 
-  data=data.frame(time_rec=time_rec,hrec=hrec,uhrec=uhrec,indx=indx)
 
-  # Define the calibration dataset by specifying
-  D=RBaM::dataset(X=data['time_rec'],
-                  Y=data['hrec'],
-                  Yu=data['uhrec'],
-                  VAR.indx=data['indx'],
-                  data.dir=temp.folder.Recession)
+  if(any(!is.null(alpha1.object)|
+         !is.null(alpha2.object)|
+         !is.null(beta.object)|
+         !is.null(lambda1.object)|
+         !is.null(lambda2.object))&
+     is.null(Dataset.object))stop('Prior knowledge about recession models are specified, dataset must be given too using the "dataset" function of RBaM')
 
+  # Check and assign the dataset
+  if(!is.null(Dataset.object)){
+    if(class(Dataset.object)!='dataset')stop('Dataset.object must be created using the "dataset" function of RBaM before it can be used')
+    # Use the calibration dataset given in the input
+    colnames(Dataset.object) = c('time_rec','hrec','uHrec','indx')
+    D=Dataset.object
+  }else{
+    # Define the calibration dataset by specifying
+    D=RBaM::dataset(X=data['time_rec'],
+                    Y=data['hrec'],
+                    Yu=data['uHrec'],
+                    VAR.indx=data['indx'],
+                    data.dir=temp.folder.Recession)
+  }
+
+  # Check prior recessions
   # Prior knowledge based on user manual of BayDERS (Darienzo, 2022) (Fixed)
-  alpha1=RBaM::parameter_VAR(name='alpha1',
+  if(!is.null(alpha1.object)){
+    if(class(alpha1.object)!='parameter_VAR')stop('alpha1.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    alpha1=alpha1.object
+  }else{
+    alpha1=RBaM::parameter_VAR(name='alpha1',
+                               index='indx',
+                               d=D,
+                               init=rep(200,Ncurves), # first guesses
+                               prior.dist=rep('Uniform',Ncurves), # prior distributions
+                               prior.par=rep(list(c(0,1000)),Ncurves)) # prior parameters
+
+  }
+
+  if(!is.null(alpha2.object)){
+    if(class(alpha2.object)!='parameter_VAR')stop('alpha2.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    alpha2=alpha2.object
+  }else{
+    alpha2=RBaM::parameter_VAR(name='alpha2',
+                               index='indx',
+                               d=D,
+                               init=rep(50,Ncurves), # first guesses
+                               prior.dist=rep('Uniform',Ncurves), # prior distributions
+                               prior.par=rep(list(c(0,500)),Ncurves)) # prior parameters
+  }
+
+  if(!is.null(beta.object)){
+    if(class(beta.object)!='parameter_VAR')stop('beta.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    beta=beta.object
+  }else{
+    beta=RBaM::parameter_VAR(name='beta',
                              index='indx',
                              d=D,
-                             init=rep(200,Ncurves), # first guesses
+                             init=rep(1000,Ncurves), # first guesses
                              prior.dist=rep('Uniform',Ncurves), # prior distributions
-                             prior.par=rep(list(c(0,1000)),Ncurves)) # prior parameters
+                             prior.par=rep(list(c(-10000 , 10000)),Ncurves)) # prior parameters
+  }
 
-  alpha2=RBaM::parameter_VAR(name='alpha2',
-                             index='indx',
-                         d=D,
-                         init=rep(50,Ncurves), # first guesses
-                         prior.dist=rep('Uniform',Ncurves), # prior distributions
-                         prior.par=rep(list(c(0,500)),Ncurves)) # prior parameters
+  if(!is.null(lambda1.object)){
+    if(class(lambda1.object)!='parameter')stop('lambda1.object must be created using the "parameter" function of RBaM before it can be used')
+    lambda1=lambda1.object
+  }else{
+    lambda1=RBaM::parameter(name='lambda1',
+                            init=exp(-log(0.5)+log(log(2))),
+                            prior.dist='LogNormal',
+                            prior.par=c(-log((0.5))+log(log(2)),1))
+  }
 
-  beta=RBaM::parameter_VAR(name='beta',
-                         index='indx',
-                         d=D,
-                         init=rep(1000,Ncurves), # first guesses
-                         prior.dist=rep('Uniform',Ncurves), # prior distributions
-                         prior.par=rep(list(c(-10000 , 10000)),Ncurves)) # prior parameters
-
-  lambda1=RBaM::parameter(name='lambda1',
-                          init=exp(-log(0.5)+log(log(2))),
-                          prior.dist='LogNormal',
-                          prior.par=c(-log((0.5))+log(log(2)),1))
-
-  lambda2=RBaM::parameter(name='lambda2',
-                          init=exp(-log(50)+log(log(2))),
-                          prior.dist='LogNormal',
-                          prior.par=c( -log(80)+log(log(2)),0.5))
+  if(!is.null(lambda2.object)){
+    if(class(lambda2.object)!='parameter')stop('lambda2.object must be created using the "parameter" function of RBaM before it can be used')
+    lambda2=lambda2.object
+  }else{
+    lambda2=RBaM::parameter(name='lambda2',
+                            init=exp(-log(50)+log(log(2))),
+                            prior.dist='LogNormal',
+                            prior.par=c( -log(80)+log(log(2)),0.5))
+  }
 
   priors=list(alpha1,lambda1,alpha2,lambda2,beta)
   # Stitch it all together into a model object
@@ -1263,11 +1334,11 @@ fitRecession_M3 <- function(time_rec,hrec,uhrec,indx,
 
     # residual data frame
     ResultsResiduals[[i]]=data.frame(time=data.rec.spec['time_rec'],
-                                H=data.rec.spec['hrec'],
-                                H_rec_sim=hrecsim,
-                                H_res=residuals,
-                                uH_rec=data.rec.spec['uhrec'],
-                                uH_sim=residual_sd)
+                                     H=data.rec.spec['hrec'],
+                                     H_rec_sim=hrecsim,
+                                     H_res=residuals,
+                                     uH_rec=data.rec.spec['uHrec'],
+                                     uH_sim=residual_sd)
 
     # Create a table to store the parameters for all recessions
     local.parameters.temp=data.frame(alpha1=summary.MCMC.MAP[,which(paste0('alpha1_',i)==colnames(summary.MCMC.MAP))],
@@ -1311,3 +1382,4 @@ fitRecession_M3 <- function(time_rec,hrec,uhrec,indx,
   return(list(ResultsResiduals=ResultsResiduals,
               parameters=parameters))
 }
+

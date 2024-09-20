@@ -48,10 +48,9 @@ ModelAndSegmentation.recession.regression(
 to complete!
 }
 \description{
-Recession modelling following a the exponential function specified as M3 according to (Darienzo, 2022):
-\deqn{h(t) = $\alpha_1$ (k) \cdot \exp (-$\lambda_1$ \cdot t) + $\alpha_2$ (k) \cdot \exp (-$\lambda_2$ \cdot t) + $\beta$}
-with three recession-specific parameters : $\alpha_1$, $\alpha_2$ and $\beta$
-and two stable parameters : $\lambda_1$ and  $\lambda_2$
+Modelling recession using a catalog of fit models available to apply segmentation procedure.
+To get the catalog of models available using \code{GetCatalog()}, all functions specifying Recession in the fit are concerned.
+For more information about recession model and their default values, please go to the fit function, e.g. \code{?fitRecession_M3}
 }
 \examples{
 recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
@@ -60,13 +59,44 @@ recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
                                 chi=1.5,
                                 tgood=30)
 
-model_rec=ModelAndSegmentation.recession.regression(nCyclesrec=1,
-                                                    time_rec=recessions$time_rec,
+D=RBaM::dataset(X=recessions['time_rec'],
+                Y=recessions['hrec'],
+                Yu=recessions['uHrec'],
+                VAR.indx=recessions['indx'],
+                data.dir=file.path(tempdir(),'BaM','Recession'))
+
+# Give prior knowledge about recession-specific parameters and keep prior on stable parameters
+alpha1.object = RBaM::parameter_VAR(name='alpha1',
+                                    index='indx',
+                                    d=D,
+                                    init=rep(100,max(recessions$indx)),
+                                    prior.dist=rep('Uniform',max(recessions$indx)),
+                                    prior.par=rep(list(c(0,1000)),max(recessions$indx)))
+
+alpha2.object = RBaM::parameter_VAR(name='alpha2',
+                                    index='indx',
+                                    d=D,
+                                    init=rep(50,max(recessions$indx)),
+                                    prior.dist=rep('Uniform',max(recessions$indx)),
+                                    prior.par=rep(list(c(0,100)),max(recessions$indx)))
+
+beta.object = RBaM::parameter_VAR(name='beta',
+                                    index='indx',
+                                    d=D,
+                                    init=rep(52.4,max(recessions$indx)),
+                                    prior.dist=rep('Uniform',max(recessions$indx)),
+                                    prior.par=rep(list(c(-97.6,102.4)),max(recessions$indx)))
+
+model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
                                                     hrec=recessions$hrec,
                                                     uhrec=recessions$uHrec,
-                                                    indx=recessions$Rec_id,
-                                                    burnrec=0.1,
-                                                    nSlim=2)
-
+                                                    indx=recessions$indx,
+                                                    alpha1.object=alpha1.object,
+                                                    alpha2.object=alpha2.object,
+                                                    beta.object=beta.object,
+                                                    Dataset.object=D,
+                                                    nCyclesrec=100,
+                                                    burnrec=0.5,
+                                                    nSlim=10)
 
 }

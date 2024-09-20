@@ -2,13 +2,19 @@
 % Please edit documentation in R/fit.R
 \name{fitRecession_M3}
 \alias{fitRecession_M3}
-\title{Title}
+\title{Recession model with two exponential and asymptotic}
 \usage{
 fitRecession_M3(
   time_rec,
   hrec,
-  uhrec,
+  uHrec,
   indx,
+  alpha1.object = NULL,
+  alpha2.object = NULL,
+  beta.object = NULL,
+  lambda1.object = NULL,
+  lambda2.object = NULL,
+  Dataset.object = NULL,
   nCyclesrec = 100,
   burnrec = 0.5,
   nSlimrec = max(nCycles/10, 1),
@@ -20,7 +26,7 @@ fitRecession_M3(
 
 \item{hrec}{real vector, stage value of the recessions}
 
-\item{uhrec}{real vector, uncertainty of stage value of the recessions}
+\item{uHrec}{real vector, uncertainty of stage value of the recessions}
 
 \item{indx}{integer, factor used to gather the data of a same recession}
 
@@ -33,17 +39,44 @@ fitRecession_M3(
 \item{temp.folder.Recession}{directory, temporary directory to write computations}
 }
 \value{
-to complete!!
+List with the following components :
+\enumerate{
+\item ResultsResiduals : list, results after fitting the recession model to each recession observed
+\itemize{
+\item time: real value, time
+\item H: real value, stage observed
+\item H_rec_sim: real value, stage simulated
+\item H_res: real value, residual between stage observed and simulated
+\item uH_rec: real value, uncertainty in stage observed (as a standard deviation)
+\item uH_sim: real value, uncertainty in stage simulated (as a standard deviation)
+}
+\item parameters : data frame, parameters of the recession model
+\itemize{
+\item alpha1 : real value, parameter representing the initial stage
+\item lambda1 : real value, parameter representing the recession rate
+\item alpha2 : real value, parameter representing the initial stage
+\item lambda2 : real value, parameter representing the recession rate
+\item beta : real value, parameter representing the asymptotic stage
+\item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+\item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
+}
+}
 }
 \description{
-Title
+Recession modelling following a the exponential function specified as M3 according to (Darienzo, 2022):
+\deqn{h(t) = $\alpha_1$ (k) \cdot \exp (-$\lambda_1$ \cdot t) + $\alpha_2$ (k) \cdot \exp (-$\lambda_2$ \cdot t) + $\beta$}
+with three recession-specific parameters : $\alpha_1$, $\alpha_2$ and $\beta$
+and two stable parameters : $\lambda_1$ and  $\lambda_2$
 }
 \details{
-Prior values are the same for all recession for the parameter a1, a2 and a3
-}
-\examples{
-time_rec = recessions$time_rec
-hrec = recessions$hrec
-uhrec = recessions$uHrec
-indx = recessions$Rec_id
+Default values for this recession are shown in ‘Details’
+
+By default, prior values are the same for all recession for the parameter alpha1, alpha2 and beta
+
+Default values are :
+Starting in 200, we assume that $\alpha_1 \sim U(0, 1000)$.
+Starting in 50, we assume that $\alpha_2 \sim U(0, 500)$
+Starting in exp(-log(0.5)+log(log(2))), we assume that $\lambda_1 \sim \text{LogNormal}(\mu=-log((0.5))+log(log(2)), \sigma=1)$
+Starting in exp(-log(50)+log(log(2))), we assume that $\lambda_2 \sim \text{LogNormal}(\mu=-log((80))+log(log(2)), \sigma=0.5)$
+Starting in 1000, we assume that $\beta \sim U(-10000, 10000)$
 }
