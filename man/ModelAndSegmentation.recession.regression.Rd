@@ -6,8 +6,9 @@
 \usage{
 ModelAndSegmentation.recession.regression(
   time_rec,
+  daterec,
   hrec,
-  uhrec,
+  uHrec,
   indx,
   nSmax = 2,
   nMin = 1,
@@ -22,9 +23,11 @@ ModelAndSegmentation.recession.regression(
 \arguments{
 \item{time_rec}{real vector, recession duration relative to the first data detected during the recession}
 
+\item{daterec}{vector, time in POSIXct format}
+
 \item{hrec}{real vector, stage value of the recessions}
 
-\item{uhrec}{real vector, uncertainty of stage value of the recessions}
+\item{uHrec}{real vector, uncertainty of stage}
 
 \item{indx}{integer, factor used to gather the data of a same recession}
 
@@ -45,12 +48,53 @@ ModelAndSegmentation.recession.regression(
 \item{...}{optional arguments to funk}
 }
 \value{
-to complete!
+List with the following components :
+\enumerate{
+\item results : list with this sub components :
+\itemize{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ \\item summary: list, summarize the information to present to the user
+ \\itemize\{
+     \\item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
+     \\item shift: data frame, all detected shift time
+ \}
+ \\item plot : list, data formatted to use as input for some plot functions
+ \\item res: list, provide all the information of the periods from tree structure
+ \\itemize\{
+     \\item tau: real vector, estimated shift times
+     \\item segments: list, segment maximum a posterior (MAP) value indexed by the list number
+     \\item mcmc: data frame, MCMC simulation
+     \\item data.p: list, separate and assign information by identified stable period indexed by the list number
+     \\item DIC: real, DIC estimation
+     \\item nS: integer, optimal number of segments following DIC criterion
+   \}
+ \\item tree: data frame, provide tree structure
+ \\item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+}\if{html}{\out{</div>}}
+
+}
+\item residualsData : list, provide all information of recession data observed and simulated
+\itemize{
+\item time_rec: real value, time of the recession relative to first data of each recession
+\item hrec: real value, stage observed
+\item H_rec_sim: real value, stage simulated
+\item H_res: real value, residual between stage observed and simulated
+\item uhrec: real value, uncertainty on stage observed
+\item uH_sim: real value, uncertainty on stage simulated
+}
+\item parameters : all information about the parameters estimated depending of the fit model used
+}
 }
 \description{
 Modelling recession using a catalog of fit models available to apply segmentation procedure.
+Please see details for understaing how to use this function
+}
+\details{
 To get the catalog of models available using \code{GetCatalog()}, all functions specifying Recession in the fit are concerned.
 For more information about recession model and their default values, please go to the fit function, e.g. \code{?fitRecession_M3}
+If prior knowledge about recession parameters is given, be sure to give dataset too.
+The direction file path for this dataset must be \code{file.path(tempdir(),'BaM','Recession')} as shown in the example
+Please respect the name of the parameters if default values will not be used. e.g. beta paremeter's will be "beta"
 }
 \examples{
 recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
@@ -88,8 +132,9 @@ beta.object = RBaM::parameter_VAR(name='beta',
                                     prior.par=rep(list(c(-97.6,102.4)),max(recessions$indx)))
 
 model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
+                                                    daterec=recessions$date,
                                                     hrec=recessions$hrec,
-                                                    uhrec=recessions$uHrec,
+                                                    uHrec=recessions$uHrec,
                                                     indx=recessions$indx,
                                                     alpha1.object=alpha1.object,
                                                     alpha2.object=alpha2.object,

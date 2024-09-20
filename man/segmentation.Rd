@@ -43,6 +43,7 @@ List with the following components :
 \item data: data frame, all data with their respective periods after segmentation
 \item shift: data frame, all detected shift time in numeric or POSIXct format in UTC
 }
+\item plot : list, data formatted to use as input for some plot functions
 \item res: list, provide all the information of the periods from tree structure
 \itemize{
 \item tau: real vector, estimated shift times in numeric or POSIXct format in UTC
@@ -50,6 +51,7 @@ List with the following components :
 \item mcmc: data frame, MCMC simulation
 \item data.p: list, separate and assign information by identified stable period indexed by the list number
 \item DIC: real, DIC estimation
+\item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 }
 \item nS: integer, optimal number of segments following DIC criterion
 }

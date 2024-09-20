@@ -56,7 +56,7 @@ for shift times with their associated probability densities
 \item mcmc: data frame, MCMC simulation
 \item data.p: list, separate and assign information by identified stable period indexed by the list number
 \item DIC: real, DIC estimation
-\item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+\item origin.date.p: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 }
 }
 \description{

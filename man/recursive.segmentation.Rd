@@ -43,6 +43,7 @@ List with the following components :
 \item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
 \item shift: data frame, all detected shift time
 }
+\item plot : list, data formatted to use as input for some plot functions
 \item res: list, provide all the information of the periods from tree structure
 \itemize{
 \item tau: real vector, estimated shift times
@@ -53,6 +54,7 @@ List with the following components :
 \item nS: integer, optimal number of segments following DIC criterion
 }
 \item tree: data frame, provide tree structure
+\item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 }
 }
 \description{

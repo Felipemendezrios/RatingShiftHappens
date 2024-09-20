@@ -17,7 +17,7 @@ fitRecession_M3(
   Dataset.object = NULL,
   nCyclesrec = 100,
   burnrec = 0.5,
-  nSlimrec = max(nCycles/10, 1),
+  nSlimrec = max(nCyclesrec/10, 1),
   temp.folder.Recession = file.path(tempdir(), "BaM", "Recession")
 )
 }
@@ -29,6 +29,18 @@ fitRecession_M3(
 \item{uHrec}{real vector, uncertainty of stage value of the recessions}
 
 \item{indx}{integer, factor used to gather the data of a same recession}
+
+\item{alpha1.object}{object, prior knowledge on the parameter representing the initial stage of the first exponential function}
+
+\item{alpha2.object}{object, prior knowledge on the parameter representing the initial stage of the second exponential function}
+
+\item{beta.object}{object, prior knowledge on the parameter representing the asymptotic stage}
+
+\item{lambda1.object}{object, prior knowledge on the  parameter describing the fast runoff}
+
+\item{lambda2.object}{object, prior knowledge on the parameter describing the slow emptying of the aquifer}
+
+\item{Dataset.object}{object, dataset given by user}
 
 \item{nCyclesrec}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles}
 
@@ -53,9 +65,9 @@ List with the following components :
 \item parameters : data frame, parameters of the recession model
 \itemize{
 \item alpha1 : real value, parameter representing the initial stage
-\item lambda1 : real value, parameter representing the recession rate
+\item lambda1 : real value, parameter describing the fast runoff
 \item alpha2 : real value, parameter representing the initial stage
-\item lambda2 : real value, parameter representing the recession rate
+\item lambda2 : real value, parameter describing the slow emptying of the aquifer
 \item beta : real value, parameter representing the asymptotic stage
 \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
 \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)

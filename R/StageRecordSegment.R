@@ -157,12 +157,12 @@ Extraction_recession <- function(H,
 #' Model and segmentation of recession
 #'
 #' Modelling recession using a catalog of fit models available to apply segmentation procedure.
-#' To get the catalog of models available using `GetCatalog()`, all functions specifying Recession in the fit are concerned.
-#' For more information about recession model and their default values, please go to the fit function, e.g. `?fitRecession_M3`
+#' Please see details for understaing how to use this function
 #'
 #' @param time_rec real vector, recession duration relative to the first data detected during the recession
+#' @param daterec vector, time in POSIXct format
 #' @param hrec real vector, stage value of the recessions
-#' @param uhrec real vector, uncertainty of stage value of the recessions
+#' @param uHrec real vector, uncertainty of stage
 #' @param indx  integer, factor used to gather the data of a same recession
 #' @param nSmax integer, maximum number of segments to assess
 #' @param nMin integer, minimum number of observations by segment
@@ -173,8 +173,49 @@ Extraction_recession <- function(H,
 #' @param funk the function for estimating the recession
 #' @param ... optional arguments to funk
 #'
-#' @return to complete!
+#' @return  List with the following components :
+#' \enumerate{
+#'   \item results : list with this sub components :
+#'   \itemize{
+#'
+#'      \item summary: list, summarize the information to present to the user
+#'      \itemize{
+#'          \item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
+#'          \item shift: data frame, all detected shift time
+#'      }
+#'      \item plot : list, data formatted to use as input for some plot functions
+#'      \item res: list, provide all the information of the periods from tree structure
+#'      \itemize{
+#'          \item tau: real vector, estimated shift times
+#'          \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
+#'          \item mcmc: data frame, MCMC simulation
+#'          \item data.p: list, separate and assign information by identified stable period indexed by the list number
+#'          \item DIC: real, DIC estimation
+#'          \item nS: integer, optimal number of segments following DIC criterion
+#'        }
+#'      \item tree: data frame, provide tree structure
+#'      \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+#'   }
+#'   \item residualsData : list, provide all information of recession data observed and simulated
+#'   \itemize{
+#'      \item time_rec: real value, time of the recession relative to first data of each recession
+#'      \item hrec: real value, stage observed
+#'      \item H_rec_sim: real value, stage simulated
+#'      \item H_res: real value, residual between stage observed and simulated
+#'      \item uhrec: real value, uncertainty on stage observed
+#'      \item uH_sim: real value, uncertainty on stage simulated
+#'   }
+#'   \item parameters : all information about the parameters estimated depending of the fit model used
+#' }
 #' @export
+#' @importFrom stringr str_detect
+#' @importFrom utils read.table
+#' @details
+#' To get the catalog of models available using `GetCatalog()`, all functions specifying Recession in the fit are concerned.
+#' For more information about recession model and their default values, please go to the fit function, e.g. `?fitRecession_M3`
+#' If prior knowledge about recession parameters is given, be sure to give dataset too.
+#' The direction file path for this dataset must be `file.path(tempdir(),'BaM','Recession')` as shown in the example
+#' Please respect the name of the parameters if default values will not be used. e.g. beta paremeter's will be "beta"
 #'
 #' @examples
 #' recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
@@ -212,8 +253,9 @@ Extraction_recession <- function(H,
 #'                                     prior.par=rep(list(c(-97.6,102.4)),max(recessions$indx)))
 #'
 #' model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
+#'                                                     daterec=recessions$date,
 #'                                                     hrec=recessions$hrec,
-#'                                                     uhrec=recessions$uHrec,
+#'                                                     uHrec=recessions$uHrec,
 #'                                                     indx=recessions$indx,
 #'                                                     alpha1.object=alpha1.object,
 #'                                                     alpha2.object=alpha2.object,
@@ -224,8 +266,9 @@ Extraction_recession <- function(H,
 #'                                                     nSlim=10)
 #'
 ModelAndSegmentation.recession.regression <- function(time_rec,
+                                                      daterec,
                                                       hrec,
-                                                      uhrec,
+                                                      uHrec,
                                                       indx,
                                                       nSmax=2,
                                                       nMin= 1,
@@ -235,12 +278,63 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                                                       temp.folder=file.path(tempdir(),'BaM'),
                                                       funk=fitRecession_M3,...){
   # Check information given in input
-  if(time_rec<0)stop('time_rec must be positive')
-  if(uhrec<0)stop('uhrec must be positive')
-  if(indx<0)stop('indx must be positive')
+  if(any(time_rec<0))stop('time_rec must be positive')
+  if(any(uHrec<0))stop('uHrec must be positive')
+  if(any(indx<0))stop('indx must be positive')
+  if(any(!lubridate::is.POSIXct(daterec)))stop('daterec must be in Posixct format')
   if(indx[1]!=1)stop('Fist number of indx must be one to start the sequence')
   if(any(diff(unique(indx))!=1))stop('indx must be a sequence of consecutive numbers')
+  if(any(is.na(time_rec)) | any(is.na(hrec)) | any(is.na(uHrec)) | any(is.na(indx))){
+    stop('Missing values not allowed in time, stage, uncertainty or index')
+  }
+  check <- check_vector_lengths(time_rec,hrec,uHrec,indx)
+  if(is.null(check)){
+    stop('time,stage, uncertainty or index do not have the same length')
+  }
 
-return(fitRecession_M3(...))
+  DF.order <- data.frame(time_rec=time_rec,
+                         daterec=daterec,
+                         hrec=hrec,
+                         uHrec=uHrec,
+                         indx=indx)
+
+  # Recession modelling using funk function user-defined:
+  rec_model=funk(time_rec=DF.order$time_rec,
+                 hrec=DF.order$hrec,
+                 uHrec=DF.order$uHrec,
+                 indx=DF.order$indx,
+                 ...)
+
+  # Residuals of reccesion observed and simulated
+  residualsData <- rec_model$ResultsResiduals
+  # Asymptotic stage:
+  h_asymptotic <- rec_model$parameters$beta
+  # date of last recession data recorded
+  date_asymptotic_df= data.frame(DF.order %>%
+                                group_by(indx)%>%
+                                summarize(
+                                  date_asymp=max(daterec)
+                                ))
+  date_asymptotic=date_asymptotic_df$date_asymp
+  # Read summary
+  summary.MCMC   <- utils::read.table(file= file.path(tempdir(),'BaM','Recession',"Results_Summary.txt"),header=TRUE)
+  # Focus in MaxPost and Standard deviation of beta
+  # Discuss which uncertainty will we take into account
+  u_asymptotic=c(t(summary.MCMC[which(rownames(summary.MCMC)==c('St.Dev.')),
+                                which(stringr::str_detect(colnames(summary.MCMC),pattern='beta'))]))
+  # Run recursive segmentation
+  results=recursive.segmentation(obs=h_asymptotic,
+                                 time=date_asymptotic,
+                                 u=u_asymptotic,
+                                 nSmax=nSmax,
+                                 nMin=nMin,
+                                 nCycles=nCycles,
+                                 burn=burn,
+                                 nSlim=nSlim,
+                                 temp.folder=temp.folder)
+
+  return(list(results,
+              residualsData,
+              parameters=rec_model$parameters))
 
 }

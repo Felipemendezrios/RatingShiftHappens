@@ -1083,6 +1083,12 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
 #' @param hrec real vector, stage value of the recessions
 #' @param uHrec real vector, uncertainty of stage value of the recessions
 #' @param indx  integer, factor used to gather the data of a same recession
+#' @param alpha1.object object, prior knowledge on the parameter representing the initial stage of the first exponential function
+#' @param alpha2.object object, prior knowledge on the parameter representing the initial stage of the second exponential function
+#' @param beta.object object, prior knowledge on the parameter representing the asymptotic stage
+#' @param lambda1.object object, prior knowledge on the  parameter describing the fast runoff
+#' @param lambda2.object object, prior knowledge on the parameter describing the slow emptying of the aquifer
+#' @param Dataset.object object, dataset given by user
 #' @param nCyclesrec  integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burnrec real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlimrec integer, MCMC slim step
@@ -1112,9 +1118,9 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
 #'   \item parameters : data frame, parameters of the recession model
 #'   \itemize{
 #'        \item alpha1 : real value, parameter representing the initial stage
-#'        \item lambda1 : real value, parameter representing the recession rate
+#'        \item lambda1 : real value, parameter describing the fast runoff
 #'        \item alpha2 : real value, parameter representing the initial stage
-#'        \item lambda2 : real value, parameter representing the recession rate
+#'        \item lambda2 : real value, parameter describing the slow emptying of the aquifer
 #'        \item beta : real value, parameter representing the asymptotic stage
 #'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
 #'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
@@ -1130,14 +1136,13 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
                             Dataset.object=NULL,
                             nCyclesrec=100,
                             burnrec=0.5,
-                            nSlimrec=max(nCycles/10,1),
+                            nSlimrec=max(nCyclesrec/10,1),
                             temp.folder.Recession=file.path(tempdir(),'BaM','Recession')){
 
   # Create data frame to used in all calculation
-  data=data.frame(time_rec=time_rec,hrec=hrec,uhrec=uhrec,indx=indx)
+  data=data.frame(time_rec=time_rec,hrec=hrec,uHrec=uHrec,indx=indx)
   # Read the number of recessions
   Ncurves=max(indx)
-
 
   if(any(!is.null(alpha1.object)|
          !is.null(alpha2.object)|
@@ -1150,7 +1155,7 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
   if(!is.null(Dataset.object)){
     if(class(Dataset.object)!='dataset')stop('Dataset.object must be created using the "dataset" function of RBaM before it can be used')
     # Use the calibration dataset given in the input
-    colnames(Dataset.object) = c('time_rec','hrec','uHrec','indx')
+    colnames(Dataset.object$data) = c('time_rec','hrec','uHrec','indx')
     D=Dataset.object
   }else{
     # Define the calibration dataset by specifying
@@ -1165,6 +1170,7 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
   # Prior knowledge based on user manual of BayDERS (Darienzo, 2022) (Fixed)
   if(!is.null(alpha1.object)){
     if(class(alpha1.object)!='parameter_VAR')stop('alpha1.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    if(alpha1.object$name!='alpha1')stop("name of alpha1.object must be 'alpha1'")
     alpha1=alpha1.object
   }else{
     alpha1=RBaM::parameter_VAR(name='alpha1',
@@ -1178,6 +1184,7 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
 
   if(!is.null(alpha2.object)){
     if(class(alpha2.object)!='parameter_VAR')stop('alpha2.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    if(alpha2.object$name!='alpha2')stop("name of alpha2.object must be 'alpha2'")
     alpha2=alpha2.object
   }else{
     alpha2=RBaM::parameter_VAR(name='alpha2',
@@ -1190,6 +1197,7 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
 
   if(!is.null(beta.object)){
     if(class(beta.object)!='parameter_VAR')stop('beta.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    if(beta.object$name!='beta')stop("name of beta.object must be 'beta'")
     beta=beta.object
   }else{
     beta=RBaM::parameter_VAR(name='beta',
@@ -1202,6 +1210,7 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
 
   if(!is.null(lambda1.object)){
     if(class(lambda1.object)!='parameter')stop('lambda1.object must be created using the "parameter" function of RBaM before it can be used')
+    if(lambda1.object$name!='lambda1')stop("name of lambda1.object must be 'lambda1'")
     lambda1=lambda1.object
   }else{
     lambda1=RBaM::parameter(name='lambda1',
@@ -1212,6 +1221,7 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
 
   if(!is.null(lambda2.object)){
     if(class(lambda2.object)!='parameter')stop('lambda2.object must be created using the "parameter" function of RBaM before it can be used')
+    if(lambda2.object$name!='lambda2')stop("name of lambda2.object must be 'lambda2'")
     lambda2=lambda2.object
   }else{
     lambda2=RBaM::parameter(name='lambda2',
