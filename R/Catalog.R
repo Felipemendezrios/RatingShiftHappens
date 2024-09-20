@@ -19,7 +19,7 @@ GetCatalog<-function(printOnly=FALSE){
            'fitRC_BaRatinKAC',
            'fitRC_exponential',
            'fitRC_LinearRegression',
-           'fitRecession_M2')
+           'fitRecession_M3')
 
   Equations=c('Loess_Equation',
               'BaRatinBAC_Equation',
