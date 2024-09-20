@@ -1244,7 +1244,7 @@ plot_rec_extracted <- function(Rec_extracted,
                       y=hrec,
                       ymin=hrec-uHrec,
                       ymax=hrec+uHrec,
-                      col=Rec_id))+
+                      col=indx))+
     geom_point()
 
   if(error_bar_plot){
@@ -1265,7 +1265,7 @@ plot_rec_extracted <- function(Rec_extracted,
                        y=hrec,
                        ymin=hrec-uHrec,
                        ymax=hrec+uHrec,
-                       col=Rec_id))+
+                       col=indx))+
     geom_point()
 
   if(error_bar_plot){
@@ -1277,7 +1277,7 @@ plot_rec_extracted <- function(Rec_extracted,
   position_y=quantile(Rec_extracted$hrec,probs = 0.99)
 
   test_long_serie=as.data.frame(Rec_extracted%>%
-                                  group_by(Rec_id)%>%
+                                  group_by(indx)%>%
                                   summarize(max(time_rec)))
 
   rec.plot2=
@@ -1289,7 +1289,7 @@ plot_rec_extracted <- function(Rec_extracted,
     annotate("text",
              x = position_x,
              y = position_y*0.9,
-             label = paste0("Total recessions = ",max(unique(Rec_extracted$Rec_id))))+
+             label = paste0("Total recessions = ",max(unique(Rec_extracted$indx))))+
     annotate("text",
              x = position_x,
              y = position_y*0.8,
@@ -1302,7 +1302,7 @@ plot_rec_extracted <- function(Rec_extracted,
 
 
   DF_h_min_rec <- data.frame(Rec_extracted %>%
-                                 group_by(Rec_id) %>%
+                                 group_by(indx) %>%
                                  arrange(hrec, desc(time_rec)) %>% # Trier par hrec croissant puis par time_rec décroissant
                                  slice_head(n = 1) %>%
                                  ungroup())
