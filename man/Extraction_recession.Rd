@@ -11,14 +11,14 @@ Extraction_recession(
   filter.H = 1,
   chi = stats::quantile(H, probs = 0.95, na.rm = TRUE),
   delta.t.min = 0,
-  delta.t.max = 10,
-  tgood = 20,
+  delta.t.max = 20,
+  tgood = 10,
   Nmin.rec = 10,
-  tburn.rec = 0.2
+  tburn.rec = 0
 )
 }
 \arguments{
-\item{H}{real vector , stage}
+\item{H}{real vector , stage (m)}
 
 \item{uH}{real vector, uncertainty of the stage}
 
@@ -26,7 +26,7 @@ Extraction_recession(
 
 \item{filter.H}{integer value, filter for number of step records. 10 means only one stage sample every 10 is kept}
 
-\item{chi}{real value, maximum stage rise between two recession data}
+\item{chi}{real value, maximum stage rise between two recession data (m)}
 
 \item{delta.t.min}{integer value, minimum days between two recession data}
 
@@ -39,7 +39,11 @@ Extraction_recession(
 \item{tburn.rec}{numeric, burn factor, >=0 and <1. 0.4 means the first 40 percent of the recession samples are discarded.}
 }
 \value{
-list, all recession satisfying the specified criteria
+List with the following components :
+\enumerate{
+\item Rec_extracted: data frame, all information about stage-recession
+\item summary_rec: data frame, summary with time recession and number of stage data by recession
+}
 }
 \description{
 All recession from the stage record are extracted according to several criteria. NA values are not accepted in the stage record.
@@ -49,7 +53,15 @@ All recession from the stage record are extracted according to several criteria.
 recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
                                 uH=0.5,
                                 time=ArdecheRiverMeyrasStage$Date,
-                                chi=1.5,
+                                chi=0.5,
                                 tgood=30)
-plot_rec_extracted(Rec_extracted = recessions)
+
+# Check information of recession extracted
+recessions$Rec_extracted
+
+# Check summary table of recession extracted
+recessions$summary_rec
+
+# Plot all recession extracted
+plot_rec_extracted(Rec_extracted = recessions$Rec_extracted)
 }

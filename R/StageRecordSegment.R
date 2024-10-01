@@ -2,18 +2,22 @@
 #'
 #' All recession from the stage record are extracted according to several criteria. NA values are not accepted in the stage record.
 #'
-#' @param H real vector , stage
+#' @param H real vector , stage (m)
 #' @param uH real vector, uncertainty of the stage
 #' @param time vector, time in POSIXct format is mandatory
 #' @param filter.H integer value, filter for number of step records. 10 means only one stage sample every 10 is kept
-#' @param chi real value, maximum stage rise between two recession data
+#' @param chi real value, maximum stage rise between two recession data (m)
 #' @param delta.t.min integer value, minimum days between two recession data
 #' @param delta.t.max integer value, maximum days between two recession data
 #' @param tgood integer value, minimum length of the recession in days
 #' @param Nmin.rec integer value, minimum number of data in a recession curve
 #' @param tburn.rec numeric, burn factor, >=0 and <1. 0.4 means the first 40 percent of the recession samples are discarded.
 #'
-#' @return list, all recession satisfying the specified criteria
+#' @return List with the following components :
+#' \enumerate{
+#'    \item Rec_extracted: data frame, all information about stage-recession
+#'    \item summary_rec: data frame, summary with time recession and number of stage data by recession
+#' }
 #' @export
 #'
 #' @examples
@@ -21,19 +25,27 @@
 #' recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
 #'                                 uH=0.5,
 #'                                 time=ArdecheRiverMeyrasStage$Date,
-#'                                 chi=1.5,
+#'                                 chi=0.5,
 #'                                 tgood=30)
-#' plot_rec_extracted(Rec_extracted = recessions)
+#'
+#' # Check information of recession extracted
+#' recessions$Rec_extracted
+#'
+#' # Check summary table of recession extracted
+#' recessions$summary_rec
+#'
+#' # Plot all recession extracted
+#' plot_rec_extracted(Rec_extracted = recessions$Rec_extracted)
 Extraction_recession <- function(H,
                                  uH,
                                  time,
                                  filter.H=1,
                                  chi=stats::quantile(H,probs = 0.95,na.rm = TRUE),
                                  delta.t.min=0,
-                                 delta.t.max=10,
-                                 tgood=20,
+                                 delta.t.max=20,
+                                 tgood=10,
                                  Nmin.rec=10,
-                                 tburn.rec=0.2){
+                                 tburn.rec=0){
 
   if(any(is.na(H) | is.na(uH) | is.na(time)))stop('NA value in input data. Be sure to remove them before running function')
   if(is.null(check_vector_lengths(H,time)))stop('The input data have not the same length')
@@ -61,97 +73,160 @@ Extraction_recession <- function(H,
   # filter stage record by user specifications (filter.H):
   stage.record.post = stage.record[seq(1, nrow(stage.record), filter.H), ]
 
-  # # Convert time format
-  # stage.record.post$t=as.numeric(stage.record.post$t)
-
-  # find all local decreasing points:
-  min_loc.h = localmin( t = stage.record.post$t,
-                        h = stage.record.post$h,
-                        uH = stage.record.post$uH )
-
-  data_min = data.frame(tmin=min_loc.h$t_local_min,
-                        hmin=min_loc.h$h_local_min,
-                        uHmin=min_loc.h$uH_local_min)
-
   # Find all recession curves :
 
-  # Filter N°1 : delta.t.min
-  # Remove data which do not respect the specify time step
-  diff_tmin=diff(data_min$tmin)
-  units(diff_tmin) <- 'days'
-
-  if(any(diff_tmin<delta.t.min,na.rm = TRUE)){
-    data_min_filter_1=data_min[-which(diff_tmin<delta.t.min),]
-  }else{
-    data_min_filter_1=data_min
-  }
-
-  # Filter N°2 : hrec
-  # Finding the all the minimum of the minimum (when hmin(i)< hmin(i-1))
-  # Filter N°3 : chi and delta.t.max
-  # chi is a threshold that defines the end of one recession and the beginning of another
-  # delta.t.max helps to handle long time distances between  points
-
   # initialize:
-  hrec = uHrec = data_rec = c()
+  hrec = uHrec = data_rec = indx = c()
   trec =  as.POSIXct(character(0))
 
-  hrec[1] = data_min_filter_1$hmin[1]
-  trec[1] = data_min_filter_1$tmin[1]
-  uHrec[1] = data_min_filter_1$uHmin[1]
-  j = 2
-  m = 1
-  k = 1
+  hrec[1]  = stage.record.post$h[1]
+  trec[1]  = stage.record.post$t[1]
+  uHrec[1] = stage.record.post$uH[1]
+  indx[1]  = 1
+  j = 2  # run all recession stages one by one
+  m = 1  # stage accepted (descending point) for a specific recession
+  k = 1 # Number of the recession
 
-  j_max = length(data_min_filter_1$tmin)
+  j_max = length(stage.record.post$t)
 
   while (j <= j_max) {
 
-    diff_tmin_delta_max=difftime(data_min_filter_1$tmin[j],trec[m],units='days')
-    if ((data_min_filter_1$hmin[j] <= hrec[m]) & (diff_tmin_delta_max < delta.t.max)) {
-      # ok, recession point
-      m = m + 1
-      hrec[m] = data_min_filter_1$hmin[j]
-      trec[m] = data_min_filter_1$tmin[j]
-      uHrec[m] = data_min_filter_1$uHmin[j]
-    } else {
+    diff_t=as.numeric(difftime(stage.record.post$t[j],
+                    trec[m],
+                    units='days'))
 
-      if (((abs(data_min_filter_1$hmin[j] - hrec[m])) >= chi ) | diff_tmin_delta_max >= delta.t.max) { # stop the recession
-        # Filter N°4 : tgood
-        # Select only recessions with length > tgood
-        # Filter N°5 : Nmin
-        # Select only recessions with a number of point > Nmin :
-
-        if(((difftime(rev(trec)[1],trec[1],units='days')) >= tgood) & (length(trec) >= Nmin.rec)){
-          data_rec_unburned=data.frame(date=trec,
-                                       hrec=hrec,
-                                       uHrec=uHrec)
-          # Apply burn of the first part of the recession to reduce data information
-          remove_lines=round(nrow(data_rec_unburned)*tburn.rec)
-          data_rec_burned=data_rec_unburned[-c(1:remove_lines),]
-          data_rec_burned_plot=cbind(time_rec=as.numeric(
-                                       difftime(data_rec_burned$date,
-                                                data_rec_burned$date[1], units = "days")),
-                                     data_rec_burned,
-                                     indx=k)
-
-
-          data_rec = rbind(data_rec,data_rec_burned_plot)
-          k = k + 1
-        }
-
-        #Reinitialize variables
-        hrec = uHrec = c()
-        trec =  as.POSIXct(character(0))
-        hrec[1] = data_min_filter_1$hmin[j]
-        trec[1] = data_min_filter_1$tmin[j]
-        uHrec[1] = data_min_filter_1$uHmin[j]
-        m = 1
-      }
+    # Check 1: minimum distance between recession data (delta.t.min)
+    # minimum distance in case of too
+    # many data to process and maximum distance to avoid long periods of no data which may create
+    # discontinuous recessions
+    if(diff_t < delta.t.min){
+      j <- j + 1
+      next
     }
-    j = j+1
+
+    # Check 2: maximum distance between recession data (delta.t.max)
+    # Consider different recessions if gap in time is higher than delta.t.max.
+    # Handle the missing data in the stage record.
+    if(diff_t > delta.t.max){
+      # change number of recession (k)
+      k = k+1
+      m=m+1
+
+      hrec[m]  = stage.record.post$h[j]
+      trec[m]  = stage.record.post$t[j]
+      uHrec[m] = stage.record.post$uH[j]
+      indx[m]  = k
+      j <- j + 1
+      next
+    }
+
+    # Check 3: Delta h is negative ->  potential stage-recession data to save
+    # track delta h from two data : stage value - last stage-recession data stored
+    diff_h=stage.record.post$h[j]-hrec[m]
+    if(diff_h < 0){
+      m=m+1
+
+      hrec[m]  = stage.record.post$h[j]
+      trec[m]  = stage.record.post$t[j]
+      uHrec[m] = stage.record.post$uH[j]
+      indx[m]  = k
+
+    }else{ # Case when delta h is positive
+
+      # Check 4: recession is already finished ? (chi)
+      # chi is a threshold that defines the end of one recession and the beginning of another
+      if(diff_h >= chi){
+        m=m+1
+        k = k+1
+
+        hrec[m]  = stage.record.post$h[j]
+        trec[m]  = stage.record.post$t[j]
+        uHrec[m] = stage.record.post$uH[j]
+        indx[m]  = k
+
+      }
+      # if difference is not higher than chi, do not take into account this data
+      # and keep going. So j is increasing and m remains the same value
+    }
+    j <- j + 1
   }
-  return(Rec_extracted = data_rec)
+
+  data_df=data.frame(hrec=hrec,
+                     date=trec,
+                     uHrec=uHrec,
+                     indx=indx)
+
+  ggplot(data_df,aes(x=date,y=hrec,col=factor(indx)))+
+    geom_point()
+
+
+  atej=data_df[which(data_df$indx==31),]
+
+  ggplot(atej,aes(x=date,y=hrec,col=factor(indx)))+
+    geom_point()
+  # Summary table :
+  summary_temp <- data.frame(data_df %>%
+                               group_by(indx) %>%
+                               summarise(
+                                 first_time = first(date),  # First date for each group
+                                 last_time = last(date),    # Last date for each group
+                                 diff_time_extremes = as.numeric(difftime(last_time, first_time, units = "days")),  # Difference in hours
+                                 count_values = n()  # Total number of values for each group
+                                 ))
+  # Check 4 : tgood
+  # Select only recessions with length > tgood
+  rm_indx_tgood = which(summary_temp$diff_time_extremes < tgood)
+  # Check 5 : Nmin
+  # Select only recessions with a number of point > Nmin :
+  rm_indx_Nmin = which(summary_temp$count_values < Nmin.rec)
+
+  rm_indx=unique(c(rm_indx_tgood,rm_indx_Nmin))
+
+  data_df_filtered <- data_df[!data_df$indx %in% rm_indx, ]
+
+  # Re-assign the indx of the recession
+  # Same data frame because a colonne will be modify and the use for burning step
+  data_rec_unburned=data_df_filtered
+
+  # Step 1: Get unique values of 'indx' and sort them
+  unique_indx <- unique(data_df_filtered$indx)
+
+  # Step 2: Create a mapping from old 'indx' values to new sequential values
+  indx_map <- data.frame(old = unique_indx, new = seq_along(unique_indx))
+
+  # Step 3: Replace 'indx' values in the filtered data frame with new sequential values
+  data_rec_unburned$indx <- indx_map$new[match(data_df_filtered$indx, indx_map$old)]
+
+
+  if(tburn.rec!=0){
+    # Apply burn of the first part of the recession to reduce data information
+    data_rec_burned <- data.frame(data_rec_unburned %>%
+                             group_by(indx) %>%
+                             slice(-(1:floor(n() * tburn.rec))))
+
+  }else{
+    data_rec_burned=data_rec_unburned
+  }
+
+  # data_rec <-
+  data_rec = data.frame(data_rec_burned %>%
+                           group_by(indx) %>%
+                           mutate(
+                             time_rec = as.numeric(difftime(date, first(date), units = "days")),  # Difference in hours
+                            ))
+
+  # Summary table
+  summary_rec <- data.frame(data_rec_burned %>%
+                               group_by(indx) %>%
+                               summarise(
+                                 diff_time_extremes = as.numeric(difftime( last(date), first(date), units = "days")),  # Difference in hours
+                                 count_data = n()  # Total number of values for each group
+                               ))
+
+
+
+  return(list(Rec_extracted = data_rec,
+              summary_rec=summary_rec))
 }
 
 #' Model and segmentation of recession
@@ -175,7 +250,7 @@ Extraction_recession <- function(H,
 #'
 #' @return  List with the following components :
 #' \enumerate{
-#'   \item results : list with this sub components :
+#'   \item summary_results : list with this sub components :
 #'   \itemize{
 #'
 #'      \item summary: list, summarize the information to present to the user
@@ -196,7 +271,7 @@ Extraction_recession <- function(H,
 #'      \item tree: data frame, provide tree structure
 #'      \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #'   }
-#'   \item residualsData : list, provide all information of recession data observed and simulated
+#'   \item residuals_all_data : list, provide all information of recession data observed and simulated
 #'   \itemize{
 #'      \item time_rec: real value, time of the recession relative to first data of each recession
 #'      \item hrec: real value, stage observed
@@ -210,6 +285,7 @@ Extraction_recession <- function(H,
 #' @export
 #' @importFrom stringr str_detect
 #' @importFrom utils read.table
+#' @import dplyr
 #' @details
 #' To get the catalog of models available using `GetCatalog()`, all functions specifying Recession in the fit are concerned.
 #' For more information about recession model and their default values, please go to the fit function, e.g. `?fitRecession_M3`
@@ -218,11 +294,16 @@ Extraction_recession <- function(H,
 #' Please respect the name of the parameters if default values will not be used. e.g. beta paremeter's will be "beta"
 #'
 #' @examples
-#' recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
-#'                                 uH=0.5,
-#'                                 time=ArdecheRiverMeyrasStage$Date,
-#'                                 chi=1.5,
-#'                                 tgood=30)
+#' recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+#'                                           uH=0.5,
+#'                                           time=ArdecheRiverMeyrasStage$Date,
+#'                                           chi=3,
+#'                                           tgood=30)
+#'
+#' recessions = recessions_extracted$Rec_extracted
+#'
+#' # Plot all recession extracted
+#' plot_rec_extracted(Rec_extracted = recessions)
 #'
 #' D=RBaM::dataset(X=recessions['time_rec'],
 #'                 Y=recessions['hrec'],
@@ -265,12 +346,18 @@ Extraction_recession <- function(H,
 #'                                                     burnrec=0.5,
 #'                                                     nSlim=10)
 #'
+#' # Plot recession segmentation
+#' plot_modelAndSegm_recession(model_rec=model_rec,
+#'                             spec_recession=c(2,16,28))
+#'
+#' plotSegmentation(summary = model_rec$summary_results$summary,
+#'                  plot_summary = model_rec$summary_results$plot )
 ModelAndSegmentation.recession.regression <- function(time_rec,
                                                       daterec,
                                                       hrec,
                                                       uHrec,
                                                       indx,
-                                                      nSmax=2,
+                                                      nSmax=3,
                                                       nMin= 1,
                                                       nCycles=100,
                                                       burn=0.5,
@@ -333,8 +420,8 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                                  nSlim=nSlim,
                                  temp.folder=temp.folder)
 
-  return(list(results,
-              residualsData,
+  return(list(summary_results=results,
+              residuals_all_data=residualsData,
               parameters=rec_model$parameters))
 
 }
