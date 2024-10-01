@@ -14,6 +14,6 @@ ArdecheRiverMeyrasGaugingsDate$Date <-  as.POSIXct(DateTimeString, format = '%d/
 ArdecheRiverMeyrasGaugings=data.frame(ArdecheRiverMeyrasGaugingsDate,
                                         H=ArdecheRiverMeyrasGaugingsTemp$H,
                                         Q=ArdecheRiverMeyrasGaugingsTemp$Q,
-                                        uQ=ArdecheRiverMeyrasGaugingsTemp$Q*ArdecheRiverMeyrasGaugingsTemp$Qsigma/100
+                                        uQ=round(ArdecheRiverMeyrasGaugingsTemp$Q*ArdecheRiverMeyrasGaugingsTemp$Qsigma/100/2,4) # to make sens with other file of gaugings at Ardecher river at Meyras
                                         )
 save(ArdecheRiverMeyrasGaugings,file='data/ArdecheRiverMeyrasGaugings.RData')
