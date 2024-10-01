@@ -259,6 +259,7 @@ plotSegmentation <- function(summary,
     geom_vline(data=shift,
                aes(xintercept = tau,
                    col=factor(tau)),
+               linewidth = 0.5,
                alpha=0.8)+
     geom_point(data=shift,
                aes(x=tau,
@@ -306,6 +307,12 @@ plotSegmentation <- function(summary,
                                     'Shift(s) declared'))
     }
 
+    obs_shift_plot=obs_shift_plot+# Use guides to separate point and line legend representation
+      guides(color = guide_legend(override.aes = list(
+        linetype = c(rep("solid",colourCount_tau),'blank','blank'),   # Line for 'Activation Height', no line for 'Gaugings'
+        shape = c(rep(NA,colourCount_tau), 4,4)      # Point shape for 'Gaugings', no shape for 'Activation Height'
+      )))
+
   }else{
     # Any shift declared
     if(is.numeric(shift$tau)){
@@ -328,6 +335,11 @@ plotSegmentation <- function(summary,
                            labels=c(as.character(shift$tau),
                                     'Shift(s) detected'))
     }
+    obs_shift_plot=obs_shift_plot+# Use guides to separate point and line legend representation
+      guides(color = guide_legend(override.aes = list(
+        linetype = c(rep("solid",colourCount_tau),'blank'),   # Line for 'Activation Height', no line for 'Gaugings'
+        shape = c(rep(NA,colourCount_tau), 4)      # Point shape for 'Gaugings', no shape for 'Activation Height'
+      )))
   }
 
 
@@ -967,8 +979,8 @@ plotResidual_ModelAndSegmentation <- function(summary,
                                 plot_summary = plot_summary,
                                 ...)
 
-  plotresidual[[1]][[1]]$labels$y='Residual (m3/s) : Observed - simulated '
-  plotresidual[[2]]$labels$y='Residual (m3/s) : Observed - simulated'
+  plotresidual[[1]][[1]]$labels$y=expression(Residuals ~ m^3/s)
+  plotresidual[[2]]$labels$y=expression(Residuals ~ m^3/s)
 
   return(plotresidual)
 }
@@ -1069,6 +1081,9 @@ plotGaugingsSegmented <- function(summary,
 #' Gauging data used for calibration during segmentation have been plotted. Hence, the smaller the number of the node, the more gauging data have been used for calibration.
 #' @export
 #' @importFrom RBaM prediction
+#' @importFrom stringr str_detect
+#' @importFrom tibble rownames_to_column
+#' @importFrom tidyr pivot_longer
 plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                              autoscale=FALSE,
                              temp.folder=file.path(tempdir(),'BaM'),
@@ -1092,6 +1107,17 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
   }else{
     nodes_to_plot=nodes
   }
+
+  # Error model fixed for all functions in the package
+  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
+                                                par = list(RBaM::parameter(name="gamma1",
+                                                                           init=1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
+                                                           RBaM::parameter(name="gamma2",
+                                                                           init=0.1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))
 
   for(i in 1:length(nodes_to_plot)){
 
@@ -1144,6 +1170,7 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                dir.exe = file.path(find.package("RBaM"), "bin"),
                pred=list(totalU,paramU,maxpost), # list of predictions
                # pred=priorU, # list of predictions
+               remnant = remnant_prior,
                doCalib=FALSE,
                doPred=TRUE)
 
@@ -1165,11 +1192,45 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
     # Add maxpost rating curve
     MAPRC=read.table(file.path(temp.folder.RCPlot,'QRC_Maxpost.spag'))
 
+    #Read stage activation to plot
+
+    summary_estimation=read.table(file.path(temp.folder.RCPlot,
+                                            "Results_Summary.txt"),
+                                  header = T)
+    k_MAP=unlist(summary_estimation[which(c('MaxPost')==rownames(summary_estimation)),
+                                    which(stringr::str_detect(colnames(summary_estimation),'k'))])
+
+    MCMC_cooked=read.table(file.path(temp.folder.RCPlot,
+                                     "Results_Cooking.txt"),
+                           header = T)
+
+    k_MCMC=MCMC_cooked[,which(stringr::str_detect(colnames(MCMC_cooked),'k'))]
+
+    k_uncertainty=data.frame(apply(k_MCMC, 2, function(x) quantile(x, probs = c(0.025, 0.975))))
+
+    # Adapt data frame to plot
+
+    # Convert the dataframe to long format
+    k_long <- k_uncertainty %>%
+      tibble::rownames_to_column("percentile") %>%
+      tidyr::pivot_longer(-percentile, names_to = "k", values_to = "value")
+
+    # Create a dataframe for credibiliy intervals
+    Credibility_interval_data <- data.frame(
+      k = rep(k_long$k[1:3]),  # Repeat each k for 2 rows (2.5% and 97.5%)
+      xmin = k_long$value[k_long$percentile == "2.5%"],
+      xmax = k_long$value[k_long$percentile == "97.5%"],
+      ymin = 0,
+      ymax = max(TotalUenv$q97.5)
+    )
+
     allData[[i]]=list(CalData=CalData,
                       TotalUenv=TotalUenv,
                       ParametricUenv=ParametricUenv,
                       MAPRC=MAPRC,
-                      HgridPlot=Hgrid)
+                      HgridPlot=Hgrid,
+                      k_MAP=k_MAP,
+                      k_uncertainty=Credibility_interval_data)
   }
 
   # Plots
@@ -1180,26 +1241,38 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
       i<-i
 
       ggplot()+
+        # Stage activation estimated (first control)
+        geom_vline(aes(xintercept=inner_list$k_MAP),
+                   col='green',
+                   linewidth=0.5,
+                   show.legend = FALSE)+
+        geom_rect(data = inner_list$k_uncertainty,
+                  aes(xmin = xmin,
+                      xmax = xmax,
+                      ymin = ymin,
+                      ymax = ymax,
+                      fill = "Posterior \nactivation stage"),
+                  alpha = 0.15)+
         # Total uncertainty
         geom_ribbon(data = inner_list$TotalUenv,
                     aes(x=inner_list$HgridPlot[,1],
                         ymin=q2.5,
                         ymax=q97.5,
-                        fill='Total'),
+                        fill='Posterior \nparametric and \nstructural \nuncertainty'),
                     alpha=0.65)+
         # Parametric uncertainty
         geom_ribbon(data = inner_list$ParametricUenv,
                     aes(x=inner_list$HgridPlot[,1],
                         ymin=q2.5,
                         ymax=q97.5,
-                        fill='Parametric'),
+                        fill='Posterior \nparametric \nuncertainty'),
                     alpha=0.65)+
         # Map
         geom_line(data=inner_list$MAPRC,
                   aes(x=inner_list$HgridPlot[,1],
                       y=inner_list$MAPRC[,1],
-                      col='MAP'))+
-        # Guagings
+                      col='Posterior \nrating curve'))+
+        # Gaugings
         geom_errorbar(data = inner_list$CalData,
                       aes(x=H,
                           ymin=Q-uQ,
@@ -1210,15 +1283,20 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
                    aes(x=H,
                        y=Q,
                        col='Gaugings'))+
+        coord_cartesian(xlim = c(min(inner_list$k_uncertainty$xmin),
+                                 max(inner_list$HgridPlot)))+
         labs(title=paste0('Rating curve estimation for node ',nodes_to_plot[[i]]),
              x='H[m]',
              y='Q[m3/s]',
              fill='Uncertainty',
              col=NULL)+
-        scale_fill_manual(values=c('pink', 'red'))+
+        scale_fill_manual(values=c('green','pink', 'red'))+
         scale_color_manual(values=c('blue','black'))+
         theme_bw()+
-        theme(plot.title = element_text(hjust = 0.5))
+        theme(plot.title = element_text(hjust = 0.5))+
+        guides(color = guide_legend(override.aes = list(
+          shape = c(19,NA)
+          )))
     })
   }
   return(PlotRCPred)
@@ -1328,4 +1406,273 @@ plot_rec_extracted <- function(Rec_extracted,
   return(list(rec.plot,
               rec.plot2,
               plot_min_h_rec))
+}
+
+
+#' Plot recession modeled and segmentation
+#'
+#' @param model_rec list, results obtained by using `ModelAndSegmentation.recession.regression` function
+#' @param spec_recession integer vector, number of recession to plot the observed and simulated recession data separately
+#' @param all_recession logical, `TRUE` = plot all recessions with observed and simulated recession data
+#' @param temp.folder directory, temporary directory to write computations, be sure to use the same from `ModelAndSegmentation.recession.regression` function
+#' @param CalibrationData character, name of the calibration data used in the `ModelAndSegmentation.recession.regression` function. It must to match or an error message will be appear
+#' @param fit function, fit used during recession modelling
+#' @param ... optional arguments, as vector, to consider shift declared and stored by the hydrometric unit (see `?plotSegmentation`)
+#'
+#' @return list of plots
+#' @details
+#' If all_recession = `TRUE`, spec_recession will not be plotted, because they have already been plotted
+#'
+#' @export
+plot_modelAndSegm_recession <- function(model_rec,
+                                        spec_recession=NULL,
+                                        all_recession=FALSE,
+                                        temp.folder=file.path(tempdir(),'BaM','Recession'),
+                                        CalibrationData='CalibrationData.txt',
+                                        fit=fitRecession_M3,
+                                        ...){
+
+  if(any(CalibrationData==list.files(temp.folder))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder. Please, check the name of calibration data used in the ModelAndSegmentation.recession.regression function')
+  CalData=read.table(file.path(temp.folder,
+                               CalibrationData),
+                     header = T)
+
+  if(any(spec_recession<=0))stop('spec_recession must be positive')
+  if(!is.null(spec_recession)){
+    if(any(spec_recession %% 1 != 0))stop('spec_recession must be a integer')
+  }
+  if(any(spec_recession>max(CalData$indx)))stop('spec_recession must be between the number of curves specified in the calibration data')
+  if(is.null(spec_recession) & all_recession == FALSE)stop('A recession must be selected in spec_recession or plot all recesssion')
+
+  grid_min_max_list <- lapply(model_rec[[2]],function(df){
+    data.frame(
+      Min = min(df[, 1]),
+      Max = max(df[, 1])
+    )
+  })
+
+  grid_min_max <- do.call(rbind, grid_min_max_list)
+
+  t_min_grid = min(grid_min_max$Min)
+  t_max_grid = max(grid_min_max$Max)
+
+  # Grid :
+  t_grid = data.frame(t_grid=seq(t_min_grid,t_max_grid,by=(t_max_grid-t_min_grid)/50))
+
+  # Upload Data object
+  load(file.path(temp.folder,'DataObject.RData'))
+
+  # Upload Model object
+  load(file.path(temp.folder,'ModelObject.RData'))
+
+  #MCMC results
+  MCMC    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
+
+  if(all_recession!=FALSE){
+    Ncurves = unique(CalData$indx)
+  }else if(!is.null(spec_recession)){
+    Ncurves=spec_recession
+  }
+
+  # Error model fixed for all functions in the package
+  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
+                                                par = list(RBaM::parameter(name="gamma1",
+                                                                           init=1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
+                                                           RBaM::parameter(name="gamma2",
+                                                                           init=0.1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))
+
+  allData=c()
+  j=1
+  # Setting for recession model M3:
+  if(identical(fit,fitRecession_M3)){
+    for( i in Ncurves){
+      alpha1_nonVAR=RBaM::parameter(name=M$par[[1]]$name,
+                                    init=M$par[[1]]$init[i],
+                                    prior.dist=M$par[[1]]$prior[[i]]$dist,
+                                    prior.par=M$par[[1]]$prior[[i]]$par)
+
+      alpha2_nonVAR=RBaM::parameter(name=M$par[[3]]$name,
+                                    init=M$par[[3]]$init[i],
+                                    prior.dist=M$par[[3]]$prior[[i]]$dist,
+                                    prior.par=M$par[[3]]$prior[[i]]$par)
+
+      beta_nonVAR=RBaM::parameter(name=M$par[[5]]$name,
+                                  init=M$par[[5]]$init[i],
+                                  prior.dist=M$par[[5]]$prior[[i]]$dist,
+                                  prior.par=M$par[[5]]$prior[[i]]$par)
+
+      lambda1=RBaM::parameter(name=M$par[[2]]$name,
+                              init=M$par[[2]]$init,
+                              prior.dist=M$par[[2]]$prior$dist,
+                              prior.par=M$par[[2]]$prior$par)
+
+      lambda2=RBaM::parameter(name=M$par[[4]]$name,
+                              init=M$par[[4]]$init,
+                              prior.dist=M$par[[4]]$prior$dist,
+                              prior.par=M$par[[4]]$prior$par)
+
+      M_nonVAR=RBaM::model(ID='Recession_h',
+                           nX=1,
+                           nY=1,
+                           par=list(alpha1_nonVAR,
+                                    lambda1,
+                                    alpha2_nonVAR,
+                                    lambda2,
+                                    beta_nonVAR))
+
+      # Columns names to use during prediction
+      columns_indx=c(paste0('alpha1_',i),
+                     'lambda1',
+                     paste0('alpha2_',i),
+                     'lambda2',
+                     paste0('beta_',i),
+                     'Y1_gamma1',
+                     'Y1_gamma2',
+                     'LogPost')
+
+      parSamples=MCMC[columns_indx]
+
+      # Define a 'prediction' object for total predictive uncertainty
+      totalU=RBaM::prediction(X=t_grid, # stage values
+                              spagFiles='H_rec_TotalU.spag', # file where predictions are saved
+                              data.dir=temp.folder, # a copy of data files will be saved here
+                              doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                              doStructural=TRUE, # propagate structural uncertainty ?
+                              parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
+      )
+
+      # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
+      paramU=RBaM::prediction(X=t_grid,
+                              spagFiles='H_rec_ParamU.spag',
+                              data.dir=temp.folder,
+                              doParametric=TRUE,
+                              doStructural=FALSE,
+                              parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
+      )
+
+      # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
+      maxpost=RBaM::prediction(X=t_grid,
+                               spagFiles='H_rec_Maxpost.spag',
+                               data.dir=temp.folder,
+                               doParametric=FALSE,
+                               doStructural=FALSE,
+                               parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
+      )
+
+      RBaM:: BaM(mod=M_nonVAR,
+                 data=D,
+                 workspace = temp.folder,
+                 dir.exe = file.path(find.package("RBaM"), "bin"),
+                 pred=list(totalU,paramU,maxpost), # list of predictions
+                 # pred=priorU, # list of predictions
+                 remnant = remnant_prior,
+                 doCalib=FALSE,
+                 doPred=TRUE)
+
+      # Get total uncertainty from the rating curve
+      TotalUenv=read.table(file.path(temp.folder,'H_rec_TotalU.env'),header = TRUE)
+
+      # Add parametric uncertainty
+      ParametricUenv=read.table(file.path(temp.folder,'H_rec_ParamU.env'),header = TRUE)
+
+      # Add maxpost rating curve
+      MAPREC=read.table(file.path(temp.folder,'H_rec_Maxpost.spag'))
+
+      allData[[j]]=list(CalData=CalData,
+                        TotalUenv=TotalUenv,
+                        ParametricUenv=ParametricUenv,
+                        MAPREC=MAPREC,
+                        HgridPlot=t_grid)
+      j=j+1
+    }
+  }
+
+  # Plots
+  PlotRECPred=list()
+
+  for (i in 1:length(allData)){
+    PlotRECPred[[i]]<-local({
+      inner_list <- allData[[i]]
+
+      ggplot()+
+        # Total uncertainty
+        geom_ribbon(data = inner_list$TotalUenv,
+                    aes(x=inner_list$HgridPlot[,1],
+                        ymin=q2.5,
+                        ymax=q97.5,
+                        fill='Total'),
+                    alpha=0.65)+
+        # Parametric uncertainty
+        geom_ribbon(data = inner_list$ParametricUenv,
+                    aes(x=inner_list$HgridPlot[,1],
+                        ymin=q2.5,
+                        ymax=q97.5,
+                        fill='Parametric'),
+                    alpha=0.65)+
+        # Map
+        geom_line(data=inner_list$MAPREC,
+                  aes(x=inner_list$HgridPlot[,1],
+                      y=inner_list$MAPREC[,1],
+                      col='MAP'))+
+        # Guagings
+        geom_errorbar(data = inner_list$CalData[which(inner_list$CalData$indx==Ncurves[i]),],
+                      aes(x=time_rec,
+                          ymin=hrec-uHrec,
+                          ymax=hrec+uHrec,
+                          col='Gaugings'),
+                      width=0.05)+
+        geom_point(data = inner_list$CalData[which(inner_list$CalData$indx==Ncurves[i]),],
+                   aes(x=time_rec,
+                       y=hrec,
+                       col='Gaugings'))+
+        # geom_hline(yintercept = model_rec$parameters$beta[Ncurves[i]])
+        labs(title=paste0('Recession number ',Ncurves[i]),
+             x='time[days]',
+             y='H[m]',
+             fill='Uncertainty',
+             col=NULL)+
+        scale_fill_manual(values=c('pink', 'red'))+
+        scale_color_manual(values=c('blue','black'))+
+        theme_bw()+
+        theme(plot.title = element_text(hjust = 0.5))
+    })
+  }
+
+  return(PlotRECPred)
+
+
+
+
+
+
+
+
+
+
+
+
+    #From ici
+
+    for(i in 1:length(spec_recession)){
+      rec_plot_local=model_rec$residuals_all_data[[i]]
+
+      ggplot(rec_plot_local,aes(x=time_rec))+
+        geom_line(aes(y=H_rec_sim))+
+        geom_ribbon(aes(ymin=H_rec_sim-uH_sim,
+                        ymax=H_rec_sim+uH_sim),
+                    alpha=0.8)
+    }
+
+  # Plot Segmentation :
+
+  plotSegmentation(summary=model_rec$summary_results$summary,
+                   plot_summary=model_rec$summary_results$plot,
+                   ...)
+
+
+
 }
