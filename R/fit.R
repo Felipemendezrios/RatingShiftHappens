@@ -388,13 +388,15 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
   cook_temp=RBaM::mcmcCooking(burn=0.5,
                               nSlim=10)
   # Error model
-  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
-                                                par = list(RBaM::parameter(name="gamma1",
-                                                                           init=1,
-                                                                           prior.dist = "FlatPrior+"),
-                                                           RBaM::parameter(name="gamma2",
-                                                                           init=0.1,
-                                                                           prior.dist = "FlatPrior+"))))
+  remnant_prior <-list(RBaM::remnantErrorModel(funk = "Linear",
+                                               par = list(RBaM::parameter(name="gamma1",
+                                                                          init=1,
+                                                                          prior.dist = "Uniform",
+                                                                          prior.par = c(0,1000)),
+                                                          RBaM::parameter(name="gamma2",
+                                                                          init=0.1,
+                                                                          prior.dist = "Uniform",
+                                                                          prior.par = c(0,1000)))))
   # Run BaM executable
   RBaM:: BaM(mod=M,
              data=D,
@@ -431,6 +433,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              pred=totalU, # list of predictions
+             remnant = remnant_prior,
              doCalib=FALSE,
              doPred=TRUE)
 
@@ -574,10 +577,12 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
                                                 par = list(RBaM::parameter(name="gamma1",
                                                                            init=1,
-                                                                           prior.dist = "FlatPrior+"),
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
                                                            RBaM::parameter(name="gamma2",
                                                                            init=0.1,
-                                                                           prior.dist = "FlatPrior+"))))
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))
   # Run BaM executable
   RBaM:: BaM(mod=M,
              data=D,
@@ -615,6 +620,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              pred=totalU, # list of predictions
              # pred=list(totalU,paramU,maxpost), # list of predictions
+             remnant = remnant_prior,
              doCalib=FALSE,
              doPred=TRUE)
 
@@ -766,10 +772,12 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
                                                 par = list(RBaM::parameter(name="gamma1",
                                                                            init=1,
-                                                                           prior.dist = "FlatPrior+"),
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
                                                            RBaM::parameter(name="gamma2",
                                                                            init=0.1,
-                                                                           prior.dist = "FlatPrior+"))))
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))
   # Run BaM executable
   RBaM:: BaM(mod=M,
              data=D,
@@ -807,6 +815,7 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              pred=totalU, # list of predictions
              # pred=list(totalU,paramU,maxpost), # list of predictions
+             remnant = remnant_prior,
              doCalib=FALSE,
              doPred=TRUE)
 
@@ -961,14 +970,16 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
   cook_temp=RBaM::mcmcCooking(burn=0.5,
                               nSlim=10)
 
-  # Error model
+  # Error model fixed for all functions in the package
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
                                                 par = list(RBaM::parameter(name="gamma1",
                                                                            init=1,
-                                                                           prior.dist = "FlatPrior+"),
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
                                                            RBaM::parameter(name="gamma2",
                                                                            init=0.1,
-                                                                           prior.dist = "FlatPrior+"))))
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))
   # Run BaM executable
   RBaM:: BaM(mod=M,
              data=D,
@@ -1006,6 +1017,7 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              pred=totalU, # list of predictions
              # pred=list(totalU,paramU,maxpost), # list of predictions
+             remnant = remnant_prior,
              doCalib=FALSE,
              doPred=TRUE)
 
@@ -1073,9 +1085,9 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
 #' Recession model with two exponential and asymptotic
 #'
 #' Recession modelling following a the exponential function specified as M3 according to (Darienzo, 2022):
-#' \deqn{h(t) = $\alpha_1$ (k) \cdot \exp (-$\lambda_1$ \cdot t) + $\alpha_2$ (k) \cdot \exp (-$\lambda_2$ \cdot t) + $\beta$}
-#' with three recession-specific parameters : $\alpha_1$, $\alpha_2$ and $\beta$
-#' and two stable parameters : $\lambda_1$ and  $\lambda_2$
+#' \deqn{h(t) = \alpha_1(k) \cdot \exp(-\lambda_1 \cdot t) + \alpha_2(k) \cdot \exp(-\lambda_2 \cdot t) + \beta}
+#' This model includes three recession-specific parameters: \eqn{\alpha_1}, \eqn{\alpha_2}, and \eqn{\beta}
+#' and two stable parameters: \eqn{\lambda_1} and \eqn{\lambda_2}.
 #'
 #' Default values for this recession are shown in ‘Details’
 #'
@@ -1097,12 +1109,16 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
 #' @details
 #' By default, prior values are the same for all recession for the parameter alpha1, alpha2 and beta
 #'
-#' Default values are :
-#' Starting in 200, we assume that $\alpha_1 \sim U(0, 1000)$.
-#' Starting in 50, we assume that $\alpha_2 \sim U(0, 500)$
-#' Starting in exp(-log(0.5)+log(log(2))), we assume that $\lambda_1 \sim \text{LogNormal}(\mu=-log((0.5))+log(log(2)), \sigma=1)$
-#' Starting in exp(-log(50)+log(log(2))), we assume that $\lambda_2 \sim \text{LogNormal}(\mu=-log((80))+log(log(2)), \sigma=0.5)$
-#' Starting in 1000, we assume that $\beta \sim U(-10000, 10000)$
+#' Default values are:
+#' \describe{
+#'   \item{Starting in 200, we assume that \eqn{\alpha_1 \sim U(0, 1000).}}
+#'   \item{Starting in 50, we assume that \eqn{\alpha_2 \sim U(0, 500).}}
+#'   \item{Starting in \eqn{\exp(-\log(0.5) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_1 \sim \text{LogNormal}(\mu = -\log(0.5) + \log(\log(2)), \sigma = 1).}}
+#'   \item{Starting in \eqn{\exp(-\log(50) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_2 \sim \text{LogNormal}(\mu = -\log(80) + \log(\log(2)), \sigma = 0.5).}}
+#'   \item{Starting in 1000, we assume that \eqn{\beta \sim U(-10000, 10000).}}
+#' }
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -1244,11 +1260,12 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
                                                 par = list(RBaM::parameter(name="gamma1",
                                                                            init=1,
-                                                                           prior.dist = "FlatPrior+"),
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
                                                            RBaM::parameter(name="gamma2",
                                                                            init=0.1,
-                                                                           prior.dist = "FlatPrior+"))))
-  # Run BaM executable
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))  # Run BaM executable
   RBaM:: BaM(mod=M,
              data=D,
              workspace = temp.folder.Recession,
@@ -1270,7 +1287,9 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
   MCMC    <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Cooking.txt"),header=TRUE)
   residus   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)
   summary.MCMC   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Summary.txt"),header=TRUE)
-  summary.MCMC.MAP <- summary.MCMC[nrow(summary.MCMC),]
+
+  indx_MAP=which(c('MaxPost')==rownames(summary.MCMC))
+  indx_st_dev=which(c('St.Dev.')==rownames(summary.MCMC))
 
   # Way to handle prediction for VAR parameters :
   ResultsResiduals = c()
@@ -1327,6 +1346,7 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
                workspace = temp.folder.Recession,
                dir.exe = file.path(find.package("RBaM"), "bin"),
                pred=totalU,
+               remnant = remnant_prior,
                doCalib=FALSE,
                doPred=TRUE)
 
@@ -1351,9 +1371,18 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
                                      uH_sim=residual_sd)
 
     # Create a table to store the parameters for all recessions
-    local.parameters.temp=data.frame(alpha1=summary.MCMC.MAP[,which(paste0('alpha1_',i)==colnames(summary.MCMC.MAP))],
-                                     alpha2=summary.MCMC.MAP[,which(paste0('alpha2_',i)==colnames(summary.MCMC.MAP))],
-                                     beta=summary.MCMC.MAP[,which(paste0('beta_',i)==colnames(summary.MCMC.MAP))])
+    local.parameters.temp=data.frame(alpha1=summary.MCMC[indx_MAP,
+                                                         which(paste0('alpha1_',i)==colnames(summary.MCMC))],
+                                     u_alpha1=summary.MCMC[indx_st_dev,
+                                                           which(paste0('alpha1_',i)==colnames(summary.MCMC))],
+                                     alpha2=summary.MCMC[indx_MAP,
+                                                         which(paste0('alpha2_',i)==colnames(summary.MCMC))],
+                                     u_alpha2=summary.MCMC[indx_st_dev,
+                                                           which(paste0('alpha2_',i)==colnames(summary.MCMC))],
+                                     beta=summary.MCMC[indx_MAP,
+                                                       which(paste0('beta_',i)==colnames(summary.MCMC))],
+                                     u_beta=summary.MCMC[indx_st_dev,
+                                                         which(paste0('beta_',i)==colnames(summary.MCMC))])
 
     if(i==1){
       local.parameters <- local.parameters.temp
@@ -1364,12 +1393,23 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
 
   parameters= data.frame(
     local.parameters['alpha1'],
-    lamda1=summary.MCMC.MAP[,which('lambda1'==colnames(summary.MCMC.MAP))],
+    local.parameters['u_alpha1'],
+    lamda1=summary.MCMC[indx_MAP,
+                        which('lambda1'==colnames(summary.MCMC))],
+    u_lamda1=summary.MCMC[indx_st_dev,
+                          which('lambda1'==colnames(summary.MCMC))],
     local.parameters['alpha2'],
-    lamda2=summary.MCMC.MAP[,which('lambda2'==colnames(summary.MCMC.MAP))],
+    local.parameters['u_alpha2'],
+    lambda2=summary.MCMC[indx_MAP,
+                        which('lambda2'==colnames(summary.MCMC))],
+    u_lambda2=summary.MCMC[indx_st_dev,
+                          which('lambda2'==colnames(summary.MCMC))],
     local.parameters['beta'],
-    gamma1=summary.MCMC.MAP$Y1_gamma1,
-    gamma2=summary.MCMC.MAP$Y1_gamma2)
+    local.parameters['u_beta'],
+    gamma1=summary.MCMC[indx_MAP,]$Y1_gamma1,
+    u_gamma1=summary.MCMC[indx_st_dev,]$Y1_gamma1,
+    gamma2=summary.MCMC[indx_MAP,]$Y1_gamma2,
+    u_gamma2=summary.MCMC[indx_st_dev,]$Y1_gamma2)
 
   # ggplot(ResultsResiduals[[39]],aes(x=time_rec))+
   #   geom_point(aes(y=hrec),col='black')+
