@@ -10,7 +10,7 @@ ModelAndSegmentation.recession.regression(
   hrec,
   uHrec,
   indx,
-  nSmax = 2,
+  nSmax = 3,
   nMin = 1,
   nCycles = 100,
   burn = 0.5,
@@ -50,7 +50,7 @@ ModelAndSegmentation.recession.regression(
 \value{
 List with the following components :
 \enumerate{
-\item results : list with this sub components :
+\item summary_results : list with this sub components :
 \itemize{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{ \\item summary: list, summarize the information to present to the user
@@ -73,7 +73,7 @@ List with the following components :
 }\if{html}{\out{</div>}}
 
 }
-\item residualsData : list, provide all information of recession data observed and simulated
+\item residuals_all_data : list, provide all information of recession data observed and simulated
 \itemize{
 \item time_rec: real value, time of the recession relative to first data of each recession
 \item hrec: real value, stage observed
@@ -97,11 +97,16 @@ The direction file path for this dataset must be \code{file.path(tempdir(),'BaM'
 Please respect the name of the parameters if default values will not be used. e.g. beta paremeter's will be "beta"
 }
 \examples{
-recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
-                                uH=0.5,
-                                time=ArdecheRiverMeyrasStage$Date,
-                                chi=1.5,
-                                tgood=30)
+recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+                                          uH=0.5,
+                                          time=ArdecheRiverMeyrasStage$Date,
+                                          chi=3,
+                                          tgood=30)
+
+recessions = recessions_extracted$Rec_extracted
+
+# Plot all recession extracted
+plot_rec_extracted(Rec_extracted = recessions)
 
 D=RBaM::dataset(X=recessions['time_rec'],
                 Y=recessions['hrec'],
@@ -144,4 +149,10 @@ model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec
                                                     burnrec=0.5,
                                                     nSlim=10)
 
+# Plot recession segmentation
+plot_modelAndSegm_recession(model_rec=model_rec,
+                            spec_recession=c(2,16,28))
+
+plotSegmentation(summary = model_rec$summary_results$summary,
+                 plot_summary = model_rec$summary_results$plot )
 }

@@ -140,13 +140,13 @@
 #' # The `prior_infor_param_builder` function was developed to help the user to create these objects.
 #' #' # Prior information for Ardeche River at Meyras
 #'
-#' a1=RBaM::parameter(name='a1',init=14.17,prior.dist='LogNormal',prior.par=c(2.66,1.54))
-#' k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,1))
+#' a1=RBaM::parameter(name='a1',init=14.17,prior.dist='Gaussian',prior.par=c(14.17,3.65))
+#' k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,0.5))
 #' c1=RBaM::parameter(name='c1',init=1.5,prior.dist='Gaussian',prior.par=c(1.5,0.025))
-#' a2=RBaM::parameter(name='a2',init=26.5165,prior.dist='LogNormal',prior.par=c(3.28,0.36))
-#' k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,1))
+#' a2=RBaM::parameter(name='a2',init=26.5,prior.dist='Gaussian',prior.par=c(26.5,8.4))
+#' k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,0.5))
 #' c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
-#' a3=RBaM::parameter(name='a3',init=31.82,prior.dist='LogNormal',prior.par=c(3.46,0.397))
+#' a3=RBaM::parameter(name='a3',init=31.82,prior.dist='Gaussian',prior.par=c(31.8,10.9))
 #' k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.4))
 #' c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 #'
@@ -235,10 +235,12 @@ recursive.ModelAndSegmentation <- function(H,
 
   DF.order <- DF.order[order(DF.order$time),]
 
-  residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,...) # initialize first residual data to be segmented
 
   # Save results from first prediction using the grid for plotting rating curve
   if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
+    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,
+                              temp.folder.RC=file.path(temp.folder,'RC'),...) # initialize first residual data to be segmented
+
     dir.destination=file.path(temp.folder,'it_1/')
     # Ensure the destination directory exists
     if (!dir.exists(dir.destination)) {
@@ -249,6 +251,9 @@ recursive.ModelAndSegmentation <- function(H,
     }
     invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
                                    dir.destination=dir.destination))
+  }else{
+    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,...) # initialize first residual data to be segmented
+
   }
   residualsData <- list(residualsData.all[[1]])
   param.equation.p <- list(residualsData.all[[2]])
@@ -276,7 +281,8 @@ recursive.ModelAndSegmentation <- function(H,
         partial.segmentation=segmentation(obs=residuals[[j]],
                                           time=TIME[[j]],
                                           u=u_residuals[[j]],
-                                          nSmax,nMin,nCycles,burn,nSlim,temp.folder) # Apply segmentation to subseries stored in node residuals[[j]]
+                                          nSmax,nMin,nCycles,burn,nSlim,
+                                          temp.folder=temp.folder) # Apply segmentation to subseries stored in node residuals[[j]]
         # Save results for this node
         allRes[[k]]=partial.segmentation
         # Save optimal number of segments
@@ -296,10 +302,13 @@ recursive.ModelAndSegmentation <- function(H,
           NewH=residualsData[[newParents[m]]]$H[match(newTIME[[m]],residualsData[[newParents[m]]]$time)] # find information according to time segmentation
           NewQ=residualsData[[newParents[m]]]$Q_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
-          # Update rating curve estimation
-          residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
+
           # Save results from first prediction using the grid for plotting rating curve
           if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
+            # Update rating curve estimation
+            residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,
+                                           temp.folder.RC=file.path(temp.folder,'RC'),...)
+
             dir.destination=file.path(temp.folder,paste0('it_',p,'/'))
             # Ensure the destination directory exists
             if (!dir.exists(dir.destination)) {
@@ -311,6 +320,9 @@ recursive.ModelAndSegmentation <- function(H,
 
             invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
                                            dir.destination=dir.destination))
+          }else{
+            # Update rating curve estimation
+            residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
           }
           residualsData[[p]] <- residualsData.all[[p]][[1]]
           param.equation.p[[p]] <- residualsData.all[[p]][[2]]
