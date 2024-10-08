@@ -291,7 +291,7 @@ be used to estimate the rating curve.
 # Get model available to estimate the rating curve
 GetCatalog()$models
 #> [1] "fitRC_loess"            "fitRC_BaRatinBAC"       "fitRC_BaRatinKAC"      
-#> [4] "fitRC_exponential"      "fitRC_LinearRegression"
+#> [4] "fitRC_exponential"      "fitRC_LinearRegression" "fitRecession_M3"
 
 # Get equation of each model
 GetCatalog()$Equations
@@ -334,14 +334,14 @@ knitr::kable(head(ArdecheRiverMeyrasGaugings),
               align = 'c',row.names = F)
 ```
 
-| Day | Month | Year | Hour | Minute | Second |        Date         |  H   |   Q   |   uQ    |
-|:---:|:-----:|:----:|:----:|:------:|:------:|:-------------------:|:----:|:-----:|:-------:|
-|  7  |  11   | 2001 |  16  |   30   |   0    | 2001-11-07 16:30:00 | 0.17 | 1.520 | 0.10640 |
-|  4  |  12   | 2001 |  14  |   45   |   0    | 2001-12-04 14:45:00 | 0.10 | 0.727 | 0.05089 |
-| 10  |   1   | 2002 |  14  |   0    |   0    | 2002-01-10 14:00:00 | 0.06 | 0.500 | 0.03500 |
-| 13  |   2   | 2002 |  16  |   45   |   0    | 2002-02-13 16:45:00 | 0.08 | 1.110 | 0.07770 |
-| 23  |   4   | 2002 |  17  |   45   |   0    | 2002-04-23 17:45:00 | 0.17 | 1.740 | 0.12180 |
-|  2  |   5   | 2002 |  13  |   40   |   0    | 2002-05-02 13:40:00 | 0.22 | 2.370 | 0.16590 |
+| Day | Month | Year | Hour | Minute | Second |        Date         |  H   |   Q   |   uQ   |
+|:---:|:-----:|:----:|:----:|:------:|:------:|:-------------------:|:----:|:-----:|:------:|
+|  7  |  11   | 2001 |  16  |   30   |   0    | 2001-11-07 16:30:00 | 0.17 | 1.520 | 0.0532 |
+|  4  |  12   | 2001 |  14  |   45   |   0    | 2001-12-04 14:45:00 | 0.10 | 0.727 | 0.0254 |
+| 10  |   1   | 2002 |  14  |   0    |   0    | 2002-01-10 14:00:00 | 0.06 | 0.500 | 0.0175 |
+| 13  |   2   | 2002 |  16  |   45   |   0    | 2002-02-13 16:45:00 | 0.08 | 1.110 | 0.0389 |
+| 23  |   4   | 2002 |  17  |   45   |   0    | 2002-04-23 17:45:00 | 0.17 | 1.740 | 0.0609 |
+|  2  |   5   | 2002 |  13  |   40   |   0    | 2002-05-02 13:40:00 | 0.22 | 2.370 | 0.0829 |
 
 ## Recursive model and segmentation procedure for an *unknown* number of segments
 
@@ -370,14 +370,14 @@ knitr::kable(head(results$summary$data),
              align = 'c',row.names = FALSE)
 ```
 
-|        time         |  H   |   Q   |   uQ    | Q_I95_lower | Q_I95_upper |   Qsim   |  uQ_sim  | Qsim_I95_lower | Qsim_I95_upper |   Qres    | period |
-|:-------------------:|:----:|:-----:|:-------:|:-----------:|:-----------:|:--------:|:--------:|:--------------:|:--------------:|:---------:|:------:|
-| 2001-11-07 16:30:00 | 0.17 | 1.520 | 0.10640 |  1.3114598  |  1.7285402  | 3.927984 | 3.281194 |   -2.503038    |   10.359006    | -2.407984 |   1    |
-| 2001-12-04 14:45:00 | 0.10 | 0.727 | 0.05089 |  0.6272574  |  0.8267426  | 3.462622 | 3.281194 |   -2.968400    |    9.893644    | -2.735622 |   1    |
-| 2002-01-10 14:00:00 | 0.06 | 0.500 | 0.03500 |  0.4314013  |  0.5685987  | 3.221893 | 3.281194 |   -3.209129    |    9.652915    | -2.721893 |   1    |
-| 2002-02-13 16:45:00 | 0.08 | 1.110 | 0.07770 |  0.9577108  |  1.2622892  | 3.340089 | 3.281194 |   -3.090933    |    9.771111    | -2.230090 |   1    |
-| 2002-04-23 17:45:00 | 0.17 | 1.740 | 0.12180 |  1.5012764  |  1.9787236  | 3.927984 | 3.281194 |   -2.503038    |   10.359006    | -2.187984 |   1    |
-| 2002-05-02 13:40:00 | 0.22 | 2.370 | 0.16590 |  2.0448420  |  2.6951580  | 4.298207 | 3.281194 |   -2.132815    |   10.729229    | -1.928207 |   1    |
+|        time         |  H   | uH  |   Q   |   uQ   | Q_I95_lower | Q_I95_upper |   Qsim   |  uQ_sim  | Qsim_I95_lower | Qsim_I95_upper |   Qres    | period |
+|:-------------------:|:----:|:---:|:-----:|:------:|:-----------:|:-----------:|:--------:|:--------:|:--------------:|:--------------:|:---------:|:------:|
+| 2001-11-07 16:30:00 | 0.17 |  0  | 1.520 | 0.0532 |  1.4157299  |  1.6242701  | 3.927984 | 3.281194 |   -2.503038    |   10.359006    | -2.407984 |   1    |
+| 2001-12-04 14:45:00 | 0.10 |  0  | 0.727 | 0.0254 |  0.6772169  |  0.7767831  | 3.462622 | 3.281194 |   -2.968400    |    9.893644    | -2.735622 |   1    |
+| 2002-01-10 14:00:00 | 0.06 |  0  | 0.500 | 0.0175 |  0.4657006  |  0.5342994  | 3.221893 | 3.281194 |   -3.209129    |    9.652915    | -2.721893 |   1    |
+| 2002-02-13 16:45:00 | 0.08 |  0  | 1.110 | 0.0389 |  1.0337574  |  1.1862426  | 3.340089 | 3.281194 |   -3.090933    |    9.771111    | -2.230090 |   1    |
+| 2002-04-23 17:45:00 | 0.17 |  0  | 1.740 | 0.0609 |  1.6206382  |  1.8593618  | 3.927984 | 3.281194 |   -2.503038    |   10.359006    | -2.187984 |   1    |
+| 2002-05-02 13:40:00 | 0.22 |  0  | 2.370 | 0.0829 |  2.2075190  |  2.5324810  | 4.298207 | 3.281194 |   -2.132815    |   10.729229    | -1.928207 |   1    |
 
 ``` r
 
@@ -388,7 +388,7 @@ knitr::kable(head(results$summary$shift),
 
 |         tau         |      I95_lower      |      I95_upper      | id_iteration |
 |:-------------------:|:-------------------:|:-------------------:|:------------:|
-| 2008-09-15 07:37:12 | 2006-09-15 20:12:07 | 2010-02-21 03:44:38 |      1       |
+| 2008-09-29 22:44:24 | 2006-11-17 21:03:57 | 2009-10-01 22:51:14 |      1       |
 
 ``` r
 
@@ -575,14 +575,14 @@ station](https://baratin-tools.github.io/en/doc/case/ardeche-meyras/#prior-speci
 
 ``` r
 # Set prior information to each hydraulic control 
-a1=RBaM::parameter(name='a1',init=14.17,prior.dist='LogNormal',prior.par=c(2.66,1.54))
-k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,1))
+a1=RBaM::parameter(name='a1',init=14.17,prior.dist='Gaussian',prior.par=c(14.17,3.65))
+k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,0.5))
 c1=RBaM::parameter(name='c1',init=1.5,prior.dist='Gaussian',prior.par=c(1.5,0.025))
-a2=RBaM::parameter(name='a2',init=26.5165,prior.dist='LogNormal',prior.par=c(3.28,0.36))
-k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,1))
+a2=RBaM::parameter(name='a2',init=26.5,prior.dist='Gaussian',prior.par=c(26.5,8.4))
+k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,0.5))
 c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
-a3=RBaM::parameter(name='a3',init=31.82,prior.dist='LogNormal',prior.par=c(3.46,0.397))
-k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.4))
+a3=RBaM::parameter(name='a3',init=31.82,prior.dist='Gaussian',prior.par=c(31.8,10.9))
+k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2))
 c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 
 # Set a list of the same parameters for all controls
@@ -620,7 +620,7 @@ resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
  # Terminal nodes
  terminal = resultsBaRatin$tree$indx[which(resultsBaRatin$tree$nS==1)]
  terminal
-#> [1]  2  5  7  8  9 11 12
+#> [1]  2  5  6  7  9 10
 ```
 
 Plot the rating curves after using BaRatin method. It is possible to
@@ -665,11 +665,6 @@ for plotting the rating curve.
 
 <img src="man/readme/README-unnamed-chunk-12-6.png" width="100%" />
 
-    #> 
-    #> [[7]]
-
-<img src="man/readme/README-unnamed-chunk-12-7.png" width="100%" />
-
 ``` r
 
  # Plot shift times in stage record
@@ -677,7 +672,7 @@ for plotting the rating curve.
                              plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
-<img src="man/readme/README-unnamed-chunk-12-8.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-12-7.png" width="100%" />
 
 ``` r
 
@@ -686,7 +681,7 @@ for plotting the rating curve.
                              plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
-<img src="man/readme/README-unnamed-chunk-12-9.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-12-8.png" width="100%" />
 
 ``` r
 
@@ -695,7 +690,97 @@ for plotting the rating curve.
                                    plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
-<img src="man/readme/README-unnamed-chunk-12-10.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-12-9.png" width="100%" />
+
+Uncertainty associated to water level measurements during low flows
+could lead to a very high uncertainty when comparing with the rating
+curve, due to the low sensitivity of control during low flows. As a
+result, it was often necessary to be even more cautious when deciding to
+change the curve based on these measurements. That’s why, it is possible
+to account for the uncertainty in the gauged height, which increases the
+overall uncertainty when estimating the uncertainty of the residuals to
+compensate for the issue identified.
+
+``` r
+# Apply recursive model and segmentation with BaRatin multi-control method. Assumption, 0.05 m for uncertainty in th gauged height
+resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
+                                                    Q=ArdecheRiverMeyrasGaugings$Q,
+                                                    time=ArdecheRiverMeyrasGaugings$Date,
+                                                    uQ=ArdecheRiverMeyrasGaugings$uQ,
+                                                    uH=rep(0.05,length(ArdecheRiverMeyrasGaugings$H)),nSmax=3,
+                                                    nMin=2,
+                                                    funk=fitRC_BaRatinKAC,
+                                                    a.object=a.object,
+                                                    k.object=k.object,
+                                                    c.object=c.object,
+                                                    controlMatrix=controlMatrix
+                                                    )
+
+ # Visualize tree structure
+ plotTree(resultsBaRatinWithuH$tree)
+```
+
+<img src="man/readme/README-unnamed-chunk-13-1.png" width="100%" />
+
+``` r
+
+ # Terminal nodes
+ terminal = resultsBaRatinWithuH$tree$indx[which(resultsBaRatinWithuH$tree$nS==1)]
+ terminal
+#> [1] 2 3 5 6
+
+ plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                  autoscale=FALSE,
+                  temp.folder=file.path(tempdir(),'BaM'),
+                  CalibrationData='CalibrationData.txt',
+                  allnodes=FALSE,
+                  nodes=terminal)
+#> [[1]]
+```
+
+<img src="man/readme/README-unnamed-chunk-13-2.png" width="100%" />
+
+    #> 
+    #> [[2]]
+
+<img src="man/readme/README-unnamed-chunk-13-3.png" width="100%" />
+
+    #> 
+    #> [[3]]
+
+<img src="man/readme/README-unnamed-chunk-13-4.png" width="100%" />
+
+    #> 
+    #> [[4]]
+
+<img src="man/readme/README-unnamed-chunk-13-5.png" width="100%" />
+
+``` r
+
+ # Plot shift times in stage record
+ plot_H_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
+                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+```
+
+<img src="man/readme/README-unnamed-chunk-13-6.png" width="100%" />
+
+``` r
+
+ # Plot shift times in discharge observations
+ plot_Q_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
+                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+```
+
+<img src="man/readme/README-unnamed-chunk-13-7.png" width="100%" />
+
+``` r
+
+ # Plot residual
+ plotResidual_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
+                                   plot_summary=resultsBaRatinWithuH$plot)$final_plot
+```
+
+<img src="man/readme/README-unnamed-chunk-13-8.png" width="100%" />
 
 ## Références
 

@@ -343,14 +343,14 @@ See the details of the values entered here : [prior specification for the case o
 
 ```{r}
 # Set prior information to each hydraulic control 
-a1=RBaM::parameter(name='a1',init=14.17,prior.dist='LogNormal',prior.par=c(2.66,1.54))
-k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,1))
+a1=RBaM::parameter(name='a1',init=14.17,prior.dist='Gaussian',prior.par=c(14.17,3.65))
+k1=RBaM::parameter(name='k1',init=-0.6,prior.dist='Gaussian',prior.par=c(-0.6,0.5))
 c1=RBaM::parameter(name='c1',init=1.5,prior.dist='Gaussian',prior.par=c(1.5,0.025))
-a2=RBaM::parameter(name='a2',init=26.5165,prior.dist='LogNormal',prior.par=c(3.28,0.36))
-k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,1))
+a2=RBaM::parameter(name='a2',init=26.5,prior.dist='Gaussian',prior.par=c(26.5,8.4))
+k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,0.5))
 c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
-a3=RBaM::parameter(name='a3',init=31.82,prior.dist='LogNormal',prior.par=c(3.46,0.397))
-k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.4))
+a3=RBaM::parameter(name='a3',init=31.82,prior.dist='Gaussian',prior.par=c(31.8,10.9))
+k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2))
 c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 
 # Set a list of the same parameters for all controls
@@ -406,6 +406,51 @@ Plot the rating curves after using BaRatin method. It is possible to plot all no
  plotResidual_ModelAndSegmentation(summary=resultsBaRatin$summary,
                                    plot_summary=resultsBaRatin$plot)$final_plot
 ```
- 
+
+
+Uncertainty associated to water level measurements during low flows could lead to a very high uncertainty when comparing with the rating curve, due to the low sensitivity of control during low flows. As a result, it was often necessary to be even more cautious when deciding to change the curve based on these measurements. That's why, it is possible to account for the uncertainty in the gauged height, which increases the overall uncertainty when estimating the uncertainty of the residuals to compensate for the issue identified.
+
+```{r}
+# Apply recursive model and segmentation with BaRatin multi-control method. Assumption, 0.05 m for uncertainty in th gauged height
+resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
+                                                    Q=ArdecheRiverMeyrasGaugings$Q,
+                                                    time=ArdecheRiverMeyrasGaugings$Date,
+                                                    uQ=ArdecheRiverMeyrasGaugings$uQ,
+                                                    uH=rep(0.05,length(ArdecheRiverMeyrasGaugings$H)),nSmax=3,
+                                                    nMin=2,
+                                                    funk=fitRC_BaRatinKAC,
+                                                    a.object=a.object,
+                                                    k.object=k.object,
+                                                    c.object=c.object,
+                                                    controlMatrix=controlMatrix
+                                                    )
+
+ # Visualize tree structure
+ plotTree(resultsBaRatinWithuH$tree)
+
+ # Terminal nodes
+ terminal = resultsBaRatinWithuH$tree$indx[which(resultsBaRatinWithuH$tree$nS==1)]
+ terminal
+
+ plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                  autoscale=FALSE,
+                  temp.folder=file.path(tempdir(),'BaM'),
+                  CalibrationData='CalibrationData.txt',
+                  allnodes=FALSE,
+                  nodes=terminal)
+
+ # Plot shift times in stage record
+ plot_H_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
+                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+
+ # Plot shift times in discharge observations
+ plot_Q_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
+                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+
+ # Plot residual
+ plotResidual_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
+                                   plot_summary=resultsBaRatinWithuH$plot)$final_plot
+```
+
 ## Références
 
