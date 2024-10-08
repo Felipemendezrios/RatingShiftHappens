@@ -4,6 +4,7 @@
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #'
@@ -13,6 +14,7 @@
 #'   \itemize{
 #'        \item time: real value, time
 #'        \item H: real value, stage
+#'        \item uH: real value, uncertainty in stage observed (as a standard deviation)
 #'        \item Q_obs: real value, discharge observed
 #'        \item Q_sim: real value, discharge simulated
 #'        \item Q_res: real value, residual between discharge observed and simulated
@@ -51,7 +53,7 @@
 #' arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #' abline(h=0, col='red')
-fitRC_loess<-function(time,H,Q,uQ){
+fitRC_loess<-function(time,H,Q,uQ,uH){
   if(length(time)<=2){ # because second degree polynomial by default (loess function)
     warning('NA was returned because it not possible to perform LOESS regression with only two points.
     A second degree polynomial requires at least three points for prediction')
@@ -74,6 +76,7 @@ fitRC_loess<-function(time,H,Q,uQ){
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
                               H=data$H,
+                              uH=uH,
                               Q_obs=data$Q,
                               Q_sim=qsim,
                               Q_res=residuals,
@@ -90,6 +93,7 @@ fitRC_loess<-function(time,H,Q,uQ){
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #'
@@ -99,6 +103,7 @@ fitRC_loess<-function(time,H,Q,uQ){
 #'   \itemize{
 #'        \item time: real value, time
 #'        \item H: real value, stage
+#'        \item uH: real value, uncertainty in stage observed (as a standard deviation)
 #'        \item Q_obs: real value, discharge observed
 #'        \item Q_sim: real value, discharge simulated
 #'        \item Q_res: real value, residual between discharge observed and simulated
@@ -141,7 +146,7 @@ fitRC_loess<-function(time,H,Q,uQ){
 #' arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #' abline(h=0, col='red')
-fitRC_LinearRegression <- function(time,H,Q,uQ){
+fitRC_LinearRegression <- function(time,H,Q,uQ,uH){
   if(length(time)<2){ # because second degree polynomial by default (loess function)
     warning('NA was returned because it not possible to perform linear regression with fewer than two points.')
     return(list(NA,NA))
@@ -167,6 +172,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ){
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
                               H=data$H,
+                              uH=uH,
                               Q_obs=data$Q,
                               Q_sim=qsim,
                               Q_res=residuals,
@@ -186,6 +192,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ){
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #'
@@ -195,6 +202,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ){
 #'   \itemize{
 #'        \item time: real value, time
 #'        \item H: real value, stage
+#'        \item uH: real value, uncertainty in stage observed (as a standard deviation)
 #'        \item Q_obs: real value, discharge observed
 #'        \item Q_sim: real value, discharge simulated
 #'        \item Q_res: real value, residual between discharge observed and simulated
@@ -239,7 +247,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ){
 #' arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #' abline(h=0, col='red')
-fitRC_exponential <- function(time,H,Q,uQ){
+fitRC_exponential <- function(time,H,Q,uQ,uH){
   if(length(time)<=2){
     warning('NA was returned because it not possible to perform exponentiel regression with only two points.
     A second degree polynomial requires at least three points for prediction')
@@ -281,6 +289,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
                               H=data$H,
+                              uH=uH,
                               Q_obs=data$Q,
                               Q_sim=qsim,
                               Q_res=residuals,
@@ -299,6 +308,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param HmaxGrid real value, maximum stage of all data in the historical record
@@ -310,6 +320,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #'   \itemize{
 #'        \item time: real value, time
 #'        \item H: real value, stage
+#'        \item uH: real value, uncertainty in stage observed (as a standard deviation)
 #'        \item Q_obs: real value, discharge observed
 #'        \item Q_sim: real value, discharge simulated
 #'        \item Q_res: real value, residual between discharge observed and simulated
@@ -330,7 +341,7 @@ fitRC_exponential <- function(time,H,Q,uQ){
 #' @importFrom stats median
 #' @importFrom utils read.table
 #' @export
-fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
+fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,uH,HmaxGrid,
                                    temp.folder.RC=file.path(tempdir(),'BaM','RC')){
 
   data=data.frame(time=time,H=H,Q=Q,uQ=uQ)
@@ -452,6 +463,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
                               H=data$H,
+                              uH=uH,
                               Q_obs=data$Q,
                               Q_sim=qsim,
                               Q_res=residuals,
@@ -492,6 +504,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param HmaxGrid real value, maximum stage of all data in the historical record
@@ -506,6 +519,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
 #'   \itemize{
 #'        \item time: real value, time
 #'        \item H: real value, stage
+#'        \item uH: real value, uncertainty in stage observed (as a standard deviation)
 #'        \item Q_obs: real value, discharge observed
 #'        \item Q_sim: real value, discharge simulated
 #'        \item Q_res: real value, residual between discharge observed and simulated
@@ -523,7 +537,7 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,HmaxGrid,
 #'        }
 #' }
 #' @export
-fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
+fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
                                             HmaxGrid,
                                             a.object,
                                             b.object,
@@ -639,6 +653,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
                               H=data$H,
+                              uH=uH,
                               Q_obs=data$Q,
                               Q_sim=qsim,
                               Q_res=residuals,
@@ -679,8 +694,10 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param HmaxGrid real value, maximum stage of all data in the historical record
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
 #' @param a.object list of object, created by `prior_infor_param_builder` for describing prior information about the geometry properties for each hydraulic control
@@ -694,6 +711,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
 #'   \itemize{
 #'        \item time: real value, time
 #'        \item H: real value, stage
+#'        \item uH: real value, uncertainty in stage observed (as a standard deviation)
 #'        \item Q_obs: real value, discharge observed
 #'        \item Q_sim: real value, discharge simulated
 #'        \item Q_res: real value, residual between discharge observed and simulated
@@ -711,7 +729,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,
 #'        }
 #' }
 #' @export
-fitRC_BaRatinBAC<- function(time,H,Q,uQ,
+fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
                             HmaxGrid,
                             a.object,
                             b.object,
@@ -803,18 +821,31 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,
   summary.MCMC   <- utils::read.table(file=file.path(temp.folder.RC,"Results_Summary.txt"),header=TRUE)
   summary.MCMC.MAP <- summary.MCMC[nrow(summary.MCMC),]
 
-  totalU=RBaM::prediction(X=data['H'], # stage values
-                          spagFiles='QRC_TotalU.spag', # file where predictions are saved
-                          data.dir=temp.folder.RC, # a copy of data files will be saved here
-                          doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
-                          doStructural=TRUE) # propagate structural uncertainty ?
+  if(all(uH==0)){
+    totalU=RBaM::prediction(X=data['H'], # stage values
+                            spagFiles='QRC_TotalU.spag', # file where predictions are saved
+                            data.dir=temp.folder.RC, # a copy of data files will be saved here
+                            doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                            doStructural=TRUE) # propagate structural uncertainty ?
+
+  }else{ # Consider uncertainty on stage for vegetation influences (David Besson, CVL )
+
+    set.seed(08071998)
+    # Create 100 random values for ht, with the uncertainty given by the user
+    htrep=matrix(rnorm(n=length(uH)*100,mean=H,sd=uH),nrow=length(uH),ncol=100)
+
+    totalU=RBaM::prediction(X=list(htrep), # spaghetti of stage values
+                            spagFiles='QRC_TotalU.spag', # file where predictions are saved
+                            data.dir=temp.folder.RC, # a copy of data files will be saved here
+                            doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                            doStructural=TRUE) # propagate structural uncertainty ?
+  }
 
   RBaM:: BaM(mod=M,
              data=D,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              pred=totalU, # list of predictions
-             # pred=list(totalU,paramU,maxpost), # list of predictions
              remnant = remnant_prior,
              doCalib=FALSE,
              doPred=TRUE)
@@ -834,13 +865,13 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
                               H=data$H,
+                              uH=uH,
                               Q_obs=data$Q,
                               Q_sim=qsim,
                               Q_res=residuals,
                               uQ_obs=uQ,
                               uQ_sim=residual_sd
   )
-
 
   for(i in 1:ncontrols){
     local.parameters.temp=data.frame(summary.MCMC.MAP[,which(a.object[[i]]$name==colnames(summary.MCMC.MAP))],
@@ -887,6 +918,7 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,
 #'
 #' @param time real vector, time
 #' @param H real vector, stage
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
@@ -901,6 +933,7 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,
 #'   \itemize{
 #'        \item time: real value, time
 #'        \item H: real value, stage
+#'        \item uH: real value, uncertainty in stage observed (as a standard deviation)
 #'        \item Q_obs: real value, discharge observed
 #'        \item Q_sim: real value, discharge simulated
 #'        \item Q_res: real value, residual between discharge observed and simulated
@@ -918,7 +951,7 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,
 #'        }
 #' }
 #' @export
-fitRC_BaRatinKAC<- function(time,H,Q,uQ,
+fitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
                             a.object,
                             k.object,
                             c.object,
@@ -1005,18 +1038,31 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
   summary.MCMC   <- utils::read.table(file=file.path(temp.folder.RC,"Results_Summary.txt"),header=TRUE)
   summary.MCMC.MAP <- summary.MCMC[nrow(summary.MCMC),]
 
-  totalU=RBaM::prediction(X=data['H'], # stage values
-                          spagFiles='QRC_TotalU.spag', # file where predictions are saved
-                          data.dir=temp.folder.RC, # a copy of data files will be saved here
-                          doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
-                          doStructural=TRUE) # propagate structural uncertainty ?
+  if(all(uH==0)){
+    totalU=RBaM::prediction(X=data['H'], # stage values
+                            spagFiles='QRC_TotalU.spag', # file where predictions are saved
+                            data.dir=temp.folder.RC, # a copy of data files will be saved here
+                            doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                            doStructural=TRUE) # propagate structural uncertainty ?
+
+  }else{ # Consider uncertainty on stage for vegetation influences (David Besson, CVL )
+
+    set.seed(08071998)
+    # Create 100 random values for ht, with the uncertainty given by the user
+    htrep=matrix(rnorm(n=length(uH)*100,mean=H,sd=uH),nrow=length(uH),ncol=100)
+
+    totalU=RBaM::prediction(X=list(htrep), # spaghetti of stage values
+                            spagFiles='QRC_TotalU.spag', # file where predictions are saved
+                            data.dir=temp.folder.RC, # a copy of data files will be saved here
+                            doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                            doStructural=TRUE) # propagate structural uncertainty ?
+  }
 
   RBaM:: BaM(mod=M,
              data=D,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              pred=totalU, # list of predictions
-             # pred=list(totalU,paramU,maxpost), # list of predictions
              remnant = remnant_prior,
              doCalib=FALSE,
              doPred=TRUE)
@@ -1036,6 +1082,7 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,
   # residual data frame
   ResultsResiduals=data.frame(time=data$time,
                               H=data$H,
+                              uH=uH,
                               Q_obs=data$Q,
                               Q_sim=qsim,
                               Q_res=residuals,

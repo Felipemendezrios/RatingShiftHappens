@@ -4,7 +4,7 @@
 \alias{fitRC_loess}
 \title{Fit rating curve LOESS model}
 \usage{
-fitRC_loess(time, H, Q, uQ)
+fitRC_loess(time, H, Q, uQ, uH)
 }
 \arguments{
 \item{time}{real vector, time}
@@ -14,6 +14,8 @@ fitRC_loess(time, H, Q, uQ)
 \item{Q}{real vector, discharge}
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
+
+\item{uH}{real vector, uncertainty in stage record in meters (as a standard deviation)}
 }
 \value{
 list with the following components :
@@ -22,6 +24,7 @@ list with the following components :
 \itemize{
 \item time: real value, time
 \item H: real value, stage
+\item uH: real value, uncertainty in stage observed (as a standard deviation)
 \item Q_obs: real value, discharge observed
 \item Q_sim: real value, discharge simulated
 \item Q_res: real value, residual between discharge observed and simulated

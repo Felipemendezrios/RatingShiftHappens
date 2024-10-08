@@ -6,6 +6,7 @@
 #' @param Q real vector, discharge
 #' @param time vector, time in POSIXct, string or numeric format
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
+#' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param nSmax integer, maximum number of segments to assess
 #' @param nMin integer, minimum number of observations by segment
 #' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles.
@@ -147,7 +148,7 @@
 #' k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,0.5))
 #' c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 #' a3=RBaM::parameter(name='a3',init=31.82,prior.dist='Gaussian',prior.par=c(31.8,10.9))
-#' k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.4))
+#' k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2))
 #' c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 #'
 #' a.object=list(a1,a2,a3)
@@ -200,6 +201,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            Q,
                                            time=1:length(H),
                                            uQ=0*Q,
+                                           uH=0*H,
                                            nSmax=2,
                                            nMin= 1,
                                            nCycles=100,
@@ -220,25 +222,26 @@ recursive.ModelAndSegmentation <- function(H,
   if(any(Q<0)){
     stop('Dishcarge cannot be negative, verify information')
   }
-  if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ))){
-    stop('Missing values not allowed in time, stage, discharge or uncertainty')
+  if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ) | any(is.na(uH)))){
+    stop('Missing values not allowed in time, stage, discharge or uncertainties')
   }
-  check <- check_vector_lengths(time,H,Q,uQ)
+  check <- check_vector_lengths(time,H,Q,uQ,uH)
   if(is.null(check)){
-    stop('time, hauteur, discharge or uncertainty do not have the same length')
+    stop('time, hauteur, discharge or uncertainties do not have the same length')
   }
 
   DF.order <- data.frame(H=H,
                          time=time,
                          Q=Q,
-                         uQ=uQ)
+                         uQ=uQ,
+                         uH=uH)
 
   DF.order <- DF.order[order(DF.order$time),]
 
 
   # Save results from first prediction using the grid for plotting rating curve
   if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
-    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,
+    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,
                               temp.folder.RC=file.path(temp.folder,'RC'),...) # initialize first residual data to be segmented
 
     dir.destination=file.path(temp.folder,'it_1/')
@@ -252,7 +255,7 @@ recursive.ModelAndSegmentation <- function(H,
     invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
                                    dir.destination=dir.destination))
   }else{
-    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,...) # initialize first residual data to be segmented
+    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,...) # initialize first residual data to be segmented
 
   }
   residualsData <- list(residualsData.all[[1]])
@@ -302,11 +305,14 @@ recursive.ModelAndSegmentation <- function(H,
           NewH=residualsData[[newParents[m]]]$H[match(newTIME[[m]],residualsData[[newParents[m]]]$time)] # find information according to time segmentation
           NewQ=residualsData[[newParents[m]]]$Q_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
           NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
+          NewuH=residualsData[[newParents[m]]]$uH[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
 
           # Save results from first prediction using the grid for plotting rating curve
           if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
+
+
             # Update rating curve estimation
-            residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,
+            residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,uH=NewuH,
                                            temp.folder.RC=file.path(temp.folder,'RC'),...)
 
             dir.destination=file.path(temp.folder,paste0('it_',p,'/'))
@@ -322,7 +328,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            dir.destination=dir.destination))
           }else{
             # Update rating curve estimation
-            residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,...)
+            residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,uH=NewuH,...)
           }
           residualsData[[p]] <- residualsData.all[[p]][[1]]
           param.equation.p[[p]] <- residualsData.all[[p]][[2]]
@@ -332,6 +338,7 @@ recursive.ModelAndSegmentation <- function(H,
             new_u_residuals[[m]]=NA # Save corresponding uncertainty
             residualsData[[p]] =data.frame(time=newTIME[[m]],     # Save data of terminal
                                            H=NewH,
+                                           uH=NewuQ,
                                            Q_obs=NewQ,
                                            Q_sim=NA,
                                            Q_res=NA,
@@ -366,6 +373,7 @@ recursive.ModelAndSegmentation <- function(H,
     data.stable.p=residualsData[[terminal[[i]]]] # Save data from stable period
     node = data.frame(time=data.stable.p$time,
                       H=data.stable.p$H,
+                      uH=data.stable.p$uH,
                       Q=data.stable.p$Q_obs,
                       uQ=data.stable.p$uQ_obs,
                       Q_I95_lower=data.stable.p$Q_obs+stats::qnorm(0.025)*data.stable.p$uQ_obs,

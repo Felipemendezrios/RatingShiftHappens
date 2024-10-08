@@ -9,6 +9,7 @@ recursive.ModelAndSegmentation(
   Q,
   time = 1:length(H),
   uQ = 0 * Q,
+  uH = 0 * H,
   nSmax = 2,
   nMin = 1,
   nCycles = 100,
@@ -27,6 +28,8 @@ recursive.ModelAndSegmentation(
 \item{time}{vector, time in POSIXct, string or numeric format}
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
+
+\item{uH}{real vector, uncertainty in stage record in meters (as a standard deviation)}
 
 \item{nSmax}{integer, maximum number of segments to assess}
 
@@ -181,7 +184,7 @@ a2=RBaM::parameter(name='a2',init=26.5,prior.dist='Gaussian',prior.par=c(26.5,8.
 k2=RBaM::parameter(name='k2',init=0,prior.dist='Gaussian',prior.par=c(0,0.5))
 c2=RBaM::parameter(name='c2',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 a3=RBaM::parameter(name='a3',init=31.82,prior.dist='Gaussian',prior.par=c(31.8,10.9))
-k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.4))
+k3=RBaM::parameter(name='k3',init=1.2,prior.dist='Gaussian',prior.par=c(1.2,0.2))
 c3=RBaM::parameter(name='c3',init=1.67,prior.dist='Gaussian',prior.par=c(1.67,0.025))
 
 a.object=list(a1,a2,a3)

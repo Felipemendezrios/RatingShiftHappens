@@ -9,6 +9,7 @@ fitRC_SimplifiedBaRatin(
   H,
   Q,
   uQ,
+  uH,
   HmaxGrid,
   temp.folder.RC = file.path(tempdir(), "BaM", "RC")
 )
@@ -22,6 +23,8 @@ fitRC_SimplifiedBaRatin(
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
 
+\item{uH}{real vector, uncertainty in stage record in meters (as a standard deviation)}
+
 \item{HmaxGrid}{real value, maximum stage of all data in the historical record}
 
 \item{temp.folder.RC}{directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve}
@@ -33,6 +36,7 @@ List with the following components :
 \itemize{
 \item time: real value, time
 \item H: real value, stage
+\item uH: real value, uncertainty in stage observed (as a standard deviation)
 \item Q_obs: real value, discharge observed
 \item Q_sim: real value, discharge simulated
 \item Q_res: real value, residual between discharge observed and simulated

@@ -9,6 +9,7 @@ fitRC_SimplifiedBaRatinWithPrior(
   H,
   Q,
   uQ,
+  uH,
   HmaxGrid,
   a.object,
   b.object,
@@ -24,6 +25,8 @@ fitRC_SimplifiedBaRatinWithPrior(
 \item{Q}{real vector, discharge}
 
 \item{uQ}{real vector, uncertainty in discharge (as a standard deviation)}
+
+\item{uH}{real vector, uncertainty in stage record in meters (as a standard deviation)}
 
 \item{HmaxGrid}{real value, maximum stage of all data in the historical record}
 
@@ -42,6 +45,7 @@ List with the following components :
 \itemize{
 \item time: real value, time
 \item H: real value, stage
+\item uH: real value, uncertainty in stage observed (as a standard deviation)
 \item Q_obs: real value, discharge observed
 \item Q_sim: real value, discharge simulated
 \item Q_res: real value, residual between discharge observed and simulated
