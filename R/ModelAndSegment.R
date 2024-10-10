@@ -128,7 +128,7 @@
 #'                                   plot_summary=results$plot)
 #'
 #'
-#' # example with Baratin method (k-a-c)
+#' # example with BaRatin method (k-a-c)
 #' fit=fitRC_BaRatinKAC
 #'
 #' # Hydraulic matrix control is also required.

@@ -961,15 +961,18 @@ plotResidual_ModelAndSegmentation <- function(summary,
                                               plot_summary,
                                               ...){
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
-                                           If not please use plotSegmentation() function')
+                                                         If not please use plotSegmentation() function')
 
   if(is.null(summary$shift))stop('Any shift time detected')
+
+  # Estimate residual uncertainty :
+  u_res=sqrt(summary$data$uQ_sim^2+summary$data$uQ^2)
 
   # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$Qres,
-                             I95_lower=summary$data$Q_I95_lower-summary$data$Qsim,
-                             I95_upper=summary$data$Q_I95_upper-summary$data$Qsim,
+                             I95_lower=summary$data$Qres+stats::qnorm(0.025)*u_res,
+                             I95_upper=summary$data$Qres+stats::qnorm(0.975)*u_res,
                              period=summary$data$period)
 
   summary_plot = list(data=data_adapted,
