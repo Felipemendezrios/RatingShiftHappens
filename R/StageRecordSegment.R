@@ -23,7 +23,7 @@
 #' @examples
 #'
 #' recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
-#'                                 uH=0.5,
+#'                                 uH=0.05,
 #'                                 time=ArdecheRiverMeyrasStage$Date,
 #'                                 chi=0.5,
 #'                                 tgood=30)
@@ -156,14 +156,6 @@ Extraction_recession <- function(H,
                      uHrec=uHrec,
                      indx=indx)
 
-  ggplot(data_df,aes(x=date,y=hrec,col=factor(indx)))+
-    geom_point()
-
-
-  atej=data_df[which(data_df$indx==31),]
-
-  ggplot(atej,aes(x=date,y=hrec,col=factor(indx)))+
-    geom_point()
   # Summary table :
   summary_temp <- data.frame(data_df %>%
                                group_by(indx) %>%
@@ -208,7 +200,6 @@ Extraction_recession <- function(H,
     data_rec_burned=data_rec_unburned
   }
 
-  # data_rec <-
   data_rec = data.frame(data_rec_burned %>%
                            group_by(indx) %>%
                            mutate(
@@ -295,9 +286,9 @@ Extraction_recession <- function(H,
 #'
 #' @examples
 #' recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
-#'                                           uH=0.5,
+#'                                           uH=0.05,
 #'                                           time=ArdecheRiverMeyrasStage$Date,
-#'                                           chi=3,
+#'                                           chi=0.5,
 #'                                           tgood=30)
 #'
 #' recessions = recessions_extracted$Rec_extracted
@@ -310,6 +301,9 @@ Extraction_recession <- function(H,
 #'                 Yu=recessions['uHrec'],
 #'                 VAR.indx=recessions['indx'],
 #'                 data.dir=file.path(tempdir(),'BaM','Recession'))
+#'
+#' # Choose fit recession model
+#' fit=fitRecession_M3
 #'
 #' # Give prior knowledge about recession-specific parameters and keep prior on stable parameters
 #' alpha1.object = RBaM::parameter_VAR(name='alpha1',
@@ -342,13 +336,16 @@ Extraction_recession <- function(H,
 #'                                                     alpha2.object=alpha2.object,
 #'                                                     beta.object=beta.object,
 #'                                                     Dataset.object=D,
-#'                                                     nCyclesrec=100,
-#'                                                     burnrec=0.5,
-#'                                                     nSlim=10)
+#'                                                     nCyclesrec=1,
+#'                                                     burnrec=0.1,
+#'                                                     nSlimrec=5,
+#'                                                     funk=fit)
 #'
 #' # Plot recession segmentation
 #' plot_modelAndSegm_recession(model_rec=model_rec,
-#'                             spec_recession=c(2,16,28))
+#'                             spec_recession=c(2,16,28),
+#'                             fit=fitRecession_M3,
+#'                             equation_rec='Recession_M3_Equation')
 #'
 #' plotSegmentation(summary = model_rec$summary_results$summary,
 #'                  plot_summary = model_rec$summary_results$plot )

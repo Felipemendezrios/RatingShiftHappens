@@ -149,9 +149,10 @@ plotSegmentation <- function(summary,
       is.numeric(shift_data_reported)!=is.numeric(summary$data$time))stop('shift_data_reported should be in the same format as the time stored in summary')
   }
 
-  if(nrow(summary$shift)==0){
+  if(is.null(summary$shift)){
 
    data=summary$data
+   getPalette_obs =  scales::viridis_pal(option='D')
 
    obs_shift_plot=ggplot(data=data)+
      geom_point(aes(x=time,
@@ -1419,20 +1420,23 @@ plot_rec_extracted <- function(Rec_extracted,
 #' @param all_recession logical, `TRUE` = plot all recessions with observed and simulated recession data
 #' @param temp.folder directory, temporary directory to write computations, be sure to use the same from `ModelAndSegmentation.recession.regression` function
 #' @param CalibrationData character, name of the calibration data used in the `ModelAndSegmentation.recession.regression` function. It must to match or an error message will be appear
-#' @param fit function, fit used during recession modelling
-#' @param ... optional arguments, as vector, to consider shift declared and stored by the hydrometric unit (see `?plotSegmentation`)
+#' @param fit character, fit used during recession modelling
+#' @param equation_rec character, recession equation corresponding to fit model specified in `fit`
+#' @param ... optional arguments, as vector, to consider shift declared and stored by the hydrometric unit (see `?plotSegmentation` and `details`)
 #'
 #' @return list of plots
 #' @details
 #' If all_recession = `TRUE`, spec_recession will not be plotted, because they have already been plotted
-#'
+#' Please be sure about fit model used during recession modelling. It must coincide. See `GetCatalog` to get all model available.
+#' For instance, fit is fitRecession_M3, equation_rec must be Recession_M3_Equation or a error message will appear.
 #' @export
 plot_modelAndSegm_recession <- function(model_rec,
                                         spec_recession=NULL,
                                         all_recession=FALSE,
                                         temp.folder=file.path(tempdir(),'BaM','Recession'),
                                         CalibrationData='CalibrationData.txt',
-                                        fit=fitRecession_M3,
+                                        fit,
+                                        equation_rec,
                                         ...){
 
   if(any(CalibrationData==list.files(temp.folder))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder. Please, check the name of calibration data used in the ModelAndSegmentation.recession.regression function')
@@ -1446,6 +1450,21 @@ plot_modelAndSegm_recession <- function(model_rec,
   }
   if(any(spec_recession>max(CalData$indx)))stop('spec_recession must be between the number of curves specified in the calibration data')
   if(is.null(spec_recession) & all_recession == FALSE)stop('A recession must be selected in spec_recession or plot all recesssion')
+
+  if(!is.character(equation_rec))stop('equation_rec must be a character')
+  # Check fit model and assign an equation model
+  if(identical(fit,fitRecession_M3)){
+    if(equation_rec!='Recession_M3_Equation')stop('equation_rec does not match the fit model given as input')
+    estimation_equation_rec=Estimation_Recession_M3
+  }else if(identical(fit,fitRecession_BR1)){
+    if(equation_rec!='Recession_BR1_Equation')stop('equation_rec does not match the fit model given as input')
+    estimation_equation_rec=Estimation_Recession_BR1
+  }else if(identical(fit,fitRecession_BR2)){
+    if(equation_rec!='Recession_BR2_Equation')stop('equation_rec does not match the fit model given as input')
+    estimation_equation_rec=Estimation_Recession_BR2
+  }else{
+    stop('fit model are not supported. Please see `?GetCatalog()`')
+  }
 
   grid_min_max_list <- lapply(model_rec[[2]],function(df){
     data.frame(
@@ -1488,111 +1507,15 @@ plot_modelAndSegm_recession <- function(model_rec,
                                                                            prior.dist = "Uniform",
                                                                            prior.par = c(0,1000)))))
 
-  allData=c()
-  j=1
-  # Setting for recession model M3:
-  if(identical(fit,fitRecession_M3)){
-    for( i in Ncurves){
-      alpha1_nonVAR=RBaM::parameter(name=M$par[[1]]$name,
-                                    init=M$par[[1]]$init[i],
-                                    prior.dist=M$par[[1]]$prior[[i]]$dist,
-                                    prior.par=M$par[[1]]$prior[[i]]$par)
 
-      alpha2_nonVAR=RBaM::parameter(name=M$par[[3]]$name,
-                                    init=M$par[[3]]$init[i],
-                                    prior.dist=M$par[[3]]$prior[[i]]$dist,
-                                    prior.par=M$par[[3]]$prior[[i]]$par)
-
-      beta_nonVAR=RBaM::parameter(name=M$par[[5]]$name,
-                                  init=M$par[[5]]$init[i],
-                                  prior.dist=M$par[[5]]$prior[[i]]$dist,
-                                  prior.par=M$par[[5]]$prior[[i]]$par)
-
-      lambda1=RBaM::parameter(name=M$par[[2]]$name,
-                              init=M$par[[2]]$init,
-                              prior.dist=M$par[[2]]$prior$dist,
-                              prior.par=M$par[[2]]$prior$par)
-
-      lambda2=RBaM::parameter(name=M$par[[4]]$name,
-                              init=M$par[[4]]$init,
-                              prior.dist=M$par[[4]]$prior$dist,
-                              prior.par=M$par[[4]]$prior$par)
-
-      M_nonVAR=RBaM::model(ID='Recession_h',
-                           nX=1,
-                           nY=1,
-                           par=list(alpha1_nonVAR,
-                                    lambda1,
-                                    alpha2_nonVAR,
-                                    lambda2,
-                                    beta_nonVAR))
-
-      # Columns names to use during prediction
-      columns_indx=c(paste0('alpha1_',i),
-                     'lambda1',
-                     paste0('alpha2_',i),
-                     'lambda2',
-                     paste0('beta_',i),
-                     'Y1_gamma1',
-                     'Y1_gamma2',
-                     'LogPost')
-
-      parSamples=MCMC[columns_indx]
-
-      # Define a 'prediction' object for total predictive uncertainty
-      totalU=RBaM::prediction(X=t_grid, # stage values
-                              spagFiles='H_rec_TotalU.spag', # file where predictions are saved
-                              data.dir=temp.folder, # a copy of data files will be saved here
-                              doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
-                              doStructural=TRUE, # propagate structural uncertainty ?
-                              parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
-      )
-
-      # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
-      paramU=RBaM::prediction(X=t_grid,
-                              spagFiles='H_rec_ParamU.spag',
-                              data.dir=temp.folder,
-                              doParametric=TRUE,
-                              doStructural=FALSE,
-                              parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
-      )
-
-      # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
-      maxpost=RBaM::prediction(X=t_grid,
-                               spagFiles='H_rec_Maxpost.spag',
-                               data.dir=temp.folder,
-                               doParametric=FALSE,
-                               doStructural=FALSE,
-                               parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
-      )
-
-      RBaM:: BaM(mod=M_nonVAR,
-                 data=D,
-                 workspace = temp.folder,
-                 dir.exe = file.path(find.package("RBaM"), "bin"),
-                 pred=list(totalU,paramU,maxpost), # list of predictions
-                 # pred=priorU, # list of predictions
-                 remnant = remnant_prior,
-                 doCalib=FALSE,
-                 doPred=TRUE)
-
-      # Get total uncertainty from the rating curve
-      TotalUenv=read.table(file.path(temp.folder,'H_rec_TotalU.env'),header = TRUE)
-
-      # Add parametric uncertainty
-      ParametricUenv=read.table(file.path(temp.folder,'H_rec_ParamU.env'),header = TRUE)
-
-      # Add maxpost rating curve
-      MAPREC=read.table(file.path(temp.folder,'H_rec_Maxpost.spag'))
-
-      allData[[j]]=list(CalData=CalData,
-                        TotalUenv=TotalUenv,
-                        ParametricUenv=ParametricUenv,
-                        MAPREC=MAPREC,
-                        HgridPlot=t_grid)
-      j=j+1
-    }
-  }
+  # Setting for recession model :
+  allData=estimation_equation_rec(CalData=CalData,
+                                  Ncurves=Ncurves,
+                                  M=M,
+                                  MCMC=MCMC,
+                                  t_grid=t_grid,
+                                  temp.folder=temp.folder,
+                                  remnant_prior=remnant_prior)
 
   # Plots
   PlotRECPred=list()

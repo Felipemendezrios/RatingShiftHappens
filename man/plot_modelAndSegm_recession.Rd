@@ -10,7 +10,8 @@ plot_modelAndSegm_recession(
   all_recession = FALSE,
   temp.folder = file.path(tempdir(), "BaM", "Recession"),
   CalibrationData = "CalibrationData.txt",
-  fit = fitRecession_M3,
+  fit,
+  equation_rec,
   ...
 )
 }
@@ -25,9 +26,11 @@ plot_modelAndSegm_recession(
 
 \item{CalibrationData}{character, name of the calibration data used in the \code{ModelAndSegmentation.recession.regression} function. It must to match or an error message will be appear}
 
-\item{fit}{function, fit used during recession modelling}
+\item{fit}{character, fit used during recession modelling}
 
-\item{...}{optional arguments, as vector, to consider shift declared and stored by the hydrometric unit (see \code{?plotSegmentation})}
+\item{equation_rec}{character, recession equation corresponding to fit model specified in \code{fit}}
+
+\item{...}{optional arguments, as vector, to consider shift declared and stored by the hydrometric unit (see \code{?plotSegmentation} and \code{details})}
 }
 \value{
 list of plots
@@ -37,4 +40,6 @@ Plot recession modeled and segmentation
 }
 \details{
 If all_recession = \code{TRUE}, spec_recession will not be plotted, because they have already been plotted
+Please be sure about fit model used during recession modelling. It must coincide. See \code{GetCatalog} to get all model available.
+For instance, fit is fitRecession_M3, equation_rec must be Recession_M3_Equation or a error message will appear.
 }

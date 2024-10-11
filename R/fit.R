@@ -1132,7 +1132,7 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
 #' Recession model with two exponential and asymptotic
 #'
 #' Recession modelling following a the exponential function specified as M3 according to (Darienzo, 2022):
-#' \deqn{h(t) = \alpha_1(k) \cdot \exp(-\lambda_1 \cdot t) + \alpha_2(k) \cdot \exp(-\lambda_2 \cdot t) + \beta}
+#' \deqn{h(t) = \alpha_1(k) \cdot \exp(-\lambda_1 \cdot t) + \alpha_2(k) \cdot \exp(-\lambda_2 \cdot t) + \beta(k)}
 #' This model includes three recession-specific parameters: \eqn{\alpha_1}, \eqn{\alpha_2}, and \eqn{\beta}
 #' and two stable parameters: \eqn{\lambda_1} and \eqn{\lambda_2}.
 #'
@@ -1441,9 +1441,9 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
   parameters= data.frame(
     local.parameters['alpha1'],
     local.parameters['u_alpha1'],
-    lamda1=summary.MCMC[indx_MAP,
+    lambda1=summary.MCMC[indx_MAP,
                         which('lambda1'==colnames(summary.MCMC))],
-    u_lamda1=summary.MCMC[indx_st_dev,
+    u_lambda1=summary.MCMC[indx_st_dev,
                           which('lambda1'==colnames(summary.MCMC))],
     local.parameters['alpha2'],
     local.parameters['u_alpha2'],
@@ -1451,6 +1451,655 @@ fitRecession_M3 <- function(time_rec,hrec,uHrec,indx,
                         which('lambda2'==colnames(summary.MCMC))],
     u_lambda2=summary.MCMC[indx_st_dev,
                           which('lambda2'==colnames(summary.MCMC))],
+    local.parameters['beta'],
+    local.parameters['u_beta'],
+    gamma1=summary.MCMC[indx_MAP,]$Y1_gamma1,
+    u_gamma1=summary.MCMC[indx_st_dev,]$Y1_gamma1,
+    gamma2=summary.MCMC[indx_MAP,]$Y1_gamma2,
+    u_gamma2=summary.MCMC[indx_st_dev,]$Y1_gamma2)
+
+  # ggplot(ResultsResiduals[[39]],aes(x=time_rec))+
+  #   geom_point(aes(y=hrec),col='black')+
+  #   geom_point(aes(y=H_rec_sim),col='red')
+
+  # Save results from first prediction
+  copy_files_to_folder(dir.source=temp.folder.Recession,
+                       dir.destination=file.path(temp.folder.Recession, 'Residual'))
+
+  # Second prediction : Hgrid :
+  invisible(remove_files(dir.source = temp.folder.Recession ,
+                         files_to_keep=c('Results_Cooking.txt',
+                                         'Results_Residuals.txt',
+                                         'Results_Summary.txt',
+                                         'CalibrationData.txt',
+                                         'ModelObject.RData',
+                                         'DataObject.RData',
+                                         'Residual')))
+
+  return(list(ResultsResiduals=ResultsResiduals,
+              parameters=parameters))
+}
+
+#' Exponential recession model with five parameters
+#'
+#' Equation of recession model below:
+#' \deqn{h(t) =  \alpha_1 \cdot \exp(-\lambda_1 \cdot t -\lambda_2 \cdot t^2 - \lambda_3 \cdot t^(0.5)) + \beta(k)}
+#' This model includes one recession-specific parameters: \eqn{\beta(k)}
+#' and three stable parameters: \eqn{\alpha_1}, \eqn{\lambda_1}, \eqn{\lambda_2}, \eqn{\lambda_3}.
+#'
+#' Default values for this recession are shown in ‘Details’
+#'
+#' @param time_rec real vector, recession duration relative to the first data detected during the recession
+#' @param hrec real vector, stage value of the recessions
+#' @param uHrec real vector, uncertainty of stage value of the recessions
+#' @param indx  integer, factor used to gather the data of a same recession
+#' @param beta.object object, prior knowledge on the parameter representing the asymptotic stage
+#' @param alpha1.object object, prior knowledge on the parameter representing the initial stage of the first exponential function
+#' @param lambda1.object object, prior knowledge on the first parameter of the exponential function
+#' @param lambda2.object object, prior knowledge on the second parameter of the exponential function
+#' @param lambda3.object object, prior knowledge on the third parameter of the exponential function
+#' @param Dataset.object object, dataset given by user
+#' @param nCyclesrec  integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burnrec real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlimrec integer, MCMC slim step
+#' @param temp.folder.Recession directory, temporary directory to write computations
+#'
+#' @details
+#' By default, prior values are the same for all recession for the parameter alpha1, alpha2 and beta
+#'
+#' Default values are:
+#' \describe{
+#'   \item{Starting in 200, we assume that \eqn{\alpha_1 \sim U(0, 1000).}}
+#'   \item{Starting in \eqn{\exp(-\log(0.5) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_1 \sim \text{LogNormal}(\mu = -\log(0.5) + \log(\log(2)), \sigma = 1).}}
+#'   \item{Starting in \eqn{\exp(-\log(50) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_2 \sim \text{LogNormal}(\mu = -\log(80) + \log(\log(2)), \sigma = 0.5).}}
+#'   \item{Starting in \eqn{\exp(-\log(50) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_3 \sim \text{LogNormal}(\mu = -\log(80) + \log(\log(2)), \sigma = 0.5).}}
+#'   \item{Starting in 1000, we assume that \eqn{\beta \sim U(-10000, 10000).}}
+#' }
+#'
+#' @return List with the following components :
+#' \enumerate{
+#'   \item ResultsResiduals : list, results after fitting the recession model to each recession observed
+#'   \itemize{
+#'        \item time: real value, time
+#'        \item H: real value, stage observed
+#'        \item H_rec_sim: real value, stage simulated
+#'        \item H_res: real value, residual between stage observed and simulated
+#'        \item uH_rec: real value, uncertainty in stage observed (as a standard deviation)
+#'        \item uH_sim: real value, uncertainty in stage simulated (as a standard deviation)
+#'        }
+#'   \item parameters : data frame, parameters of the recession model
+#'   \itemize{
+#'        \item alpha1 : real value, parameter representing the initial stage
+#'        \item beta : real value, parameter representing the asymptotic stage
+#'        \item lambda1 : real value, parameter describing the first parameter of the exponential function
+#'        \item lambda2 : real value, parameter describing the second parameter of the exponential function
+#'        \item lambda3 : real value, parameter describing the third parameter of the exponential function
+#'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+#'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
+#'        }
+#' }
+#' @export
+fitRecession_BR1 <- function(time_rec,hrec,uHrec,indx,
+                             beta.object=NULL,
+                             alpha1.object=NULL,
+                             lambda1.object=NULL,
+                             lambda2.object=NULL,
+                             lambda3.object=NULL,
+                             Dataset.object=NULL,
+                             nCyclesrec=100,
+                             burnrec=0.5,
+                             nSlimrec=max(nCyclesrec/10,1),
+                             temp.folder.Recession=file.path(tempdir(),'BaM','Recession')){
+
+  # Create data frame to used in all calculation
+  data=data.frame(time_rec=time_rec,hrec=hrec,uHrec=uHrec,indx=indx)
+  # Read the number of recessions
+  Ncurves=max(indx)
+
+  if(any(!is.null(beta.object)|
+         !is.null(alpha1.object)|
+         !is.null(lambda1.object)|
+         !is.null(lambda2.object)|
+         !is.null(lambda3.object))&
+     is.null(Dataset.object))stop('Prior knowledge about recession models are specified, dataset must be given too using the "dataset" function of RBaM')
+
+  # Check and assign the dataset
+  if(!is.null(Dataset.object)){
+    if(class(Dataset.object)!='dataset')stop('Dataset.object must be created using the "dataset" function of RBaM before it can be used')
+    # Use the calibration dataset given in the input
+    colnames(Dataset.object$data) = c('time_rec','hrec','uHrec','indx')
+    D=Dataset.object
+  }else{
+    # Define the calibration dataset by specifying
+    D=RBaM::dataset(X=data['time_rec'],
+                    Y=data['hrec'],
+                    Yu=data['uHrec'],
+                    VAR.indx=data['indx'],
+                    data.dir=temp.folder.Recession)
+  }
+
+  # Check prior recessions
+  # Prior knowledge Fixed
+  if(!is.null(alpha1.object)){
+    if(class(alpha1.object)!='parameter')stop('alpha1.object must be created using the "parameter" function of RBaM before it can be used')
+    if(alpha1.object$name!='alpha1')stop("name of alpha1.object must be 'alpha1'")
+    alpha1=alpha1.object
+  }else{
+    alpha1=RBaM::parameter(name='alpha1',
+                           init=200,
+                           prior.dist='Uniform',
+                           prior.par=c(0,1000))
+
+  }
+
+ if(!is.null(beta.object)){
+    if(class(beta.object)!='parameter_VAR')stop('beta.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    if(beta.object$name!='beta')stop("name of beta.object must be 'beta'")
+    beta=beta.object
+  }else{
+    beta=RBaM::parameter_VAR(name='beta',
+                             index='indx',
+                             d=D,
+                             init=rep(1000,Ncurves), # first guesses
+                             prior.dist=rep('Uniform',Ncurves), # prior distributions
+                             prior.par=rep(list(c(-10000 , 10000)),Ncurves)) # prior parameters
+  }
+
+  if(!is.null(lambda1.object)){
+    if(class(lambda1.object)!='parameter')stop('lambda1.object must be created using the "parameter" function of RBaM before it can be used')
+    if(lambda1.object$name!='lambda1')stop("name of lambda1.object must be 'lambda1'")
+    lambda1=lambda1.object
+  }else{
+    lambda1=RBaM::parameter(name='lambda1',
+                            init=exp(-log(0.5)+log(log(2))),
+                            prior.dist='LogNormal',
+                            prior.par=c(-log((0.5))+log(log(2)),1))
+  }
+
+  if(!is.null(lambda2.object)){
+    if(class(lambda2.object)!='parameter')stop('lambda2.object must be created using the "parameter" function of RBaM before it can be used')
+    if(lambda2.object$name!='lambda2')stop("name of lambda2.object must be 'lambda2'")
+    lambda2=lambda2.object
+  }else{
+    lambda2=RBaM::parameter(name='lambda2',
+                            init=exp(-log(50)+log(log(2))),
+                            prior.dist='LogNormal',
+                            prior.par=c( -log(80)+log(log(2)),0.5))
+  }
+
+  if(!is.null(lambda3.object)){
+    if(class(lambda3.object)!='parameter')stop('lambda3.object must be created using the "parameter" function of RBaM before it can be used')
+    if(lambda3.object$name!='lambda3')stop("name of lambda3.object must be 'lambda3'")
+    lambda3=lambda3.object
+  }else{
+    lambda3=RBaM::parameter(name='lambda3',
+                            init=exp(-log(50)+log(log(2))),
+                            prior.dist='LogNormal',
+                            prior.par=c( -log(80)+log(log(2)),0.5))
+  }
+
+  priors=list(alpha1,lambda1,lambda2,lambda3,beta)
+  # Stitch it all together into a model object
+  M=RBaM::model(ID='Recession_h',
+                nX=1,nY=1, # number of input/output variables
+                par=priors) # list of model parameters
+
+  # Cooking
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCyclesrec)
+  cook_temp=RBaM::mcmcCooking(burn=burnrec,
+                              nSlim=nSlimrec)
+  # Error model
+  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
+                                                par = list(RBaM::parameter(name="gamma1",
+                                                                           init=1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
+                                                           RBaM::parameter(name="gamma2",
+                                                                           init=0.1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))  # Run BaM executable
+  RBaM:: BaM(mod=M,
+             data=D,
+             workspace = temp.folder.Recession,
+             mcmc=mcmc_temp,
+             cook = cook_temp,
+             dir.exe = file.path(find.package("RBaM"), "bin"),
+             remnant = remnant_prior)
+
+  # Save data object and model object
+  save(D,file = file.path(temp.folder.Recession,'DataObject.RData'))
+  save(M,file = file.path(temp.folder.Recession,'ModelObject.RData'))
+
+  # PREDICTIONS : two steps
+  # First prediction : estimate total uncertainty of simulation (u_sim = u_total) at observed stages to returned as u_sim for segmentation
+  # Second prediction : estimate total uncertainty of simulation discretized at Hgrid to plot (manage in PlotRCPrediction function)
+
+  # First prediction : observed data :
+  # Define a 'prediction' object for total predictive uncertainty only for observed stages
+  MCMC    <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Cooking.txt"),header=TRUE)
+  residus   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)
+  summary.MCMC   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Summary.txt"),header=TRUE)
+
+  indx_MAP=which(c('MaxPost')==rownames(summary.MCMC))
+  indx_st_dev=which(c('St.Dev.')==rownames(summary.MCMC))
+
+  # Way to handle prediction for VAR parameters :
+  ResultsResiduals = c()
+
+  for( i in 1:Ncurves){
+    beta_nonVAR=RBaM::parameter(name=beta$name,
+                                init=beta$init[i],
+                                prior.dist=beta$prior[[i]]$dist,
+                                prior.par=beta$prior[[i]]$par)
+
+    M_nonVAR=RBaM::model(ID='Recession_h',
+                         nX=1,
+                         nY=1,
+                         par=list(alpha1,
+                                  lambda1,
+                                  lambda2,
+                                  lambda3,
+                                  beta_nonVAR))
+    # Columns names to use during prediction
+    columns_indx=c('alpha1',
+                   'lambda1',
+                   'lambda2',
+                   'lambda3',
+                   paste0('beta_',i),
+                   'Y1_gamma1',
+                   'Y1_gamma2',
+                   'LogPost')
+
+    parSamples=MCMC[columns_indx]
+
+    data.rec.spec=data[which(data$indx==i),]
+
+    # Define a 'prediction' object for total predictive uncertainty
+    totalU= RBaM::prediction(X=data.rec.spec['hrec'], # stage values
+                             spagFiles='hrec_TotalU.spag', # file where predictions are saved
+                             data.dir=temp.folder.Recession, # a copy of data files will be saved here
+                             doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                             doStructural=TRUE, # propagate structural uncertainty ?
+                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
+    )
+
+    RBaM::BaM(mod=M_nonVAR,
+              data=D,
+              workspace = temp.folder.Recession,
+              dir.exe = file.path(find.package("RBaM"), "bin"),
+              pred=totalU,
+              remnant = remnant_prior,
+              doCalib=FALSE,
+              doPred=TRUE)
+
+    # Total uncertainty propagation
+    env_hrec_TotalU=utils::read.table(file.path(temp.folder.Recession,'hrec_TotalU.env'),header=TRUE)
+
+    # Discharge simulation
+    hrecsim <-  residus['Y1_sim'][which(data$indx==i),]
+
+    # Residual calculation
+    residuals <- residus['Y1_res'][which(data$indx==i),]
+
+    # Residual standard deviation
+    residual_sd <- env_hrec_TotalU$Stdev
+
+    # residual data frame
+    ResultsResiduals[[i]]=data.frame(time=data.rec.spec['time_rec'],
+                                     H=data.rec.spec['hrec'],
+                                     H_rec_sim=hrecsim,
+                                     H_res=residuals,
+                                     uH_rec=data.rec.spec['uHrec'],
+                                     uH_sim=residual_sd)
+
+    # Create a table to store the parameters for all recessions
+    local.parameters.temp=data.frame(beta=summary.MCMC[indx_MAP,
+                                                       which(paste0('beta_',i)==colnames(summary.MCMC))],
+                                     u_beta=summary.MCMC[indx_st_dev,
+                                                         which(paste0('beta_',i)==colnames(summary.MCMC))])
+
+    if(i==1){
+      local.parameters <- local.parameters.temp
+    }else{
+      local.parameters <- rbind(local.parameters,local.parameters.temp)
+    }
+  }
+
+  parameters= data.frame(
+    alpha1=summary.MCMC[indx_MAP,
+                        which('alpha1'==colnames(summary.MCMC))],
+    u_alpha1=summary.MCMC[indx_st_dev,
+                          which('alpha1'==colnames(summary.MCMC))],
+    lambda1=summary.MCMC[indx_MAP,
+                        which('lambda1'==colnames(summary.MCMC))],
+    u_lambda1=summary.MCMC[indx_st_dev,
+                          which('lambda1'==colnames(summary.MCMC))],
+    lambda2=summary.MCMC[indx_MAP,
+                         which('lambda2'==colnames(summary.MCMC))],
+    u_lambda2=summary.MCMC[indx_st_dev,
+                           which('lambda2'==colnames(summary.MCMC))],
+    lambda3=summary.MCMC[indx_MAP,
+                         which('lambda3'==colnames(summary.MCMC))],
+    u_lambda3=summary.MCMC[indx_st_dev,
+                           which('lambda3'==colnames(summary.MCMC))],
+    local.parameters['beta'],
+    local.parameters['u_beta'],
+    gamma1=summary.MCMC[indx_MAP,]$Y1_gamma1,
+    u_gamma1=summary.MCMC[indx_st_dev,]$Y1_gamma1,
+    gamma2=summary.MCMC[indx_MAP,]$Y1_gamma2,
+    u_gamma2=summary.MCMC[indx_st_dev,]$Y1_gamma2)
+
+  # ggplot(ResultsResiduals[[39]],aes(x=time_rec))+
+  #   geom_point(aes(y=hrec),col='black')+
+  #   geom_point(aes(y=H_rec_sim),col='red')
+
+  # Save results from first prediction
+  copy_files_to_folder(dir.source=temp.folder.Recession,
+                       dir.destination=file.path(temp.folder.Recession, 'Residual'))
+
+  # Second prediction : Hgrid :
+  invisible(remove_files(dir.source = temp.folder.Recession ,
+                         files_to_keep=c('Results_Cooking.txt',
+                                         'Results_Residuals.txt',
+                                         'Results_Summary.txt',
+                                         'CalibrationData.txt',
+                                         'ModelObject.RData',
+                                         'DataObject.RData',
+                                         'Residual')))
+
+  return(list(ResultsResiduals=ResultsResiduals,
+              parameters=parameters))
+}
+
+#' Exponential recession model with five parameters
+#'
+#' Equation of recession model below:
+#' \deqn{h(t) =  \alpha_1 \cdot \exp(-\lambda_1 \cdot t -\lambda_2 \cdot t^2 - \lambda_3 \cdot t^(0.5)) + \beta(k)}
+#' This model includes one recession-specific parameters: \eqn{\beta(k)}
+#' and three stable parameters: \eqn{\alpha_1}, \eqn{\lambda_1}, \eqn{\lambda_2}, \eqn{\lambda_3}.
+#'
+#' Default values for this recession are shown in ‘Details’
+#'
+#' @param time_rec real vector, recession duration relative to the first data detected during the recession
+#' @param hrec real vector, stage value of the recessions
+#' @param uHrec real vector, uncertainty of stage value of the recessions
+#' @param indx  integer, factor used to gather the data of a same recession
+#' @param beta.object object, prior knowledge on the parameter representing the asymptotic stage
+#' @param alpha1.object object, prior knowledge on the parameter representing the initial stage of the first exponential function
+#' @param lambda1.object object, prior knowledge on the first parameter of the exponential function
+#' @param lambda2.object object, prior knowledge on the second parameter of the exponential function
+#' @param lambda3.object object, prior knowledge on the third parameter of the exponential function
+#' @param Dataset.object object, dataset given by user
+#' @param nCyclesrec  integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burnrec real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlimrec integer, MCMC slim step
+#' @param temp.folder.Recession directory, temporary directory to write computations
+#'
+#' @details
+#' By default, prior values are the same for all recession for the parameter alpha1, alpha2 and beta
+#'
+#' Default values are:
+#' \describe{
+#'   \item{Starting in 200, we assume that \eqn{\alpha_1 \sim U(0, 1000).}}
+#'   \item{Starting in \eqn{\exp(-\log(0.5) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_1 \sim \text{LogNormal}(\mu = -\log(0.5) + \log(\log(2)), \sigma = 1).}}
+#'   \item{Starting in \eqn{\exp(-\log(50) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_2 \sim \text{LogNormal}(\mu = -\log(80) + \log(\log(2)), \sigma = 0.5).}}
+#'   \item{Starting in \eqn{\exp(-\log(50) + \log(\log(2)))}, we assume that
+#'     \eqn{\lambda_3 \sim \text{LogNormal}(\mu = -\log(80) + \log(\log(2)), \sigma = 0.5).}}
+#'   \item{Starting in 1000, we assume that \eqn{\beta \sim U(-10000, 10000).}}
+#' }
+#'
+#' @return List with the following components :
+#' \enumerate{
+#'   \item ResultsResiduals : list, results after fitting the recession model to each recession observed
+#'   \itemize{
+#'        \item time: real value, time
+#'        \item H: real value, stage observed
+#'        \item H_rec_sim: real value, stage simulated
+#'        \item H_res: real value, residual between stage observed and simulated
+#'        \item uH_rec: real value, uncertainty in stage observed (as a standard deviation)
+#'        \item uH_sim: real value, uncertainty in stage simulated (as a standard deviation)
+#'        }
+#'   \item parameters : data frame, parameters of the recession model
+#'   \itemize{
+#'        \item alpha1 : real value, parameter representing the initial stage
+#'        \item beta : real value, parameter representing the asymptotic stage
+#'        \item lambda1 : real value, parameter describing the first parameter of the exponential function
+#'        \item lambda2 : real value, parameter describing the second parameter of the exponential function
+#'        \item lambda3 : real value, parameter describing the third parameter of the exponential function
+#'        \item gamma1 ; real value, parameter describing the standard deviation of structural errors (relative to discharge)
+#'        \item gamma2 : real value, parameter describing the standard deviation of structural errors (constant error)
+#'        }
+#' }
+#' @export
+fitRecession_BR2 <- function(time_rec,hrec,uHrec,indx,
+                             beta.object=NULL,
+                             alpha1.object=NULL,
+                             lambda1.object=NULL,
+                             c1.object=NULL,
+                             Dataset.object=NULL,
+                             nCyclesrec=100,
+                             burnrec=0.5,
+                             nSlimrec=max(nCyclesrec/10,1),
+                             temp.folder.Recession=file.path(tempdir(),'BaM','Recession')){
+
+  # Create data frame to used in all calculation
+  data=data.frame(time_rec=time_rec,hrec=hrec,uHrec=uHrec,indx=indx)
+  # Read the number of recessions
+  Ncurves=max(indx)
+
+  if(any(!is.null(beta.object)|
+         !is.null(alpha1.object)|
+         !is.null(lambda1.object)|
+         !is.null(c1.object))&
+     is.null(Dataset.object))stop('Prior knowledge about recession models are specified, dataset must be given too using the "dataset" function of RBaM')
+
+  # Check and assign the dataset
+  if(!is.null(Dataset.object)){
+    if(class(Dataset.object)!='dataset')stop('Dataset.object must be created using the "dataset" function of RBaM before it can be used')
+    # Use the calibration dataset given in the input
+    colnames(Dataset.object$data) = c('time_rec','hrec','uHrec','indx')
+    D=Dataset.object
+  }else{
+    # Define the calibration dataset by specifying
+    D=RBaM::dataset(X=data['time_rec'],
+                    Y=data['hrec'],
+                    Yu=data['uHrec'],
+                    VAR.indx=data['indx'],
+                    data.dir=temp.folder.Recession)
+  }
+
+  # Check prior recessions
+  # Prior knowledge Fixed
+  if(!is.null(alpha1.object)){
+    if(class(alpha1.object)!='parameter')stop('alpha1.object must be created using the "parameter" function of RBaM before it can be used')
+    if(alpha1.object$name!='alpha1')stop("name of alpha1.object must be 'alpha1'")
+    alpha1=alpha1.object
+  }else{
+    alpha1=RBaM::parameter(name='alpha1',
+                           init=200,
+                           prior.dist='Uniform',
+                           prior.par=c(0,1000))
+
+  }
+
+  if(!is.null(beta.object)){
+    if(class(beta.object)!='parameter_VAR')stop('beta.object must be created using the "parameter_VAR" function of RBaM before it can be used')
+    if(beta.object$name!='beta')stop("name of beta.object must be 'beta'")
+    beta=beta.object
+  }else{
+    beta=RBaM::parameter_VAR(name='beta',
+                             index='indx',
+                             d=D,
+                             init=rep(1000,Ncurves), # first guesses
+                             prior.dist=rep('Uniform',Ncurves), # prior distributions
+                             prior.par=rep(list(c(-10000 , 10000)),Ncurves)) # prior parameters
+  }
+
+  if(!is.null(lambda1.object)){
+    if(class(lambda1.object)!='parameter')stop('lambda1.object must be created using the "parameter" function of RBaM before it can be used')
+    if(lambda1.object$name!='lambda1')stop("name of lambda1.object must be 'lambda1'")
+    lambda1=lambda1.object
+  }else{
+    lambda1=RBaM::parameter(name='lambda1',
+                            init=exp(-log(0.5)+log(log(2))),
+                            prior.dist='LogNormal',
+                            prior.par=c(-log((0.5))+log(log(2)),1))
+  }
+
+  if(!is.null(c1.object)){
+    if(class(c1.object)!='parameter')stop('c1.object must be created using the "parameter" function of RBaM before it can be used')
+    if(c1.object$name!='c1')stop("name of c1.object must be 'c1'")
+    c1=c1.object
+  }else{
+    c1=RBaM::parameter(name='c1',
+                       init=0.5,
+                       prior.dist='Uniform',
+                       prior.par=c(0,1))
+  }
+
+  priors=list(alpha1,lambda1,c1,beta)
+  # Stitch it all together into a model object
+  M=RBaM::model(ID='Recession_h',
+                nX=1,nY=1, # number of input/output variables
+                par=priors) # list of model parameters
+
+  # Cooking
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCyclesrec)
+  cook_temp=RBaM::mcmcCooking(burn=burnrec,
+                              nSlim=nSlimrec)
+  # Error model
+  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
+                                                par = list(RBaM::parameter(name="gamma1",
+                                                                           init=1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)),
+                                                           RBaM::parameter(name="gamma2",
+                                                                           init=0.1,
+                                                                           prior.dist = "Uniform",
+                                                                           prior.par = c(0,1000)))))  # Run BaM executable
+  RBaM:: BaM(mod=M,
+             data=D,
+             workspace = temp.folder.Recession,
+             mcmc=mcmc_temp,
+             cook = cook_temp,
+             dir.exe = file.path(find.package("RBaM"), "bin"),
+             remnant = remnant_prior)
+
+  # Save data object and model object
+  save(D,file = file.path(temp.folder.Recession,'DataObject.RData'))
+  save(M,file = file.path(temp.folder.Recession,'ModelObject.RData'))
+
+  # PREDICTIONS : two steps
+  # First prediction : estimate total uncertainty of simulation (u_sim = u_total) at observed stages to returned as u_sim for segmentation
+  # Second prediction : estimate total uncertainty of simulation discretized at Hgrid to plot (manage in PlotRCPrediction function)
+
+  # First prediction : observed data :
+  # Define a 'prediction' object for total predictive uncertainty only for observed stages
+  MCMC    <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Cooking.txt"),header=TRUE)
+  residus   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)
+  summary.MCMC   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Summary.txt"),header=TRUE)
+
+  indx_MAP=which(c('MaxPost')==rownames(summary.MCMC))
+  indx_st_dev=which(c('St.Dev.')==rownames(summary.MCMC))
+
+  # Way to handle prediction for VAR parameters :
+  ResultsResiduals = c()
+
+  for( i in 1:Ncurves){
+    beta_nonVAR=RBaM::parameter(name=beta$name,
+                                init=beta$init[i],
+                                prior.dist=beta$prior[[i]]$dist,
+                                prior.par=beta$prior[[i]]$par)
+
+    M_nonVAR=RBaM::model(ID='Recession_h',
+                         nX=1,
+                         nY=1,
+                         par=list(alpha1,
+                                  lambda1,
+                                  c1,
+                                  beta_nonVAR))
+    # Columns names to use during prediction
+    columns_indx=c('alpha1',
+                   'lambda1',
+                   'c1',
+                   paste0('beta_',i),
+                   'Y1_gamma1',
+                   'Y1_gamma2',
+                   'LogPost')
+
+    parSamples=MCMC[columns_indx]
+
+    data.rec.spec=data[which(data$indx==i),]
+
+    # Define a 'prediction' object for total predictive uncertainty
+    totalU= RBaM::prediction(X=data.rec.spec['hrec'], # stage values
+                             spagFiles='hrec_TotalU.spag', # file where predictions are saved
+                             data.dir=temp.folder.Recession, # a copy of data files will be saved here
+                             doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
+                             doStructural=TRUE, # propagate structural uncertainty ?
+                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
+    )
+
+    RBaM::BaM(mod=M_nonVAR,
+              data=D,
+              workspace = temp.folder.Recession,
+              dir.exe = file.path(find.package("RBaM"), "bin"),
+              pred=totalU,
+              remnant = remnant_prior,
+              doCalib=FALSE,
+              doPred=TRUE)
+
+    # Total uncertainty propagation
+    env_hrec_TotalU=utils::read.table(file.path(temp.folder.Recession,'hrec_TotalU.env'),header=TRUE)
+
+    # Discharge simulation
+    hrecsim <-  residus['Y1_sim'][which(data$indx==i),]
+
+    # Residual calculation
+    residuals <- residus['Y1_res'][which(data$indx==i),]
+
+    # Residual standard deviation
+    residual_sd <- env_hrec_TotalU$Stdev
+
+    # residual data frame
+    ResultsResiduals[[i]]=data.frame(time=data.rec.spec['time_rec'],
+                                     H=data.rec.spec['hrec'],
+                                     H_rec_sim=hrecsim,
+                                     H_res=residuals,
+                                     uH_rec=data.rec.spec['uHrec'],
+                                     uH_sim=residual_sd)
+
+    # Create a table to store the parameters for all recessions
+    local.parameters.temp=data.frame(beta=summary.MCMC[indx_MAP,
+                                                       which(paste0('beta_',i)==colnames(summary.MCMC))],
+                                     u_beta=summary.MCMC[indx_st_dev,
+                                                         which(paste0('beta_',i)==colnames(summary.MCMC))])
+
+    if(i==1){
+      local.parameters <- local.parameters.temp
+    }else{
+      local.parameters <- rbind(local.parameters,local.parameters.temp)
+    }
+  }
+
+  parameters= data.frame(
+    alpha1=summary.MCMC[indx_MAP,
+                        which('alpha1'==colnames(summary.MCMC))],
+    u_alpha1=summary.MCMC[indx_st_dev,
+                          which('alpha1'==colnames(summary.MCMC))],
+    lambda1=summary.MCMC[indx_MAP,
+                         which('lambda1'==colnames(summary.MCMC))],
+    u_lambda1=summary.MCMC[indx_st_dev,
+                           which('lambda1'==colnames(summary.MCMC))],
+    c1=summary.MCMC[indx_MAP,
+                         which('c1'==colnames(summary.MCMC))],
+    u_c1=summary.MCMC[indx_st_dev,
+                           which('c1'==colnames(summary.MCMC))],
     local.parameters['beta'],
     local.parameters['u_beta'],
     gamma1=summary.MCMC[indx_MAP,]$Y1_gamma1,

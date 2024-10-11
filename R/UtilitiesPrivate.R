@@ -131,3 +131,17 @@ remove_files <- function(dir.source,
   })
 
 }
+
+#' Check if any column as a NA when convert to numeric format
+#'
+#' @param donnees data frame
+#'
+#' @return data frame, logical value. if `TRUE`, any NA was detected during transformation.
+character_check <- function(donnees){
+  sapply(donnees, function(x) {
+    # Attempt to convert to numeric and check for NA
+    any(is.na(as.numeric(x)) & !is.na(x))
+  })
+}
+
+

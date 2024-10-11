@@ -19,13 +19,18 @@ GetCatalog<-function(printOnly=FALSE){
            'fitRC_BaRatinKAC',
            'fitRC_exponential',
            'fitRC_LinearRegression',
-           'fitRecession_M3')
+           'fitRecession_M3',
+           'fitRecession_BR1',
+           'fitRecession_BR2')
 
   Equations=c('Loess_Equation',
               'BaRatinBAC_Equation',
               'BaRatinKAC_Equation',
               'Exponential_Equation',
-              'LinearRegression_Equation')
+              'LinearRegression_Equation',
+              'Recession_M3_Equation',
+              'Recession_BR1_Equation',
+              'Recession_B2_Equation')
   if(printOnly){
     message('MODELS:')
     print(models)

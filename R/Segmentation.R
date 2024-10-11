@@ -76,7 +76,7 @@ segmentation.engine <- function(obs,
   }
   if(trunc(length(obs)/nS)<nMin){
     stop(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
-                   ') and the number of segments (',nS,')'))
+                ') and the number of segments (',nS,')'))
   }
   if(is.null(check_vector_lengths(obs,time,u))){
     stop('The observations, time and uncertainty have not the same length')
@@ -111,9 +111,9 @@ segmentation.engine <- function(obs,
 
   for(i in 1:nS){
     priors [[i]] <- RBaM::parameter(name=paste0('mu',i),
-                              init=mean(obs),
-                              prior.dist = 'FlatPrior' ,
-                              prior.par = NULL)
+                                    init=mean(obs),
+                                    prior.dist = 'FlatPrior' ,
+                                    prior.par = NULL)
   }
 
   prior_tau_init <- as.numeric(stats::quantile(time,probs = seq(1,nS-1)/nS))
@@ -134,11 +134,11 @@ segmentation.engine <- function(obs,
   )
   # Model
   mod=RBaM::model(
-            ID='Segmentation',
-            nX=1,
-            nY=1,
-            par=priors,
-            xtra=xtra)
+    ID='Segmentation',
+    nX=1,
+    nY=1,
+    par=priors,
+    xtra=xtra)
 
   # dataset object
   data=RBaM::dataset(X=data.frame(time),
@@ -158,9 +158,9 @@ segmentation.engine <- function(obs,
   }
   if(remnantInit==0){remnantInit=1}
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Constant",
-                                         par = list(RBaM::parameter(name="gamma1",
-                                                              init=remnantInit,
-                                                              prior.dist = "FlatPrior+"))))
+                                                par = list(RBaM::parameter(name="gamma1",
+                                                                           init=remnantInit,
+                                                                           prior.dist = "FlatPrior+"))))
 
   # Run BaM executable
   RBaM::BaM(mod=mod,
