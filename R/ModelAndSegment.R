@@ -344,12 +344,12 @@ recursive.ModelAndSegmentation <- function(H,
                                            Q_res=NA,
                                            uQ_obs=NewuQ,
                                            uQ_sim=NA
-            )
+                                           )
             param.equation.p[[p]] = NA
           }else{
-            # update residual of new rating curve
-            new_residuals[[m]]=residualsData[[p]]$Q_res # Save ith segment (on a total of nS)
-            new_u_residuals[[m]]=sqrt(residualsData[[p]]$uQ_sim^2+residualsData[[p]]$uQ_obs^2) # Save corresponding uncertainty
+          # update residual of new rating curve
+          new_residuals[[m]]=residualsData[[p]]$Q_res # Save ith segment (on a total of nS)
+          new_u_residuals[[m]]=sqrt(residualsData[[p]]$uQ_sim^2+residualsData[[p]]$uQ_obs^2) # Save corresponding uncertainty
           }
         }
       }
