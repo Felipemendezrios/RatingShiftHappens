@@ -21,4 +21,3 @@ vignettes/*.pdf
 .gitattributes
 .git
 README.html
-dev/
