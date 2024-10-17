@@ -5,7 +5,7 @@
 #' @param M object, model object output by the RBaM function
 #' @param MCMC data frame, MCMC results
 #' @param t_grid data frame, recession duration
-#' @param temp.folder directory, temporary directory to write computations
+#' @param temp.folder.Recession directory, temporary directory to write computations
 #' @param remnant_prior object, remnant error model output by the RBaM function
 #'
 #' @return list, recession estimation with their uncertainties
@@ -14,7 +14,7 @@ Estimation_Recession_M3 <- function(CalData,
                                   M,
                                   MCMC,
                                   t_grid,
-                                  temp.folder,
+                                  temp.folder.Recession,
                                   remnant_prior){
 
   allData=c()
@@ -70,7 +70,7 @@ Estimation_Recession_M3 <- function(CalData,
     # Define a 'prediction' object for total predictive uncertainty
     totalU=RBaM::prediction(X=t_grid, # stage values
                             spagFiles='H_rec_TotalU.spag', # file where predictions are saved
-                            data.dir=temp.folder, # a copy of data files will be saved here
+                            data.dir=temp.folder.Recession, # a copy of data files will be saved here
                             doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
                             doStructural=TRUE, # propagate structural uncertainty ?
                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -79,7 +79,7 @@ Estimation_Recession_M3 <- function(CalData,
     # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
     paramU=RBaM::prediction(X=t_grid,
                             spagFiles='H_rec_ParamU.spag',
-                            data.dir=temp.folder,
+                            data.dir=temp.folder.Recession,
                             doParametric=TRUE,
                             doStructural=FALSE,
                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -88,7 +88,7 @@ Estimation_Recession_M3 <- function(CalData,
     # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
     maxpost=RBaM::prediction(X=t_grid,
                              spagFiles='H_rec_Maxpost.spag',
-                             data.dir=temp.folder,
+                             data.dir=temp.folder.Recession,
                              doParametric=FALSE,
                              doStructural=FALSE,
                              parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -96,7 +96,7 @@ Estimation_Recession_M3 <- function(CalData,
 
     RBaM:: BaM(mod=M_nonVAR,
                data=D,
-               workspace = temp.folder,
+               workspace = temp.folder.Recession,
                dir.exe = file.path(find.package("RBaM"), "bin"),
                pred=list(totalU,paramU,maxpost), # list of predictions
                remnant = remnant_prior,
@@ -104,7 +104,7 @@ Estimation_Recession_M3 <- function(CalData,
                doPred=TRUE)
 
     # Get total uncertainty from the rating curve
-    TotalUenv=read.table(file.path(temp.folder,'H_rec_TotalU.env'),header = TRUE)
+    TotalUenv=read.table(file.path(temp.folder.Recession,'H_rec_TotalU.env'),header = TRUE)
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(TotalUenv))
@@ -112,7 +112,7 @@ Estimation_Recession_M3 <- function(CalData,
                                                           function(x) as.numeric(x)))
 
     # Add parametric uncertainty
-    ParametricUenv=read.table(file.path(temp.folder,'H_rec_ParamU.env'),header = TRUE)
+    ParametricUenv=read.table(file.path(temp.folder.Recession,'H_rec_ParamU.env'),header = TRUE)
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(ParametricUenv))
@@ -120,7 +120,7 @@ Estimation_Recession_M3 <- function(CalData,
                                                                function(x) as.numeric(x)))
 
     # Add maxpost rating curve
-    MAPREC=read.table(file.path(temp.folder,'H_rec_Maxpost.spag'))
+    MAPREC=read.table(file.path(temp.folder.Recession,'H_rec_Maxpost.spag'))
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(MAPREC))
@@ -144,7 +144,7 @@ Estimation_Recession_M3 <- function(CalData,
 #' @param M object, model object output by the RBaM function
 #' @param MCMC data frame, MCMC results
 #' @param t_grid data frame, recession duration
-#' @param temp.folder directory, temporary directory to write computations
+#' @param temp.folder.Recession directory, temporary directory to write computations
 #' @param remnant_prior object, remnant error model output by the RBaM function
 #'
 #' @return list, recession estimation with their uncertainties
@@ -153,7 +153,7 @@ Estimation_Recession_BR1 <- function(CalData,
                                     M,
                                     MCMC,
                                     t_grid,
-                                    temp.folder,
+                                    temp.folder.Recession,
                                     remnant_prior){
 
   allData=c()
@@ -210,7 +210,7 @@ Estimation_Recession_BR1 <- function(CalData,
     # Define a 'prediction' object for total predictive uncertainty
     totalU=RBaM::prediction(X=t_grid, # stage values
                             spagFiles='H_rec_TotalU.spag', # file where predictions are saved
-                            data.dir=temp.folder, # a copy of data files will be saved here
+                            data.dir=temp.folder.Recession, # a copy of data files will be saved here
                             doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
                             doStructural=TRUE, # propagate structural uncertainty ?
                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -219,7 +219,7 @@ Estimation_Recession_BR1 <- function(CalData,
     # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
     paramU=RBaM::prediction(X=t_grid,
                             spagFiles='H_rec_ParamU.spag',
-                            data.dir=temp.folder,
+                            data.dir=temp.folder.Recession,
                             doParametric=TRUE,
                             doStructural=FALSE,
                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -228,7 +228,7 @@ Estimation_Recession_BR1 <- function(CalData,
     # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
     maxpost=RBaM::prediction(X=t_grid,
                              spagFiles='H_rec_Maxpost.spag',
-                             data.dir=temp.folder,
+                             data.dir=temp.folder.Recession,
                              doParametric=FALSE,
                              doStructural=FALSE,
                              parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -236,7 +236,7 @@ Estimation_Recession_BR1 <- function(CalData,
 
     RBaM:: BaM(mod=M_nonVAR,
                data=D,
-               workspace = temp.folder,
+               workspace = temp.folder.Recession,
                dir.exe = file.path(find.package("RBaM"), "bin"),
                pred=list(totalU,paramU,maxpost), # list of predictions
                remnant = remnant_prior,
@@ -244,7 +244,7 @@ Estimation_Recession_BR1 <- function(CalData,
                doPred=TRUE)
 
     # Get total uncertainty from the rating curve
-    TotalUenv=read.table(file.path(temp.folder,'H_rec_TotalU.env'),header = TRUE)
+    TotalUenv=read.table(file.path(temp.folder.Recession,'H_rec_TotalU.env'),header = TRUE)
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(TotalUenv))
@@ -252,7 +252,7 @@ Estimation_Recession_BR1 <- function(CalData,
                                                           function(x) as.numeric(x)))
 
     # Add parametric uncertainty
-    ParametricUenv=read.table(file.path(temp.folder,'H_rec_ParamU.env'),header = TRUE)
+    ParametricUenv=read.table(file.path(temp.folder.Recession,'H_rec_ParamU.env'),header = TRUE)
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(ParametricUenv))
@@ -260,7 +260,7 @@ Estimation_Recession_BR1 <- function(CalData,
                                                                function(x) as.numeric(x)))
 
     # Add maxpost rating curve
-    MAPREC=read.table(file.path(temp.folder,'H_rec_Maxpost.spag'))
+    MAPREC=read.table(file.path(temp.folder.Recession,'H_rec_Maxpost.spag'))
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(MAPREC))
@@ -284,7 +284,7 @@ Estimation_Recession_BR1 <- function(CalData,
 #' @param M object, model object output by the RBaM function
 #' @param MCMC data frame, MCMC results
 #' @param t_grid data frame, recession duration
-#' @param temp.folder directory, temporary directory to write computations
+#' @param temp.folder.Recession directory, temporary directory to write computations
 #' @param remnant_prior object, remnant error model output by the RBaM function
 #'
 #' @return list, recession estimation with their uncertainties
@@ -293,7 +293,7 @@ Estimation_Recession_BR2 <- function(CalData,
                                      M,
                                      MCMC,
                                      t_grid,
-                                     temp.folder,
+                                     temp.folder.Recession,
                                      remnant_prior){
 
   allData=c()
@@ -343,7 +343,7 @@ Estimation_Recession_BR2 <- function(CalData,
     # Define a 'prediction' object for total predictive uncertainty
     totalU=RBaM::prediction(X=t_grid, # stage values
                             spagFiles='H_rec_TotalU.spag', # file where predictions are saved
-                            data.dir=temp.folder, # a copy of data files will be saved here
+                            data.dir=temp.folder.Recession, # a copy of data files will be saved here
                             doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
                             doStructural=TRUE, # propagate structural uncertainty ?
                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -352,7 +352,7 @@ Estimation_Recession_BR2 <- function(CalData,
     # Define a 'prediction' object for parametric uncertainty only - not the doStructural=FALSE
     paramU=RBaM::prediction(X=t_grid,
                             spagFiles='H_rec_ParamU.spag',
-                            data.dir=temp.folder,
+                            data.dir=temp.folder.Recession,
                             doParametric=TRUE,
                             doStructural=FALSE,
                             parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -361,7 +361,7 @@ Estimation_Recession_BR2 <- function(CalData,
     # Define a 'prediction' object with no uncertainty - this corresponds to the 'maxpost' RC maximizing the posterior density
     maxpost=RBaM::prediction(X=t_grid,
                              spagFiles='H_rec_Maxpost.spag',
-                             data.dir=temp.folder,
+                             data.dir=temp.folder.Recession,
                              doParametric=FALSE,
                              doStructural=FALSE,
                              parSamples=parSamples # pass the reduced MCMC data frame to use for this prediction
@@ -369,7 +369,7 @@ Estimation_Recession_BR2 <- function(CalData,
 
     RBaM:: BaM(mod=M_nonVAR,
                data=D,
-               workspace = temp.folder,
+               workspace = temp.folder.Recession,
                dir.exe = file.path(find.package("RBaM"), "bin"),
                pred=list(totalU,paramU,maxpost), # list of predictions
                remnant = remnant_prior,
@@ -377,7 +377,7 @@ Estimation_Recession_BR2 <- function(CalData,
                doPred=TRUE)
 
     # Get total uncertainty from the rating curve
-    TotalUenv=read.table(file.path(temp.folder,'H_rec_TotalU.env'),header = TRUE)
+    TotalUenv=read.table(file.path(temp.folder.Recession,'H_rec_TotalU.env'),header = TRUE)
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(TotalUenv))
@@ -385,7 +385,7 @@ Estimation_Recession_BR2 <- function(CalData,
                                                           function(x) as.numeric(x)))
 
     # Add parametric uncertainty
-    ParametricUenv=read.table(file.path(temp.folder,'H_rec_ParamU.env'),header = TRUE)
+    ParametricUenv=read.table(file.path(temp.folder.Recession,'H_rec_ParamU.env'),header = TRUE)
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(ParametricUenv))
@@ -393,7 +393,7 @@ Estimation_Recession_BR2 <- function(CalData,
                                                                function(x) as.numeric(x)))
 
     # Add maxpost rating curve
-    MAPREC=read.table(file.path(temp.folder,'H_rec_Maxpost.spag'))
+    MAPREC=read.table(file.path(temp.folder.Recession,'H_rec_Maxpost.spag'))
 
     # handle when value is almost zero (detected as character)
     cols_to_convert=suppressWarnings(character_check(MAPREC))

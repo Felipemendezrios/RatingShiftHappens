@@ -1418,7 +1418,7 @@ plot_rec_extracted <- function(Rec_extracted,
 #' @param model_rec list, results obtained by using `ModelAndSegmentation.recession.regression` function
 #' @param spec_recession integer vector, number of recession to plot the observed and simulated recession data separately
 #' @param all_recession logical, `TRUE` = plot all recessions with observed and simulated recession data
-#' @param temp.folder directory, temporary directory to write computations, be sure to use the same from `ModelAndSegmentation.recession.regression` function
+#' @param temp.folder.Recession directory, temporary directory to write computations, be sure to use the same from `ModelAndSegmentation.recession.regression` function
 #' @param CalibrationData character, name of the calibration data used in the `ModelAndSegmentation.recession.regression` function. It must to match or an error message will be appear
 #' @param fit character, fit used during recession modelling
 #' @param equation_rec character, recession equation corresponding to fit model specified in `fit`
@@ -1433,14 +1433,14 @@ plot_rec_extracted <- function(Rec_extracted,
 plot_modelAndSegm_recession <- function(model_rec,
                                         spec_recession=NULL,
                                         all_recession=FALSE,
-                                        temp.folder=file.path(tempdir(),'BaM','Recession'),
+                                        temp.folder.Recession=file.path(tempdir(),'BaM','Recession'),
                                         CalibrationData='CalibrationData.txt',
                                         fit,
                                         equation_rec,
                                         ...){
 
-  if(any(CalibrationData==list.files(temp.folder))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder. Please, check the name of calibration data used in the ModelAndSegmentation.recession.regression function')
-  CalData=read.table(file.path(temp.folder,
+  if(any(CalibrationData==list.files(temp.folder.Recession))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder.Recession. Please, check the name of calibration data used in the ModelAndSegmentation.recession.regression function')
+  CalData=read.table(file.path(temp.folder.Recession,
                                CalibrationData),
                      header = T)
 
@@ -1482,13 +1482,13 @@ plot_modelAndSegm_recession <- function(model_rec,
   t_grid = data.frame(t_grid=seq(t_min_grid,t_max_grid,by=(t_max_grid-t_min_grid)/50))
 
   # Upload Data object
-  load(file.path(temp.folder,'DataObject.RData'))
+  load(file.path(temp.folder.Recession,'DataObject.RData'))
 
   # Upload Model object
-  load(file.path(temp.folder,'ModelObject.RData'))
+  load(file.path(temp.folder.Recession,'ModelObject.RData'))
 
   #MCMC results
-  MCMC    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
+  MCMC    <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Cooking.txt"),header=TRUE)
 
   if(all_recession!=FALSE){
     Ncurves = unique(CalData$indx)
@@ -1514,7 +1514,7 @@ plot_modelAndSegm_recession <- function(model_rec,
                                   M=M,
                                   MCMC=MCMC,
                                   t_grid=t_grid,
-                                  temp.folder=temp.folder,
+                                  temp.folder.Recession=temp.folder.Recession,
                                   remnant_prior=remnant_prior)
 
   # Plots
@@ -1569,36 +1569,4 @@ plot_modelAndSegm_recession <- function(model_rec,
   }
 
   return(PlotRECPred)
-
-
-
-
-
-
-
-
-
-
-
-
-    #From ici
-
-    for(i in 1:length(spec_recession)){
-      rec_plot_local=model_rec$residuals_all_data[[i]]
-
-      ggplot(rec_plot_local,aes(x=time_rec))+
-        geom_line(aes(y=H_rec_sim))+
-        geom_ribbon(aes(ymin=H_rec_sim-uH_sim,
-                        ymax=H_rec_sim+uH_sim),
-                    alpha=0.8)
-    }
-
-  # Plot Segmentation :
-
-  plotSegmentation(summary=model_rec$summary_results$summary,
-                   plot_summary=model_rec$summary_results$plot,
-                   ...)
-
-
-
 }
