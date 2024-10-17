@@ -8,7 +8,7 @@ plot_modelAndSegm_recession(
   model_rec,
   spec_recession = NULL,
   all_recession = FALSE,
-  temp.folder = file.path(tempdir(), "BaM", "Recession"),
+  temp.folder.Recession = file.path(tempdir(), "BaM", "Recession"),
   CalibrationData = "CalibrationData.txt",
   fit,
   equation_rec,
@@ -22,7 +22,7 @@ plot_modelAndSegm_recession(
 
 \item{all_recession}{logical, \code{TRUE} = plot all recessions with observed and simulated recession data}
 
-\item{temp.folder}{directory, temporary directory to write computations, be sure to use the same from \code{ModelAndSegmentation.recession.regression} function}
+\item{temp.folder.Recession}{directory, temporary directory to write computations, be sure to use the same from \code{ModelAndSegmentation.recession.regression} function}
 
 \item{CalibrationData}{character, name of the calibration data used in the \code{ModelAndSegmentation.recession.regression} function. It must to match or an error message will be appear}
 

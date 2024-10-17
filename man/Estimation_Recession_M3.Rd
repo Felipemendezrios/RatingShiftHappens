@@ -10,7 +10,7 @@ Estimation_Recession_M3(
   M,
   MCMC,
   t_grid,
-  temp.folder,
+  temp.folder.Recession,
   remnant_prior
 )
 }
@@ -25,7 +25,7 @@ Estimation_Recession_M3(
 
 \item{t_grid}{data frame, recession duration}
 
-\item{temp.folder}{directory, temporary directory to write computations}
+\item{temp.folder.Recession}{directory, temporary directory to write computations}
 
 \item{remnant_prior}{object, remnant error model output by the RBaM function}
 }

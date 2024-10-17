@@ -389,7 +389,7 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                  indx=DF.order$indx,
                  ...)
 
-  # Residuals of reccesion observed and simulated
+  # Residuals of recession observed and simulated
   residualsData <- rec_model$ResultsResiduals
   # Asymptotic stage:
   h_asymptotic <- rec_model$parameters$beta
@@ -401,7 +401,7 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                                 ))
   date_asymptotic=date_asymptotic_df$date_asymp
   # Read summary
-  summary.MCMC   <- utils::read.table(file= file.path(tempdir(),'BaM','Recession',"Results_Summary.txt"),header=TRUE)
+  summary.MCMC   <- utils::read.table(file= file.path(temp.folder,'Recession',"Results_Summary.txt"),header=TRUE)
   # Focus in MaxPost and Standard deviation of beta
   # Discuss which uncertainty will we take into account
   u_asymptotic=c(t(summary.MCMC[which(rownames(summary.MCMC)==c('St.Dev.')),
