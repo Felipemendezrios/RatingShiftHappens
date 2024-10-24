@@ -241,8 +241,8 @@ recursive.ModelAndSegmentation <- function(H,
 
   # Save results from first prediction using the grid for plotting rating curve
   if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
-    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,
-                              temp.folder.RC=file.path(temp.folder,'RC'),...) # initialize first residual data to be segmented
+    residualsData.all <- list(funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,
+                                   temp.folder.RC=file.path(temp.folder,'RC'),...)) # initialize first residual data to be segmented
 
     dir.destination=file.path(temp.folder,'it_1/')
     # Ensure the destination directory exists
@@ -255,11 +255,11 @@ recursive.ModelAndSegmentation <- function(H,
     invisible(copy_files_to_folder(dir.source=file.path(temp.folder,'RC'),
                                    dir.destination=dir.destination))
   }else{
-    residualsData.all <- funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,...) # initialize first residual data to be segmented
+    residualsData.all <- list(funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,...)) # initialize first residual data to be segmented
 
   }
-  residualsData <- list(residualsData.all[[1]])
-  param.equation.p <- list(residualsData.all[[2]])
+  residualsData <- list(cbind(residualsData.all[[1]][[1]],id=seq(1,nrow(residualsData.all[[1]]$ResultsResiduals))))
+  param.equation.p <- list(residualsData.all[[1]][[2]])
 
   if(any(is.na(residualsData[[1]]))){
     stop('There is not enough data to run the segmentation model')
@@ -299,17 +299,18 @@ recursive.ModelAndSegmentation <- function(H,
         for(i in 1:nSopt){ # Loop on each segment detected for the current node
           p=p+1 # Increment auxiliary counter
           m=m+1 # Increment local counter
-          newTIME[[m]]=partial.segmentation$results[[nSopt]]$data.p$time.p[[i]] # Save corresponding times
+          data.local.segmented = partial.segmentation$results[[nSopt]]$summary$data # data summary of local node
+          id.lines=which(data.local.segmented$period==i) # identify the ids with a stable period
+          newTIME[[m]]=data.local.segmented$time[id.lines] # Save corresponding times
           newParents[m]=indices[j] # At next level, the parent of this segment will be the index of current node
           newIndices[m]=p # At next level, the index of this segment will be p
-          NewH=residualsData[[newParents[m]]]$H[match(newTIME[[m]],residualsData[[newParents[m]]]$time)] # find information according to time segmentation
-          NewQ=residualsData[[newParents[m]]]$Q_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
-          NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
-          NewuH=residualsData[[newParents[m]]]$uH[match(newTIME[[m]],residualsData[[newParents[m]]]$time)]
+          NewH=residualsData[[newParents[m]]]$H[match(id.lines,residualsData[[newParents[m]]]$id)] # match ids according to id indexed in the table to target a integer value rather than time (format issues)
+          NewQ=residualsData[[newParents[m]]]$Q_obs[match(id.lines,residualsData[[newParents[m]]]$id)]
+          NewuQ=residualsData[[newParents[m]]]$uQ_obs[match(id.lines,residualsData[[newParents[m]]]$id)]
+          NewuH=residualsData[[newParents[m]]]$uH[match(id.lines,residualsData[[newParents[m]]]$id)]
 
           # Save results from first prediction using the grid for plotting rating curve
           if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
-
 
             # Update rating curve estimation
             residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,uH=NewuH,
@@ -330,7 +331,7 @@ recursive.ModelAndSegmentation <- function(H,
             # Update rating curve estimation
             residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,uH=NewuH,...)
           }
-          residualsData[[p]] <- residualsData.all[[p]][[1]]
+          residualsData[[p]] <- data.frame(residualsData.all[[p]][[1]],id=seq(1,nrow(residualsData.all[[p]][[1]])))
           param.equation.p[[p]] <- residualsData.all[[p]][[2]]
 
           if(any(is.na(residualsData[[p]]))){
@@ -343,8 +344,8 @@ recursive.ModelAndSegmentation <- function(H,
                                            Q_sim=NA,
                                            Q_res=NA,
                                            uQ_obs=NewuQ,
-                                           uQ_sim=NA
-                                           )
+                                           uQ_sim=NA,
+                                           id=seq(1,length(newTIME[[m]])))
             param.equation.p[[p]] = NA
           }else{
           # update residual of new rating curve
