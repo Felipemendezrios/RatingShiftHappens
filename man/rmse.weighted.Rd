@@ -2,7 +2,7 @@
 % Please edit documentation in R/UtilitiesPublic.R
 \name{rmse.weighted}
 \alias{rmse.weighted}
-\title{Root Mean Squared Error (RMSE)}
+\title{Root Mean Squared Error weighted (RMSE weighted)}
 \usage{
 rmse.weighted(observations, predicted, weights)
 }
@@ -17,5 +17,5 @@ rmse.weighted(observations, predicted, weights)
 real value, RMSE weighted value to qualify the fit
 }
 \description{
-Root Mean Squared Error (RMSE)
+Root Mean Squared Error weighted (RMSE weighted)
 }
