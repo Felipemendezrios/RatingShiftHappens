@@ -279,3 +279,14 @@ control_matrix_builder <- function(ncontrols) {
   return(control_matrix_build)
 }
 
+#' Root Mean Squared Error weighted (RMSE weighted)
+#'
+#' @param observations vector, observed data
+#' @param predicted vector, predicted data
+#' @param weights vector, weights to each data to give more or less weights to some data
+#'
+#' @return real value, RMSE weighted value to qualify the fit
+#' @export
+rmse.weighted <- function(observations, predicted, weights) {
+  sqrt(sum(weights * (observations - predicted)^2) / sum(weights))
+}
