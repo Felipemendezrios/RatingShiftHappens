@@ -1209,14 +1209,14 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
 
     # Adapt data frame to plot
 
-    # Convert the dataframe to long format
+    # Convert the data frame to long format
     k_long <- k_uncertainty %>%
       tibble::rownames_to_column("percentile") %>%
       tidyr::pivot_longer(-percentile, names_to = "k", values_to = "value")
 
-    # Create a dataframe for credibiliy intervals
+    # Create a data frame for credibility intervals
     Credibility_interval_data <- data.frame(
-      k = rep(k_long$k),  # Repeat each k for 2 rows (2.5% and 97.5%)
+      k = unique(k_long$k),  # Repeat each k for 2 rows (2.5% and 97.5%)
       xmin = k_long$value[k_long$percentile == "2.5%"],
       xmax = k_long$value[k_long$percentile == "97.5%"],
       ymin = 0,
