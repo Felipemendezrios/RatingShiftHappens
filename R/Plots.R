@@ -125,12 +125,7 @@ plotTree <- function(tree){
 #' @param show_unc_interval logical, plot of posterior shift estimation as : if `TRUE` uncertainty interval at 95% and if `FALSE` density distribution
 #'
 #' @return  List with the following components :
-#' \enumerate{
-#'   \item final_plot: ggplot, observed data presenting the shift time and their estimation
-#'   \item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically
-#'   \item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
-#'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
-#'   }
+#'
 #' @export
 #' @import patchwork
 #' @importFrom ggnewscale new_scale_color
@@ -326,13 +321,13 @@ plotSegmentation <- function(summary,
     }else if(lubridate::is.POSIXct(shift$tau)){
       obs_shift_plot=obs_shift_plot+
         scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
-                           'red'),
+                                    'red'),
                            labels=c(as.character(round(shift$tau,units='days')),
                                     'Shift(s) detected'))
     }else{
       obs_shift_plot=obs_shift_plot+
         scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
-                           'red'),
+                                    'red'),
                            labels=c(as.character(shift$tau),
                                     'Shift(s) detected'))
     }
@@ -398,7 +393,7 @@ plotSegmentation <- function(summary,
                                  summarize(
                                    Lower_inc = stats::quantile(Value, probs=0.025),
                                    .groups = 'drop_last'
-                                   )),
+                                 )),
                     data.frame(plot_summary$density.tau %>%
                                  group_by(Shift,id_iteration)%>%
                                  summarize(
@@ -460,7 +455,7 @@ plotSegmentation <- function(summary,
       geom_errorbar(aes(xmin=Lower_inc,
                         xmax=Upper_inc,
                         col=factor(Shift)),
-                width=0.08)+
+                    width=0.08)+
       # MaxPost
       geom_point(data=plot_summary$density.inc.tau,
                  aes(x=taU_MAP,
@@ -504,11 +499,11 @@ plotSegmentation <- function(summary,
                    shape=4,
                    size=3)+
         scale_color_manual(values=c(getPalette_tau_MAP(colourCount_shift),
-                           'red',
-                           'black'),
-                          labels=c(label_unc_interval,
-                          'Shift(s) detected',
-                          'Shift(s) declared'))+
+                                    'red',
+                                    'black'),
+                           labels=c(label_unc_interval,
+                                    'Shift(s) detected',
+                                    'Shift(s) declared'))+
         labs(y=NULL,
              fill=NULL,
              col=NULL)
@@ -827,8 +822,8 @@ plotRC_ModelAndSegmentation=function(summary,
                                     ceiling(max_x / 0.5) * 0.5,
                                     by=0.1))+
     labs(x='Stage (m)',
-       y='Discharge (m3/s)',
-       title = 'Rating curves after segmentation')+
+         y='Discharge (m3/s)',
+         title = 'Rating curves after segmentation')+
     scale_color_manual(values = getPalette_obs(colourCount_obs),
                        name = 'Final validity date')+
     scale_fill_manual(values = getPalette_obs(colourCount_obs),
@@ -857,7 +852,7 @@ plotRC_ModelAndSegmentation=function(summary,
              })
       )
     }
-  RC_plot= RC_plot+ scale_y_continuous(trans = "log10", breaks = breaks, labels=custom_format)
+    RC_plot= RC_plot+ scale_y_continuous(trans = "log10", breaks = breaks, labels=custom_format)
   }
 
   return(RC_plot)
@@ -1221,7 +1216,7 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
 
     # Create a dataframe for credibiliy intervals
     Credibility_interval_data <- data.frame(
-      k = rep(k_long$k[1:3]),  # Repeat each k for 2 rows (2.5% and 97.5%)
+      k = rep(k_long$k),  # Repeat each k for 2 rows (2.5% and 97.5%)
       xmin = k_long$value[k_long$percentile == "2.5%"],
       xmax = k_long$value[k_long$percentile == "97.5%"],
       ymin = 0,
@@ -1300,7 +1295,7 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
         theme(plot.title = element_text(hjust = 0.5))+
         guides(color = guide_legend(override.aes = list(
           shape = c(19,NA)
-          )))
+        )))
     })
   }
   return(PlotRCPred)
@@ -1384,10 +1379,10 @@ plot_rec_extracted <- function(Rec_extracted,
 
 
   DF_h_min_rec <- data.frame(Rec_extracted %>%
-                                 group_by(indx) %>%
-                                 arrange(hrec, desc(time_rec)) %>% # Trier par hrec croissant puis par time_rec décroissant
-                                 slice_head(n = 1) %>%
-                                 ungroup())
+                               group_by(indx) %>%
+                               arrange(hrec, desc(time_rec)) %>% # Trier par hrec croissant puis par time_rec décroissant
+                               slice_head(n = 1) %>%
+                               ungroup())
 
   # Plot minimum h recession values
   plot_min_h_rec=
@@ -1417,156 +1412,178 @@ plot_rec_extracted <- function(Rec_extracted,
 #'
 #' @param model_rec list, results obtained by using `ModelAndSegmentation.recession.regression` function
 #' @param spec_recession integer vector, number of recession to plot the observed and simulated recession data separately
+#' @param recession_rejected logical, `TRUE` = includes plot of all recession rejected
 #' @param all_recession logical, `TRUE` = plot all recessions with observed and simulated recession data
-#' @param temp.folder.Recession directory, temporary directory to write computations, be sure to use the same from `ModelAndSegmentation.recession.regression` function
-#' @param CalibrationData character, name of the calibration data used in the `ModelAndSegmentation.recession.regression` function. It must to match or an error message will be appear
-#' @param fit character, fit used during recession modelling
-#' @param equation_rec character, recession equation corresponding to fit model specified in `fit`
-#' @param ... optional arguments, as vector, to consider shift declared and stored by the hydrometric unit (see `?plotSegmentation` and `details`)
 #'
 #' @return list of plots
+#' \enumerate{
+#'   \item plot.rec.segmented: ggplot, recession data indexed by period, and  estimated shift time is indicated vertically
+#'   \item plot.b.segmented: ggplot, asymptotic height indexed by period, and the estimated shift time is indicated vertically
+#'   \item plot.obs.vs.sim: list of ggplot, comparison between recession observed and simulated and the status if this is accepted or rejected
+#'  }
 #' @details
 #' If all_recession = `TRUE`, spec_recession will not be plotted, because they have already been plotted
-#' Please be sure about fit model used during recession modelling. It must coincide. See `GetCatalog` to get all model available.
-#' For instance, fit is fitRecession_M3, equation_rec must be Recession_M3_Equation or a error message will appear.
 #' @export
-plot_modelAndSegm_recession <- function(model_rec,
-                                        spec_recession=NULL,
-                                        all_recession=FALSE,
-                                        temp.folder.Recession=file.path(tempdir(),'BaM','Recession'),
-                                        CalibrationData='CalibrationData.txt',
-                                        fit,
-                                        equation_rec,
-                                        ...){
+plot_segm_recession <- function(model_rec,
+                                spec_recession=NULL,
+                                recession_rejected=TRUE,
+                                all_recession=FALSE){
 
-  if(any(CalibrationData==list.files(temp.folder.Recession))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder.Recession. Please, check the name of calibration data used in the ModelAndSegmentation.recession.regression function')
-  CalData=read.table(file.path(temp.folder.Recession,
-                               CalibrationData),
-                     header = T)
-
-  if(any(spec_recession<=0))stop('spec_recession must be positive')
   if(!is.null(spec_recession)){
+    if(any(spec_recession<=0))stop('spec_recession must be positive')
     if(any(spec_recession %% 1 != 0))stop('spec_recession must be a integer')
   }
-  if(any(spec_recession>max(CalData$indx)))stop('spec_recession must be between the number of curves specified in the calibration data')
-  if(is.null(spec_recession) & all_recession == FALSE)stop('A recession must be selected in spec_recession or plot all recesssion')
-
-  if(!is.character(equation_rec))stop('equation_rec must be a character')
-  # Check fit model and assign an equation model
-  if(identical(fit,fitRecession_M3)){
-    if(equation_rec!='Recession_M3_Equation')stop('equation_rec does not match the fit model given as input')
-    estimation_equation_rec=Estimation_Recession_M3
-  }else if(identical(fit,fitRecession_BR1)){
-    if(equation_rec!='Recession_BR1_Equation')stop('equation_rec does not match the fit model given as input')
-    estimation_equation_rec=Estimation_Recession_BR1
-  }else if(identical(fit,fitRecession_BR2)){
-    if(equation_rec!='Recession_BR2_Equation')stop('equation_rec does not match the fit model given as input')
-    estimation_equation_rec=Estimation_Recession_BR2
-  }else{
-    stop('fit model are not supported. Please see `?GetCatalog()`')
-  }
-
-  grid_min_max_list <- lapply(model_rec[[2]],function(df){
-    data.frame(
-      Min = min(df[, 1]),
-      Max = max(df[, 1])
-    )
-  })
-
-  grid_min_max <- do.call(rbind, grid_min_max_list)
-
-  t_min_grid = min(grid_min_max$Min)
-  t_max_grid = max(grid_min_max$Max)
-
-  # Grid :
-  t_grid = data.frame(t_grid=seq(t_min_grid,t_max_grid,by=(t_max_grid-t_min_grid)/50))
-
-  # Upload Data object
-  load(file.path(temp.folder.Recession,'DataObject.RData'))
-
-  # Upload Model object
-  load(file.path(temp.folder.Recession,'ModelObject.RData'))
-
-  #MCMC results
-  MCMC    <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Cooking.txt"),header=TRUE)
+  if(any(spec_recession > model_rec$n.rec.max))stop('spec_recession must be between the number of curves specified in the data')
+  if(all(!is.null(spec_recession) & all_recession & recession_rejected == FALSE))stop('A recession must be selected in spec_recession or plot all recesssion or the plot recession rejected')
 
   if(all_recession!=FALSE){
-    Ncurves = unique(CalData$indx)
+    DF.obs.vs.sim = model_rec$summary.residual
   }else if(!is.null(spec_recession)){
-    Ncurves=spec_recession
+    if(recession_rejected==TRUE){
+      # Get recession rejected
+      indx.rec.rejected=unique(model_rec$summary.residual$indx[which(model_rec$summary.residual$status=='Rejected')])
+      indx.plot=c(spec_recession,indx.rec.rejected)
+      DF.obs.vs.sim = model_rec$summary.residual[model_rec$summary.residual$indx %in% indx.plot,]
+    }else{
+      DF.obs.vs.sim = model_rec$summary.residual[model_rec$summary.residual$indx %in% spec_recession,]
+    }
+  }else if(recession_rejected==TRUE){
+    # Get recession rejected
+    indx.rec.rejected=unique(model_rec$summary.residual$indx[which(model_rec$summary.residual$status=='Rejected')])
+    DF.obs.vs.sim = model_rec$summary.residual[model_rec$summary.residual$indx %in% indx.rec.rejected,]
   }
 
-  # Error model fixed for all functions in the package
-  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
-                                                par = list(RBaM::parameter(name="gamma1",
-                                                                           init=1,
-                                                                           prior.dist = "Uniform",
-                                                                           prior.par = c(0,1000)),
-                                                           RBaM::parameter(name="gamma2",
-                                                                           init=0.1,
-                                                                           prior.dist = "Uniform",
-                                                                           prior.par = c(0,1000)))))
+  # Plot: recession extracted showing the segmentation
+  h.t.summary = model_rec$summary.rec.extracted
 
+  # Adapt the data frame to PlotSegmentation function
+  h.t.summary$data$I95_upper=h.t.summary$data$hrec+(stats::qnorm(0.975)*h.t.summary$data$uHrec) # 95% interval uncertainty
+  h.t.summary$data$I95_lower=h.t.summary$data$hrec+(stats::qnorm(0.025)*h.t.summary$data$uHrec) # 95% interval uncertainty
 
-  # Setting for recession model :
-  allData=estimation_equation_rec(CalData=CalData,
-                                  Ncurves=Ncurves,
-                                  M=M,
-                                  MCMC=MCMC,
-                                  t_grid=t_grid,
-                                  temp.folder.Recession=temp.folder.Recession,
-                                  remnant_prior=remnant_prior)
+  colnames(h.t.summary$data) <- c('indx','time_rec','time','obs','u','status','period','I95_lower','I95_upper')
 
-  # Plots
-  PlotRECPred=list()
+  # plot.ht.segmentation =
+  plot.rec.segmented = plotSegmentation(summary=h.t.summary,
+                                        plot_summary=model_rec$plots)$final_plot
 
-  for (i in 1:length(allData)){
-    PlotRECPred[[i]]<-local({
-      inner_list <- allData[[i]]
+  plot.rec.segmented[[1]] = plot.rec.segmented[[1]]+
+    ylab('Recession-stage (m)')
 
-      ggplot()+
-        # Total uncertainty
-        geom_ribbon(data = inner_list$TotalUenv,
-                    aes(x=inner_list$HgridPlot[,1],
-                        ymin=q2.5,
-                        ymax=q97.5,
-                        fill='Total'),
-                    alpha=0.65)+
-        # Parametric uncertainty
-        geom_ribbon(data = inner_list$ParametricUenv,
-                    aes(x=inner_list$HgridPlot[,1],
-                        ymin=q2.5,
-                        ymax=q97.5,
-                        fill='Parametric'),
-                    alpha=0.65)+
-        # Map
-        geom_line(data=inner_list$MAPREC,
-                  aes(x=inner_list$HgridPlot[,1],
-                      y=inner_list$MAPREC[,1],
-                      col='MAP'))+
-        # Guagings
-        geom_errorbar(data = inner_list$CalData[which(inner_list$CalData$indx==Ncurves[i]),],
-                      aes(x=time_rec,
-                          ymin=hrec-uHrec,
-                          ymax=hrec+uHrec,
-                          col='Gaugings'),
-                      width=0.05)+
-        geom_point(data = inner_list$CalData[which(inner_list$CalData$indx==Ncurves[i]),],
-                   aes(x=time_rec,
-                       y=hrec,
-                       col='Gaugings'))+
-        # geom_hline(yintercept = model_rec$parameters$beta[Ncurves[i]])
-        labs(title=paste0('Recession number ',Ncurves[i]),
-             x='time[days]',
-             y='H[m]',
-             fill='Uncertainty',
-             col=NULL)+
-        scale_fill_manual(values=c('pink', 'red'))+
-        scale_color_manual(values=c('blue','black'))+
+  # Plot segmentation asymptotic height
+  plot.b.segmented = plotSegmentation(summary=model_rec$summary.results.segm,
+                                      plot_summary=model_rec$plots)$final_plot
+
+  plot.b.segmented[[1]] = plot.b.segmented[[1]]+
+    ylab('River bed estimation (m)')
+
+  # Plot MAP simulation and observed data
+  PlotREC.obs.sim=list()
+  indx_to_plot=unique(DF.obs.vs.sim$indx)
+
+  for (i in 1:length(indx_to_plot)){
+
+    PlotREC.obs.sim[[i]]<-local({
+      inner_list <- DF.obs.vs.sim[which(DF.obs.vs.sim$indx==indx_to_plot[i]),]
+
+      ggplot(data=inner_list,
+             aes(x=X1_obs,
+                 y=Y1_obs,
+                 ymax=Y1_obs+2*uH_obs,
+                 ymin=Y1_obs-2*uH_obs,
+                 col=factor('Recession \nobserved')))+
+        geom_pointrange()+
+        geom_line(aes(x=X1_obs,
+                      y=Y1_sim,
+                      col=factor('Recession \nsimulation (MAP)')))+
+        labs(title=paste0('Recession number ',indx_to_plot[i]),
+             x='Time [days]',
+             y='H [m]',
+             col= paste0('Status: ', unique(inner_list$status)))+
+        scale_color_manual(values=c('Recession \nsimulation (MAP)'='orange',
+                                    'Recession \nobserved'='black'))+
         theme_bw()+
-        theme(plot.title = element_text(hjust = 0.5))
+        theme(plot.title = element_text(hjust = 0.5),
+              legend.title = element_text(color= ifelse(unique(inner_list$status)=='Accepted',
+                                                        'green4',
+                                                        'red'),
+                                          size=12),
+              legend.key.height = unit(0.8,'cm'))
     })
   }
 
-  return(PlotRECPred)
+  return(list(plot.rec.segmented=plot.rec.segmented,
+              plot.b.segmented=plot.b.segmented,
+              plot.obs.vs.sim=PlotREC.obs.sim))
+}
+
+#' Plot segmentation using all stage record
+#'
+#' @param time vector, time in POSIXct format is mandatory
+#' @param obs real vector , stage (m)
+#' @param u real vector, uncertainty of the stage
+#' @param plot_summary list, plot data resulting from any segmentation function
+#'
+#' @return ggplot, plot all stage record after segmentation showing homogeneous periods
+#' @export
+#'
+#' @details
+#' For an example, please see `?ModelAndSegmentation.recession.regression`.
+#'
+plot_H_segm_recession <- function(time,
+                                  obs,
+                                  u,
+                                  plot_summary){
+  if(any(is.na(obs) | is.na(u) | is.na(time)))stop('NA value in input data. Be sure to remove them before running function')
+  if(is.null(check_vector_lengths(obs,time)))stop('The input data have not the same length')
+  if(!lubridate::is.POSIXct(time))stop('time must be POSIXct format')
+
+  data = data.frame(time=time,
+                    obs=obs,
+                    u=u,
+                    I95_lower=obs+stats::qnorm(0.025)*u,
+                    I95_upper=obs+stats::qnorm(0.975)*u)
+
+  if(!is.null(plot_summary)){
+    shift.info=plot_summary$density.inc.tau
+
+
+    shift.plot=data.frame(tau=shift.info$taU_MAP,
+                          I95_lower=shift.info$tau_lower_inc,
+                          I95_upper=shift.info$tau_upper_inc,
+                          id_iteration=shift.info$id_iteration)
+
+    shift.plot=shift.plot[order(shift.plot$tau),]
+
+    # Get origin date of the segmentation
+    origin.date <- min(data$time)
+
+    # Date transformation function to passe to numeric format if necessary
+    DateTransformed <- DateFormatTransform(date=data$time)
+    data$time <- DateTransformed$time
+    origin.date <- DateTransformed$origin
+
+    shifts.numeric=lubridate::time_length(lubridate::interval(origin.date, shift.plot$tau), "day")
+
+    intervals.time.shift=c(-Inf,shifts.numeric,Inf) # intervals defined by time shifts
+
+    ## cut data depending on the intervals time shift
+    data$period <- cut(
+      data$time,
+      breaks = intervals.time.shift,
+      labels = 1:(length(intervals.time.shift)-1),
+      right = FALSE
+    )
+
+    data$time=NumericFormatTransform(numeric.date = data$time,
+                                     origin.date = origin.date)
+
+    plot.data=list(data=data,
+                   shift=shift.plot)
+  }else{
+    # Any shift detected
+    plot.data=list(data=data.frame(data,period=1),
+                   shift=shift.plot)
+  }
+  plotSegmentation(summary=plot.data,
+                   plot_summary=plot_summary)$final_plot
 }
