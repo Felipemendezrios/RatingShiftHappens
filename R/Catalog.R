@@ -6,7 +6,7 @@
 #' @return If \code{printOnly==FALSE}, a list with the following fields:
 #' \enumerate{
 #'   \item models: available models
-#'   \item Equations: available equations
+#'   \item RC Equations: available RC Equations
 #' }
 #' @examples
 #' catalog <- GetCatalog()
@@ -23,21 +23,24 @@ GetCatalog<-function(printOnly=FALSE){
            'fitRecession_BR1',
            'fitRecession_BR2')
 
-  Equations=c('Loess_Equation',
+  RC_Equations=c('Loess_Equation',
               'BaRatinBAC_Equation',
               'BaRatinKAC_Equation',
               'Exponential_Equation',
-              'LinearRegression_Equation',
-              'Recession_M3_Equation',
-              'Recession_BR1_Equation',
-              'Recession_B2_Equation')
+              'LinearRegression_Equation')
+
+  Recession_Equations=c('Recession_M3_Equation',
+                        'Recession_B2_Equation')
   if(printOnly){
     message('MODELS:')
     print(models)
-    message('Equations:')
-    print(Equations)
+    message('RC Equations:')
+    print(RC_Equations)
+    message('Recession Equations:')
+    print(Recession_Equations)
   } else{
     return(list(models=models,
-                Equations=Equations))
+                RC_Equations=RC_Equations,
+                Recession_Equations=Recession_Equations))
   }
 }
