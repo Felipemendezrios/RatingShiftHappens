@@ -22,12 +22,6 @@ plotSegmentation(
 }
 \value{
 List with the following components :
-\enumerate{
-\item final_plot: ggplot, observed data presenting the shift time and their estimation
-\item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically
-\item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
-vertical lines indicating the 95\% credibility interval and a red cross representing shift time assignment
-}
 }
 \description{
 Plots  focusing on the observed data and shift time and their estimation

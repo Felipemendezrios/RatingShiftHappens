@@ -46,7 +46,7 @@ Linear regression used to estimate a simple rating curve. Formula : \deqn{Q(h)= 
 subset = RhoneRiver[1:20,]
 
 # Linear regression to estimate a simple rating curve
-fit.funk=fitRC_LinearRegression(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+fit.funk=fitRC_LinearRegression(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
 fit=fit.funk$ResultsResiduals
 
 # Parameters of the linear regression

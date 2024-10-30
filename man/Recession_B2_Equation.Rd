@@ -2,21 +2,20 @@
 % Please edit documentation in R/RecessionCurveEquationsModels.R
 \name{Recession_B2_Equation}
 \alias{Recession_B2_Equation}
-\title{Recession with one exponential and four parameters}
+\title{Model 2:}
 \usage{
-Recession_B2_Equation(t, alpha_1, lambda_1, c, beta_k)
+Recession_B2_Equation()
 }
-\arguments{
-\item{t}{real value, time}
-
-\item{alpha_1}{real value, initial stage of the exponential function}
-
-\item{lambda_1}{real value, first parameter of the exponential function}
-
-\item{c}{real value, recession exponent}
-
-\item{beta_k}{real value, asymptotic stage}
+\value{
+Parameter's description:
+\enumerate{
+\item{t real value, time}
+\item{lambda_1 real value, first parameter of the exponential function}
+\item{beta_k real value, asymptotic stage}
+\item{alpha_1 real value, initial stage of the exponential function}
+\item{c real value, recession exponent}
+}
 }
 \description{
-Recession with one exponential and four parameters
+Recession with one exponential and four parameters: \deqn{\alpha \cdot \exp(-\lambda \cdot t^c) + \beta_k}
 }

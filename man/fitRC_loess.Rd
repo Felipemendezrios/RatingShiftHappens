@@ -45,7 +45,7 @@ LOESS model used to estimate a simple rating curve
 subset = RhoneRiver[1:20,]
 
 # LOESS regression to estimate a simple rating curve
-fit.funk=fitRC_loess(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+fit.funk=fitRC_loess(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
 fit=fit.funk$ResultsResiduals
 
 # plot rating curve with model results

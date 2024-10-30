@@ -4,7 +4,7 @@
 \alias{remove_files}
 \title{Remove files excepting some specific files from the directory}
 \usage{
-remove_files(dir.source, files_to_keep)
+remove_files(dir.source, files_to_keep = NULL)
 }
 \arguments{
 \item{dir.source}{character, source directory}

@@ -2,23 +2,22 @@
 % Please edit documentation in R/RecessionCurveEquationsModels.R
 \name{Recession_M3_Equation}
 \alias{Recession_M3_Equation}
-\title{Recession model with two exponential and asymptotic}
+\title{Model 1:}
 \usage{
-Recession_M3_Equation(t, alpha_1_k, lambda_1, alpha_2_k, lambda_2, beta_k)
+Recession_M3_Equation()
 }
-\arguments{
-\item{t}{real value, time}
+\value{
+Parameter's description:
 
-\item{alpha_1_k}{real value, initial stage of the first exponential function}
-
-\item{lambda_1}{real value, fast runoff}
-
-\item{alpha_2_k}{real value, initial stage of the second exponential function}
-
-\item{lambda_2}{real value, slow emptying of the aquifer}
-
-\item{beta_k}{real value, asymptotic stage}
+\enumerate{
+\item{t real value, time}
+\item{alpha_1_k real value, initial stage of the first exponential function}
+\item{lambda_1 real value, fast runoff}
+\item{alpha_2_k real value, initial stage of the second exponential function}
+\item{lambda_2 real value, slow emptying of the aquifer}
+\item{beta_k real value, asymptotic stage}
+}
 }
 \description{
-Recession model with two exponential and asymptotic
+Recession model with two exponential and asymptotic: \deqn{\alpha_{1_k} \cdot \exp(-\lambda_1 \cdot t) + \alpha_{2_k} \cdot \exp(-\lambda_2 \cdot t) + \beta_k}
 }

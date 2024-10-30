@@ -16,14 +16,15 @@ ModelAndSegmentation.recession.regression(
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
-  funk = fitRecession_M3,
+  temp.folder.Recession = file.path(tempdir(), "BaM", "Recession"),
+  funk = Recession_B2_Equation,
   ...
 )
 }
 \arguments{
 \item{time_rec}{real vector, recession duration relative to the first data detected during the recession}
 
-\item{daterec}{vector, time in POSIXct format}
+\item{daterec}{vector, time in POSIXct format mandatory}
 
 \item{hrec}{real vector, stage value of the recessions}
 
@@ -41,60 +42,52 @@ ModelAndSegmentation.recession.regression(
 
 \item{nSlim}{integer, MCMC slim step}
 
-\item{temp.folder}{directory, temporary directory to write computations}
+\item{temp.folder}{directory, temporary directory to write computations of the segmentation}
 
-\item{funk}{the function for estimating the recession}
+\item{temp.folder.Recession}{directory, temporary directory to write computations of the recession}
+
+\item{funk}{the equation for estimating the recession}
 
 \item{...}{optional arguments to funk}
 }
 \value{
-List with the following components :
+List with the following components:
 \enumerate{
-\item summary_results : list with this sub components :
+\item summary.rec.extracted : list with this sub components:
 \itemize{
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{ \\item summary: list, summarize the information to present to the user
- \\itemize\{
-     \\item data: data frame, all data of (H,Q and uQ) with their respective periods after segmentation
-     \\item shift: data frame, all detected shift time
- \}
- \\item plot : list, data formatted to use as input for some plot functions
- \\item res: list, provide all the information of the periods from tree structure
- \\itemize\{
-     \\item tau: real vector, estimated shift times
-     \\item segments: list, segment maximum a posterior (MAP) value indexed by the list number
-     \\item mcmc: data frame, MCMC simulation
-     \\item data.p: list, separate and assign information by identified stable period indexed by the list number
-     \\item DIC: real, DIC estimation
-     \\item nS: integer, optimal number of segments following DIC criterion
-   \}
- \\item tree: data frame, provide tree structure
- \\item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
-}\if{html}{\out{</div>}}
-
+\item data: data frame, all data of recession (time, date, H and uH) with their respective period after segmentation and status if the recession model was accepted or rejected
+\item shift: data frame, all detected shift time
 }
-\item residuals_all_data : list, provide all information of recession data observed and simulated
+\item summary.results.segm: list with this sub components:
 \itemize{
-\item time_rec: real value, time of the recession relative to first data of each recession
-\item hrec: real value, stage observed
-\item H_rec_sim: real value, stage simulated
-\item H_res: real value, residual between stage observed and simulated
-\item uhrec: real value, uncertainty on stage observed
-\item uH_sim: real value, uncertainty on stage simulated
+\item data: data frame, asymptotic height estimation by curve accepted with their respective period after segmentation
+\item shift: data frame, all detected shift time
 }
-\item parameters : all information about the parameters estimated depending of the fit model used
+\item summary.residual: data frame, the residual information between the MAP simulation and the observation with weighted RMSE to criticise the recession estimate and finally the acceptance or rejection status.
+\item plots: list, data formatted to use as input for some plot functions
+\item res: list, provide all the information of the periods from tree structure
+\itemize{
+\item tau: real vector, estimated shift times
+\item segments: list, segment maximum a posterior (MAP) value indexed by the list number
+\item mcmc: data frame, MCMC simulation
+\item data.p: list, separate and assign information by identified stable period indexed by the list number
+\item DIC: real, DIC estimation
+\item nS: integer, optimal number of segments following DIC criterion
+}
+\item tree: data frame, provide tree structure
+\item origin.date: positive real or date, date describing origin of the segmentation for a sample
 }
 }
 \description{
 Modelling recession using a catalog of fit models available to apply segmentation procedure.
-Please see details for understaing how to use this function
+Please see details for understading how to use this function
 }
 \details{
-To get the catalog of models available using \code{GetCatalog()}, all functions specifying Recession in the fit are concerned.
-For more information about recession model and their default values, please go to the fit function, e.g. \code{?fitRecession_M3}
-If prior knowledge about recession parameters is given, be sure to give dataset too.
-The direction file path for this dataset must be \code{file.path(tempdir(),'BaM','Recession')} as shown in the example
-Please respect the name of the parameters if default values will not be used. e.g. beta paremeter's will be "beta"
+To get the catalog of models available using \code{GetCatalog()$Recession_Equations}.
+Be careful when specifying temporal folder for computations.
+temp.folder must contain temp.folder.Recession as the default value:
+temp.folder= \code{file.path(tempdir(),'BaM')}
+temp.folder.Recession= \code{file.path(tempdir(),'BaM','Recession')}
 }
 \examples{
 recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
@@ -108,57 +101,27 @@ recessions = recessions_extracted$Rec_extracted
 # Plot all recession extracted
 plot_rec_extracted(Rec_extracted = recessions)
 
-D=RBaM::dataset(X=recessions['time_rec'],
-                Y=recessions['hrec'],
-                Yu=recessions['uHrec'],
-                VAR.indx=recessions['indx'],
-                data.dir=file.path(tempdir(),'BaM','Recession'))
-
 # Choose fit recession model
-fit=fitRecession_M3
-
-# Give prior knowledge about recession-specific parameters and keep prior on stable parameters
-alpha1.object = RBaM::parameter_VAR(name='alpha1',
-                                    index='indx',
-                                    d=D,
-                                    init=rep(100,max(recessions$indx)),
-                                    prior.dist=rep('Uniform',max(recessions$indx)),
-                                    prior.par=rep(list(c(0,1000)),max(recessions$indx)))
-
-alpha2.object = RBaM::parameter_VAR(name='alpha2',
-                                    index='indx',
-                                    d=D,
-                                    init=rep(50,max(recessions$indx)),
-                                    prior.dist=rep('Uniform',max(recessions$indx)),
-                                    prior.par=rep(list(c(0,100)),max(recessions$indx)))
-
-beta.object = RBaM::parameter_VAR(name='beta',
-                                    index='indx',
-                                    d=D,
-                                    init=rep(52.4,max(recessions$indx)),
-                                    prior.dist=rep('Uniform',max(recessions$indx)),
-                                    prior.par=rep(list(c(-97.6,102.4)),max(recessions$indx)))
+fit=Recession_B2_Equation
 
 model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
                                                     daterec=recessions$date,
                                                     hrec=recessions$hrec,
                                                     uHrec=recessions$uHrec,
                                                     indx=recessions$indx,
-                                                    alpha1.object=alpha1.object,
-                                                    alpha2.object=alpha2.object,
-                                                    beta.object=beta.object,
-                                                    Dataset.object=D,
-                                                    nCyclesrec=1,
+                                                    nCyclesrec=10,
                                                     burnrec=0.1,
-                                                    nSlimrec=5,
+                                                    nSlimrec=2,
                                                     funk=fit)
-
 # Plot recession segmentation
-plot_modelAndSegm_recession(model_rec=model_rec,
-                            spec_recession=c(2,16,28),
-                            fit=fitRecession_M3,
-                            equation_rec='Recession_M3_Equation')
+plot_segm_recession(model_rec=model_rec,
+                    spec_recession=c(2,16,28,48),
+                    recession_rejected=FALSE,
+                    )
 
-plotSegmentation(summary = model_rec$summary_results$summary,
-                 plot_summary = model_rec$summary_results$plot )
+# Plot using all data of stage record
+plot_H_segm_recession(time=ArdecheRiverMeyrasStage$Date,
+                      obs=ArdecheRiverMeyrasStage$H,
+                      u=0.05,
+                      plot_summary = model_rec$plot)
 }

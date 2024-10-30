@@ -46,7 +46,7 @@ Exponential regression expressed as \deqn{Q(h)=a \cdot \exp(b \cdot h)}
 subset = RhoneRiver[1:20,]
 
 # Exponential regression to estimate a simple rating curve
-fit.all=fitRC_exponential(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ)
+fit.all=fitRC_exponential(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
 
 fit=fit.all$ResultsResiduals
 fit.param=fit.all$parameters

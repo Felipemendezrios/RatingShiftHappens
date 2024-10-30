@@ -2,36 +2,36 @@
 % Please edit documentation in R/RecessionEstimationModelBaM.R
 \name{Estimation_Recession_BR1}
 \alias{Estimation_Recession_BR1}
-\title{Exponential recession model with five parameters}
+\title{Exponential recession model with four parameters}
 \usage{
 Estimation_Recession_BR1(
-  CalData,
-  Ncurves,
-  M,
-  MCMC,
-  t_grid,
+  raw.data,
+  data.object,
+  current.rec.model,
   temp.folder.Recession,
-  remnant_prior
+  nCyclesrec = 100,
+  burnrec = 0.5,
+  nSlimrec = max(nCyclesrec/10, 1)
 )
 }
 \arguments{
-\item{CalData}{data frame, calibration data used for calibration}
+\item{raw.data}{data frame, all stage record}
 
-\item{Ncurves}{real positive value, number of recession extracted}
+\item{data.object}{object, model object output by the RBaM function}
 
-\item{M}{object, model object output by the RBaM function}
-
-\item{MCMC}{data frame, MCMC results}
-
-\item{t_grid}{data frame, recession duration}
+\item{current.rec.model}{character, equation selected to modelling recessions}
 
 \item{temp.folder.Recession}{directory, temporary directory to write computations}
 
-\item{remnant_prior}{object, remnant error model output by the RBaM function}
+\item{nCyclesrec}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles}
+
+\item{burnrec}{real between 0 (included) and 1 (excluded), MCMC burning factor}
+
+\item{nSlimrec}{integer, MCMC slim step}
 }
 \value{
 list, recession estimation with their uncertainties
 }
 \description{
-Exponential recession model with five parameters
+Exponential recession model with four parameters
 }
