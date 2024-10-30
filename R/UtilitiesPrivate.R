@@ -23,13 +23,17 @@ check_vector_lengths <- function(...) {
 #'
 #' @return numeric date to input format of time
 NumericFormatTransform <- function(numeric.date,origin.date){
-  date_time <- as.POSIXct(origin.date)
-  date_only <- as.Date(date_time)
-  contains_time_info <- date_time != as.POSIXct(date_only)
-  if (any(contains_time_info)) {
-    return(origin.date+numeric.date*86400)
-  }else{
+  if (lubridate::is.Date(origin.date)) {
     return(origin.date+numeric.date)
+  }else if(lubridate::is.POSIXct(origin.date)){
+    return(origin.date+numeric.date*86400)
+  }else{ # character format
+    # Attempt to parse the date using various formats
+    parsed_date <- lubridate::parse_date_time(origin.date, tz = "UTC", orders  = c('ymd H:M:S', 'ymd', 'mdy',
+                                                                                   'dmy', 'ymd HMS', 'y-m-d H:M:S',
+                                                                                   'y/m/d H:M:S', 'y/m/d HMS' ))
+
+    return(parsed_date+numeric.date*86400)
   }
 }
 
