@@ -18,16 +18,13 @@ GetCatalog<-function(printOnly=FALSE){
            'fitRC_BaRatinBAC',
            'fitRC_BaRatinKAC',
            'fitRC_exponential',
-           'fitRC_LinearRegression',
-           'fitRecession_M3',
-           'fitRecession_BR1',
-           'fitRecession_BR2')
+           'fitRC_LinearRegression')
 
   RC_Equations=c('Loess_Equation',
-              'BaRatinBAC_Equation',
-              'BaRatinKAC_Equation',
-              'Exponential_Equation',
-              'LinearRegression_Equation')
+                 'BaRatinBAC_Equation',
+                 'BaRatinKAC_Equation',
+                 'Exponential_Equation',
+                 'LinearRegression_Equation')
 
   Recession_Equations=c('Recession_M3_Equation',
                         'Recession_B2_Equation')

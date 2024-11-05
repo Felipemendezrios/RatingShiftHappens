@@ -14,7 +14,7 @@
 #' }
 #' @export
 Recession_M3_Equation <- function(){
-  return('alpha_1_k * exp(-lambda_1*t) + alpha_2_k * exp(-lambda_2*t) + beta_k')
+  return('alpha_1_k*exp(-lambda_1*t)+alpha_2_k*exp(-lambda_2*t)+beta_k')
 }
 
 #' Model 2:

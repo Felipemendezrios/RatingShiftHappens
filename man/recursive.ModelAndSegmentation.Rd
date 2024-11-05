@@ -212,12 +212,18 @@ terminal = resultsBaRatin$tree$indx[which(resultsBaRatin$tree$nS==1)]
 terminal
 
 # Plot the rating curves after using BaRatin method. Function specially created to this method
-plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                 autoscale=FALSE,
-                 temp.folder=file.path(tempdir(),'BaM'),
-                 CalibrationData='CalibrationData.txt',
-                 allnodes=FALSE,
-                 nodes=terminal)
+plots_prediction=plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                                  autoscale=FALSE,
+                                  temp.folder=file.path(tempdir(),'BaM'),
+                                  CalibrationData='CalibrationData.txt',
+                                  allnodes=FALSE,
+                                  nodes=terminal)
+
+# Plot rating curve of the first terminal node
+plots_prediction$PlotRCPred[[1]]
+
+# Get data of the first terminal node
+plots_prediction$allData[[1]]
 
 # Plot shift times in stage record
 plot_H_ModelAndSegmentation(summary=resultsBaRatin$summary,
