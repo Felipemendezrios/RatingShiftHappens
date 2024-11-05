@@ -125,7 +125,12 @@ plotTree <- function(tree){
 #' @param show_unc_interval logical, plot of posterior shift estimation as : if `TRUE` uncertainty interval at 95% and if `FALSE` density distribution
 #'
 #' @return  List with the following components :
-#'
+#' \enumerate{
+#'    \item final_plot: ggplot, observed data presenting the shift time and their estimation
+#'    \item observation_and_shift: ggplot, observed data indexed by period, and the estimated shift time is indicated vertically,
+#'    \item shift_time_density: ggplot, density plot of the shift times following MCMC results, with
+#'          vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
+#' }
 #' @export
 #' @import patchwork
 #' @importFrom ggnewscale new_scale_color
@@ -263,7 +268,7 @@ plotSegmentation <- function(summary,
                    col=factor(period)),
                shape=4,
                size=3)+
-    labs(col='Global shift(s) time')
+    labs(col='Global shift(s) \ntime')
 
   # Add shift declared
   if(!is.null(shift_data_reported)){
@@ -316,20 +321,20 @@ plotSegmentation <- function(summary,
         scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
                                     'red'),
                            labels=c(round(shift$tau,2),
-                                    'Shift(s) detected'))
+                                    'Shift(s) \ndetected'))
 
     }else if(lubridate::is.POSIXct(shift$tau)){
       obs_shift_plot=obs_shift_plot+
         scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
                                     'red'),
                            labels=c(as.character(round(shift$tau,units='days')),
-                                    'Shift(s) detected'))
+                                    'Shift(s) \ndetected'))
     }else{
       obs_shift_plot=obs_shift_plot+
         scale_color_manual(values=c(getPalette_tau_MAP(colourCount_tau),
                                     'red'),
                            labels=c(as.character(shift$tau),
-                                    'Shift(s) detected'))
+                                    'Shift(s) \ndetected'))
     }
     obs_shift_plot=obs_shift_plot+# Use guides to separate point and line legend representation
       guides(color = guide_legend(override.aes = list(
@@ -502,8 +507,8 @@ plotSegmentation <- function(summary,
                                     'red',
                                     'black'),
                            labels=c(label_unc_interval,
-                                    'Shift(s) detected',
-                                    'Shift(s) declared'))+
+                                    'Shift(s) \ndetected',
+                                    'Shift(s) \ndeclared'))+
         labs(y=NULL,
              fill=NULL,
              col=NULL)
@@ -519,12 +524,12 @@ plotSegmentation <- function(summary,
                    size=3)+
         scale_color_manual(values=c('red',
                                     'black'),
-                           labels=c('Shift(s) detected',
-                                    'Shift(s) declared'))+
+                           labels=c('Shift(s) \ndetected',
+                                    'Shift(s) \ndeclared'))+
         scale_fill_manual(values=getPalette_tau_MAP(colourCount_shift),
                           labels=label_shift)+
         labs(y='Probability density',
-             fill='Posterior distribution',
+             fill='Posterior \ndistribution',
              col=NULL)
     }
 
@@ -535,7 +540,7 @@ plotSegmentation <- function(summary,
       scale_color_manual(values=c(getPalette_tau_MAP(colourCount_shift),
                                   'red'),
                          labels=c(label_unc_interval,
-                                  'Shift(s) detected'))+
+                                  'Shift(s) \ndetected'))+
       labs(y=NULL,
            fill=NULL,
            col=NULL)
@@ -543,22 +548,24 @@ plotSegmentation <- function(summary,
     pdf_shift_plot=
       pdf_shift_plot+
       scale_color_manual(values='red',
-                         labels='Shift(s) detected')+
+                         labels='Shift(s) \ndetected')+
       scale_fill_manual(values=getPalette_tau_MAP(colourCount_shift),
                         labels=label_shift)+
       labs(y='Probability density',
-           fill='Posterior distribution',
+           fill='Posterior \ndistribution',
            col=NULL)
   }
 
   pdf_shift_plot=
     pdf_shift_plot+
-    labs(x='Time')+
+    labs(x='Time',
+         title='Shift(s) detected in node:')+
     theme_bw()+
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(hjust = 0.5))
 
   # Adjust X axis plot
   obs_shift_plot =
@@ -571,14 +578,43 @@ plotSegmentation <- function(summary,
     coord_cartesian(xlim=c(minxplot,maxxplot))
 
   if(length(which(colnames(plot_summary$density.inc.tau)=='id_iteration'))!=0){
-    pdf_shift_plot=pdf_shift_plot+
-      facet_wrap(~id_iteration,
-                 ncol=1,
+    pdf_shift_plot=
+      pdf_shift_plot+
+      facet_grid(rows=vars(id_iteration),
                  scales='free_y',
-                 labeller = labeller(id_iteration=label_wrap))
+                 space = 'free_y')
   }
 
-  return(list(final_plot=obs_shift_plot/pdf_shift_plot,
+  # Customize legend position
+  obs_shift_plot = obs_shift_plot +
+    theme(
+      legend.position = "right",
+      legend.box = "horizontal"
+    ) +
+    guides(
+      color = guide_legend(ncol = 1),
+      shape = guide_legend(ncol = 1)
+    )
+
+  pdf_shift_plot = pdf_shift_plot +
+    theme(
+      legend.position = "right",
+      legend.box = "horizontal"
+    ) +
+    guides(
+      color = guide_legend(ncol = 1),
+      shape = guide_legend(ncol = 1)
+    )
+
+  final_plot = obs_shift_plot/pdf_shift_plot +  guides(col = "none")
+
+  final_plot = final_plot + plot_layout(guides = "collect") &
+    theme(
+      legend.position = "right",
+      legend.box = "horizontal"
+    )
+
+  return(list(final_plot=final_plot,
               observation_and_shift=obs_shift_plot,
               shift_time_density=pdf_shift_plot))
 }
@@ -1073,7 +1109,11 @@ plotGaugingsSegmented <- function(summary,
 #' @param allnodes logical, if TRUE all node will be plotted and the parameter nodes in the input data function will not be considered. If FALSE, it must to specify the nodes to plot.
 #' @param nodes integer vector, the nodes from tree structure for plotting rating curve.
 #'
-#' @return ggplot, rating curve with MAP, uncertainties and gauging data. More specification in 'Details'
+#' @return List with the following components :
+#' \enumerate{
+#'     \item ggplot, rating curve with MAP, uncertainties and gauging data. More specification in 'Details'
+#'     \item list, data frame with numeric data of each rating curve plotted before
+#' }
 #' @details
 #' The function allows plotting any node from the tree structure, as shown in the example from `recursive.ModelAndSegmentation`.
 #' The rating curves consist of the optimal rating curve after estimation, along with the parametric and total uncertainty.
@@ -1298,7 +1338,8 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
         )))
     })
   }
-  return(PlotRCPred)
+  return(list(PlotRCPred=PlotRCPred,
+              allData=allData))
 }
 
 

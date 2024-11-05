@@ -27,7 +27,11 @@ plotRCPrediction(
 \item{nodes}{integer vector, the nodes from tree structure for plotting rating curve.}
 }
 \value{
-ggplot, rating curve with MAP, uncertainties and gauging data. More specification in 'Details'
+List with the following components :
+\enumerate{
+\item ggplot, rating curve with MAP, uncertainties and gauging data. More specification in 'Details'
+\item list, data frame with numeric data of each rating curve plotted before
+}
 }
 \description{
 Plot all rating curve specified in the nodes after using \code{recursive.ModelAndSegmentation} function.
