@@ -43,13 +43,13 @@ Estimation_Recession_M3 <- function(raw.data,
                                 prior.dist=rep('FlatPrior+',Ncurves),
                                 prior.par =rep(list(NULL), Ncurves)) # prior distributions
 
-
+  # Details : https://en.wikipedia.org/wiki/Exponential_decay
   lambda_1=RBaM::parameter(name='lambda_1',
-                           init=1/stats::median(rec.data$time_rec),          # need to be checked : several lambda to get half-life of a recession
+                           init=log(2)/stats::median(rec.data$time_rec),
                            prior.dist='FlatPrior+')
 
   lambda_2=RBaM::parameter(name='lambda_2',
-                           init=1/stats::median(rec.data$time_rec),          # need to be checked : several lambda to get half-life of a recession
+                           init=log(2)/stats::median(rec.data$time_rec),
                            prior.dist='FlatPrior+')
 
   beta_k=RBaM::parameter_VAR(name='beta_k',
@@ -226,8 +226,9 @@ Estimation_Recession_BR1 <- function(raw.data,
   alpha=RBaM::parameter(name='alpha',
                         init=max(rec.data$hrec)-min(rec.data$hrec),
                         prior.dist='FlatPrior+')
+  # Details : https://en.wikipedia.org/wiki/Exponential_decay
   lambda=RBaM::parameter(name='lambda',
-                         init=1/stats::median(rec.data$time_rec),          # need to be checked : several lambda to get half-life of a recession
+                         init=log(2)/stats::median(rec.data$time_rec),
                          prior.dist='FlatPrior+')
   c=RBaM::parameter(name='c',
                     init=1,
