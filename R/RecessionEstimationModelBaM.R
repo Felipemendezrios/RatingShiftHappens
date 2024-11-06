@@ -183,11 +183,11 @@ Estimation_Recession_M3 <- function(raw.data,
   # Get data frame to segment
   df.to.segm.p=merge(b_obs,ub_obs)
 
-  last.date.record=data.frame(raw.data %>%
+  begin.date.record=data.frame(raw.data %>%
                                 group_by(indx) %>%
-                                summarize(date=max(daterec)))
+                                summarize(date=min(daterec)))
 
-  df.to.segm=merge(df.to.segm.p,last.date.record)
+  df.to.segm=merge(df.to.segm.p,begin.date.record)
 
   return(list(df.to.segm=df.to.segm,
               rec.data.plot.h.dt=rec.data.plot.h.dt,
@@ -366,11 +366,11 @@ Estimation_Recession_BR1 <- function(raw.data,
   # Get data frame to segment
   df.to.segm.p=merge(b_obs,ub_obs)
 
-  last.date.record=data.frame(raw.data %>%
+  begin.date.record=data.frame(raw.data %>%
                                 group_by(indx) %>%
-                                summarize(date=max(daterec)))
+                                summarize(date=min(daterec)))
 
-  df.to.segm=merge(df.to.segm.p,last.date.record)
+  df.to.segm=merge(df.to.segm.p,begin.date.record)
 
   return(list(df.to.segm=df.to.segm,
               rec.data.plot.h.dt=rec.data.plot.h.dt,

@@ -109,9 +109,6 @@ model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec
                                                     hrec=recessions$hrec,
                                                     uHrec=recessions$uHrec,
                                                     indx=recessions$indx,
-                                                    nCyclesrec=10,
-                                                    burnrec=0.1,
-                                                    nSlimrec=2,
                                                     funk=fit)
 # Plot recession segmentation
 plot_segm_recession(model_rec=model_rec,
