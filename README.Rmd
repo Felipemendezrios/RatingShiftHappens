@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 ## Introduction
 
-The goal of `RatingShiftHappens` package is to create a tools package for detecting, visualizing and estimating rating shifts. This package was derived from [BayDERS](https://github.com/MatteoDarienzo/BayDERS) developed by [@darienzoDetectionEstimationStagedischarge2021](https://theses.hal.science/tel-03211343).
+The goal of `RatingShiftHappens` package is to create a tools package for detecting, visualizing and estimating rating shifts. This package was derived from [BayDERS](https://github.com/MatteoDarienzo/BayDERS) developed by [@darienzoDetectionStageDischarge2021](https://theses.hal.science/tel-03211343).
 
 This documentation provides the description of several functions available to the segmentation process. 
 
@@ -48,6 +48,8 @@ Functions will be explained more precisely below along with an example.
 ##  Segmentation procedure for a *known* given number of segments
 
 This basic example demonstrates the segmentation of annual maximum stages (H, m) for the Rhone River at Beaucaire, France, along with the associated uncertainties expressed as standard deviations (uH), divided into two groups. More information about the data set, please refer to the documentation available in `?RhoneRiver`.
+
+In this package, all uncertainties are expressed as standard deviations rather than expanded uncertainties. Uncertainty in stage measurements will be in meters, while for discharge, it will be in cubic meters per second.
 
 ```{r segmentation.engine}
  # Run segmentation engine function at two segments
@@ -77,7 +79,7 @@ This basic example demonstrates the segmentation of annual maximum stages (H, m)
 
 
 
-## For more advanced details : 
+### For more advanced details: 
 
 MCMC sampling demonstrate all combinations of parameters estimated. 
 
@@ -174,9 +176,11 @@ This is a basic example, which shows you how to segment the data set with an **u
 
 ## Hydrometry field
 
-Detection and segmentation has only been performed for the residual of a random variable thus far. However, in the field of hydrometry,one of the objectives is to predict discharge from stage, using a rating curve that can vary over time.
+Detection and segmentation have so far been applied only to the residual of a random variable. However, in hydrometry, a key objective is to predict discharge from stage using a rating curve that may vary over time (shift time).
 
-## Fitting models
+First, the rating curve approach will be discussed; then, a method for detecting shift times on the rating curve based on the gaugings will be considered; and finally, a method for detecting shift times based on the flood recession will be explained.  
+
+### Model fitting for the rating curve
 
 Many models are available to describe the rating curve. All fitting models with their equations supported by the package are listed below. For more details, refer to `GetCatalog()` to determine which model could be used to estimate the rating curve. 
 
@@ -185,11 +189,11 @@ Many models are available to describe the rating curve. All fitting models with 
 GetCatalog()$models
 
 # Get equation of each model
-GetCatalog()$Equations
+GetCatalog()$RC_Equations
 ```
 All these equations Q(h) allow for the proper transformation of stage to discharge, following the specified assumption for each fitting model.
 
-Models can either be non-parametric, such as as `fitRC_loess`, which relies solely on data for calculation, or parametric, like `fitRC_BaRatinKAC` with three parameters (a,b,c) per hydraulic control, integrating physics and geometry proprieties of the river in the estimation process. 
+Models can either be non-parametric, such as as `fitRC_loess`, which relies solely on data for calculation, or parametric, like `fitRC_BaRatinKAC` with three parameters (a,b,c) per hydraulic control, integrating physics and geometry properties of the river in the estimation process. 
 
 Hereafter, the employed model will be an exponential regression (`fitRC_exponential`) and the BaRatin model for estimating discharge.
 
@@ -197,11 +201,11 @@ The exponential regression needs two parameters, denoted as *a* and *b*, followi
 
 $Q(h) = a \cdot e^{(b \cdot h)}$
 
-The BaRatin model needs the parameters *a*, *b* and *c* per hydraulic control, following the equation : 
+The BaRatin model needs the parameters *a*, *b* and *c* per hydraulic control, following the equation: 
 
 $Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)$ 
 
-## Dataset
+### Dataset
 
 The Ardèche hydrometric station at Meyras is introduced as a new dataset, further information in `?ArdecheRiverMeyrasGaugings`. The dataset includes stages (H, in meters) and discharge ADCP measurements (Q, in cubic meters per second) all accompanied by uncertainties. 
 
@@ -210,11 +214,11 @@ knitr::kable(head(ArdecheRiverMeyrasGaugings),
               align = 'c',row.names = F)
 ```
 
-## Recursive model and segmentation procedure for an *unknown*  number of segments
+### Recursive model and segmentation procedure for an *unknown*  number of segments
 
-This function enables the modeling of the rating curve and ensures its continual update at each segmentation for an **unknown** number of segments. This approach leads to a better fit for the model as it is consistently updated with data from the current period.
+This function enables the modeling of the rating curve and ensures its continual update at each segmentation for an **unknown** number of segments. This approach leads to a better fit for the model as it is consistently updated with gauging data from the current period.
 
-### Rating curve using exponential regression
+#### Rating curve using exponential regression
 
 An exponential regression model is employed  to construct the rating curve using observed data point represented by stage and discharge information. This regression estimates the relationships between a dependent variable and one independent variables from a statistical perspective.
 
@@ -299,7 +303,7 @@ plotResidual_ModelAndSegmentation(summary=results$summary,
 
 ```
 
-### Rating curve using BaRatin method
+#### Rating curve using BaRatin method
 
 The Bayesian BaRatin method ([Bayesian Rating curve](https://baratin-tools.github.io/en/), @lecozCombiningHydraulicKnowledge2014; @hornerImpactStageMeasurement2018) has been developed at INRAE. 
 
@@ -307,7 +311,7 @@ The method combines the strength of a probabilistic approach (parameter estimati
 
 In this package, the methodology of BaRatin will not been explained in detail. Instead, hydraulic control matrix and prior information on parameters will be used to run the segmentation and estimation of the rating curve.
 
-#### Hydraulic analysis
+##### Hydraulic analysis
 
 Firstly, a hydraulic analysis of the gauging station is required to set the hydraulic control matrix. The Ardèche River at Meyras station is of interest because it illustrates a frequently-encountered 3-control configuration (riffle, main channel, floodway) and it has been already studied by @lecozCombiningHydraulicKnowledge2014 and @mansanarezBayesianAnalysisStage2016 .
 
@@ -324,22 +328,22 @@ To assist the user in entering the hydraulic control matrix, the `control_matrix
 controlMatrix=matrix(c(1,0,0,0,1,1,0,0,1),ncol=3,nrow=3)
 ```
 
-#### Prior information 
+##### Prior information 
 
 The method required prior information on the parameters *a*, *k* and *c* per hydraulic control following this equation:
 
 
 $Q(h) = a*(h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)$  
 
-* Parameter *a* is the coefficient representing the geometry and physical properties of the control. It will be estimated differently in function of the type of control. 
+* Parameter *a* is the coefficient representing the geometry and physical properties of the control. It will be estimated differently depending on the type of control. 
 
-* Parameter *b* is the offset; when stage falls below the value *b*, discharge id zero.
+* Parameter *b* is the offset; when stage falls below the value *b*, discharge is zero.
 
 * Parameter *c* is the exponent, which depends solely on the type of control. 
 
 * Parameter *k* is the activation stage; when the water level falls below the value *k*, the control becomes inactive.
 
-See the details of the values entered here : [prior specification for the case of study of Ardeche at Meyras gauging station](https://baratin-tools.github.io/en/doc/case/ardeche-meyras/#prior-specification).
+See the details of the values entered here: [prior specification for the case of study of Ardeche at Meyras gauging station](https://baratin-tools.github.io/en/doc/case/ardeche-meyras/#prior-specification).
 
 ```{r}
 # Set prior information to each hydraulic control 
@@ -387,12 +391,15 @@ resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
 Plot the rating curves after using BaRatin method. It is possible to plot all nodes in the tree structure by setting `allnodes=TRUE`. To reduce calculation time, it is advisable to specify the vector of nodes for plotting the rating curve.
 
 ```{r}
- plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                  autoscale=FALSE,
-                  temp.folder=file.path(tempdir(),'BaM'),
-                  CalibrationData='CalibrationData.txt',
-                  allnodes=FALSE,
-                  nodes=terminal)
+  # Plot the rating curves after using BaRatin method  
+  plotsRC=plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                          autoscale=FALSE,
+                          temp.folder=file.path(tempdir(),'BaM'),
+                          CalibrationData='CalibrationData.txt',
+                          allnodes=FALSE,
+                          nodes=terminal)
+  
+  plotsRC$PlotRCPred
 
  # Plot shift times in stage record
  plot_H_ModelAndSegmentation(summary=resultsBaRatin$summary,
@@ -407,6 +414,7 @@ Plot the rating curves after using BaRatin method. It is possible to plot all no
                                    plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
+##### A particular case: the impact of vegetation 
 
 Uncertainty associated to water level measurements during low flows could lead to a very high uncertainty when comparing with the rating curve, due to the low sensitivity of control during low flows. As a result, it was often necessary to be even more cautious when deciding to change the curve based on these measurements. That's why, it is possible to account for the uncertainty in the gauged height, which increases the overall uncertainty when estimating the uncertainty of the residuals to compensate for the issue identified.
 
@@ -433,12 +441,14 @@ resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings
  terminal = resultsBaRatinWithuH$tree$indx[which(resultsBaRatinWithuH$tree$nS==1)]
  terminal
 
- plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                  autoscale=FALSE,
-                  temp.folder=file.path(tempdir(),'BaM'),
-                  CalibrationData='CalibrationData.txt',
-                  allnodes=FALSE,
-                  nodes=terminal)
+ plotsRC= plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                           autoscale=FALSE,
+                           temp.folder=file.path(tempdir(),'BaM'),
+                           CalibrationData='CalibrationData.txt',
+                           allnodes=FALSE,
+                           nodes=terminal)
+ 
+ plotsRC$PlotRCPred
 
  # Plot shift times in stage record
  plot_H_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
@@ -451,6 +461,135 @@ resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings
  # Plot residual
  plotResidual_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
                                    plot_summary=resultsBaRatinWithuH$plot)$final_plot
+```
+
+### Stage-recession analysis
+
+Until now, shift time detection has relied on gauging information. Nevertheless, such data are not available for all hydrometric stations. Therefore, an alternative method has been developed to detect shift times using a variable common across the entire hydrometric network: the stage record. This approach relies solely on water level data over time to estimate shift times.
+
+The main objective of the method is to estimate riverbed evolution at hydrometric stations. The approach primarily focuses on analyzing stage values during the recession phase following a flood, extracted from the available stage records.
+
+In theory, following a flood, if the recession is long enough, the water level will eventually reach the riverbed (asymptotic height). By comparing consecutive recession phases, changes in the riverbed can be detected, indicating whether a shift has occurred. 
+
+To accomplish this, the method is divided into three steps:
+
+1. Extraction of the stage-recessions 
+2. Bayesian estimation of the stage-recessions
+3. recessions segmentation
+
+#### Extraction of the stage-recessions
+
+The first step consists in extracting all stage-recession data. However, not all existing recessions are
+extracted, but only those that meet the user-defined criteria.
+
+A stage-recession period is a period of the stage record characterized by only decreasing stage values.
+A parameter is used to separate the recessions: $\chi$ [m]. According to this parameter a recession period $k$ is ended when the rise or fall of stage (e.g. due to incoming rainfall event) between two consequent data exceeds $\chi$ (hence, when [$h_{rec}(t_i)$ - $h_{rec}(t_{i-1})$] > $\chi$).
+
+Then, stage-recessions are selected based on the following user-defined conditions:
+
+- A minimum number of stage data for each recession, e.g., $n_{min} = 10$.
+- A minimum duration (in days) for the recession, e.g., $t_{min} = 10$ days.
+- A minimum and maximum distance between recession data points (minimum distance to handle an excessive number of data points and maximum distance to avoid extended periods without data, which may create discontinuous recessions)
+
+Let $N_{rec}$ denote the number of extracted recessions, and $N_k$ the number of stage values in the $k$-th recession. 
+
+The total number of stage values across all recessions is therefore:$N_{tot} = \sum_{k=1}^{N_{rec}} N_k$
+
+For more details, please refer to the documentation `?Extraction_recession`.
+
+Let's examine the stage record for the Ardèche at the Meyras hydrometric station (`?ArdecheRiverMeyrasStage`):
+
+```{r}
+ggplot2::ggplot(ArdecheRiverMeyrasStage,ggplot2::aes(x=Date,y=H))+
+  ggplot2::geom_line()+
+  ggplot2::theme_bw()
+
+```
+The previously shown stage record does not have any associated uncertainty. Therefore, an uncertainty of 0.05 meters will be applied to the entire stage record. This will then be used to extract all stage-recession periods based on user-defined criteria, as follows:
+
+
+```{r}
+ recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+                                           uH=0.05,
+                                           time=ArdecheRiverMeyrasStage$Date,
+                                           chi=0.5,
+                                           tgood=30,
+                                           delta.t.min = 0,
+                                           delta.t.max = 20,
+                                           Nmin.rec = 10)
+
+ recessions = recessions_extracted$Rec_extracted
+ 
+ # Plot information of recession extracted
+ plot_rec_extracted(Rec_extracted = recessions)
+
+ # Check summary table of recession extracted
+ knitr::kable(head(recessions_extracted$summary_rec),
+             align = 'c',row.names = FALSE)
+
+ 
+```
+
+#### Bayesian estimation of the stage-recessions
+
+Once the stage-recession data have been extracted, the second step of the proposed method is based
+on the estimation of all recessions through a probabilistic Bayesian pooling approach.
+
+Using this approach all recessions are not estimated singularly but together in a unique model where
+some recession parameters are constant to all recessions and other parameters are specific to the each
+recession. We refer the reader to a similar ’pooling’ approach described in @mansanarezShiftHappensAdjusting2019.
+
+Models fitting available in the package may be consulted here: 
+
+```{r}
+# Get model available to estimate the recession curve
+GetCatalog()$Recession_Equations
+```
+For instance, the recession model with two exponential terms and asymptotic (`Recession_M3_Equation()`, proposed by @darienzoDetectionEstimationStagedischarge2021) will be considered for the calculation, and it is described below:
+
+\deqn{\alpha_{1_k} \cdot \exp(-\lambda_1 \cdot t) + \alpha_{2_k} \cdot \exp(-\lambda_2 \cdot t) + \beta_k}
+
+- Stable parameters:$\lambda_1$ , $\lambda_2$
+- Recession-specific parameters: $\alpha_{1_k}$, $\alpha_{2_k}$, $\beta_k$
+
+The estimation of the stable parameters will remain constant across all periods, in contrast to the recession-specific parameters, which will be estimated independently for each period.
+
+#### Recessions segmentation
+
+Once the recession model has been estimated, the third step of the method consists in the segmentation
+of the estimated recessions. In particular we analyse the temporal evolution of the asymptotic
+stage parameter $\beta_k$, which corresponds to the elevation b of the lowest control.
+
+This information may be interpreted as a random variable that needs to be segmented using a recursive segmentation procedure, specifically the `recursive.segmentation()`function. The time associated to each parameter $\beta_k$ is the time at which the corresponding recession begins.
+
+Both Bayesian estimation of the stage-recession and the recession segmentation are groupped in the same function `ModelAndSegmentation.recession.regression` as shown here:
+
+```{r}
+ model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
+                                                     daterec=recessions$date,
+                                                     hrec=recessions$hrec,
+                                                     uHrec=recessions$uHrec,
+                                                     indx=recessions$indx,
+                                                     nSmax = 3,
+                                                     nMin = 1,
+                                                     funk=Recession_M3_Equation)
+```
+
+The estimation and segmentation have been completed. Next, plot functions have been developed to generate figures for interpreting the obtained results.
+
+
+```{r}
+# Plot recession segmentation
+ plot_segm_recession(model_rec=model_rec,
+                     spec_recession=c(2,16,28,48),
+                     recession_rejected=TRUE,
+                     )
+
+ # Plot using all data of stage record
+ plot_H_segm_recession(time=ArdecheRiverMeyrasStage$Date,
+                       obs=ArdecheRiverMeyrasStage$H,
+                       u=0.05,
+                       plot_summary = model_rec$plot)
 ```
 
 ## Références
