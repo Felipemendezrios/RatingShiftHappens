@@ -1314,8 +1314,8 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
         # Gaugings
         geom_errorbar(data = inner_list$CalData,
                       aes(x=H,
-                          ymin=Q-uQ,
-                          ymax=Q+uQ,
+                          ymin=Q+stats::qnorm(0.025)*uQ,
+                          ymax=Q+stats::qnorm(0.975)*uQ,
                           col='Gaugings'),
                       width=0.05)+
         geom_point(data = inner_list$CalData,
@@ -1360,8 +1360,8 @@ plot_rec_extracted <- function(Rec_extracted,
   rec.plot=ggplot(Rec_extracted,
                   aes(x=date,
                       y=hrec,
-                      ymin=hrec-uHrec,
-                      ymax=hrec+uHrec,
+                      ymin=hrec+stats::qnorm(0.025)*uHrec,
+                      ymax=hrec+stats::qnorm(0.975)*uHrec,
                       col=indx))+
     geom_point()
 
@@ -1373,7 +1373,7 @@ plot_rec_extracted <- function(Rec_extracted,
   rec.plot=rec.plot+
     theme_bw()+
     labs(x = 'Time [date]',
-         y = 'Stage')+
+         y = 'Stage [m]')+
     guides(color='none')+
     scale_color_gradientn(colors=colors)
 
@@ -1381,8 +1381,8 @@ plot_rec_extracted <- function(Rec_extracted,
   rec.plot2=ggplot(Rec_extracted,
                    aes(x=time_rec,
                        y=hrec,
-                       ymin=hrec-uHrec,
-                       ymax=hrec+uHrec,
+                       ymin=hrec+stats::qnorm(0.025)*uHrec,
+                       ymax=hrec+stats::qnorm(0.975)*uHrec,
                        col=indx))+
     geom_point()
 
@@ -1421,16 +1421,14 @@ plot_rec_extracted <- function(Rec_extracted,
 
   DF_h_min_rec <- data.frame(Rec_extracted %>%
                                group_by(indx) %>%
-                               arrange(hrec, desc(time_rec)) %>% # Trier par hrec croissant puis par time_rec décroissant
+                               arrange(hrec, desc(time_rec)) %>%
                                slice_head(n = 1) %>%
                                ungroup())
 
   # Plot minimum h recession values
   plot_min_h_rec=
     ggplot(DF_h_min_rec,aes(x=date,
-                            y=hrec,
-                            ymin=hrec-uHrec,
-                            ymax=hrec+uHrec))+
+                            y=hrec))+
     geom_point()
 
   if(error_bar_plot){
@@ -1441,7 +1439,7 @@ plot_rec_extracted <- function(Rec_extracted,
   plot_min_h_rec=plot_min_h_rec +
     theme_bw()+
     labs(x = 'Time [date]',
-         y = 'Minimum Recession Stage H[m]')
+         y = 'Minimum recession stage H[m]')
 
   return(list(rec.plot,
               rec.plot2,
@@ -1529,8 +1527,8 @@ plot_segm_recession <- function(model_rec,
       ggplot(data=inner_list,
              aes(x=X1_obs,
                  y=Y1_obs,
-                 ymax=Y1_obs+2*uH_obs,
-                 ymin=Y1_obs-2*uH_obs,
+                 ymin=Y1_obs+stats::qnorm(0.025)*uH_obs,
+                 ymax=Y1_obs+stats::qnorm(0.975)*uH_obs,
                  col=factor('Recession \nobserved')))+
         geom_pointrange()+
         geom_line(aes(x=X1_obs,
