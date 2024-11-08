@@ -2,7 +2,7 @@
 % Please edit documentation in R/RecessionEstimationModelBaM.R
 \name{Estimation_Recession_BR1}
 \alias{Estimation_Recession_BR1}
-\title{Exponential recession model with four parameters}
+\title{Estimate exponential recession model with four parameters}
 \usage{
 Estimation_Recession_BR1(
   raw.data,
@@ -30,8 +30,38 @@ Estimation_Recession_BR1(
 \item{nSlimrec}{integer, MCMC slim step}
 }
 \value{
-list, recession estimation with their uncertainties
+list with the following components :
+\enumerate{
+\item df.to.segm: data frame, description below:
+\itemize{
+\item indx: integer value, recession curve index
+\item b_estimated: real value, asymptotic height estimation
+\item ub_estimated: real value, uncertainty in asymptotic height estimation expressed as a standard deviation
+\item date: date, time in POSIXct format. time at which the recession begins
+}
+\item rec.data.plot.h.dt: data frame, description below:
+\itemize{
+\item time_rec: real positive value, time recession
+\item datarec: date, time in POSIXct format. time of each stage-recession
+\item hrec: real value, stage-recession observed
+\item uHrec: real value, uncertainty in stage-recession observed expressed as a standard deviation
+\item indx: integer value, common index for all stage-recession data of a same recession curve
+\item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
+}
+\item residuals.all.info: data frame, description below:
+\itemize{
+\item indx: real value, recession curve index
+\item X1_obs: real value, recession duration
+\item Y1_obs: real value, stage-recession observed
+\item Y1_sim: real value, stage-recession simulated
+\item uH_obs: real positive value, uncertainty on the stage-recession observed
+\item weight: real positive value, weight assigned depending on the recession duration
+\item value_rmse: real positive value, RMSE calculation
+\item rmse_threshold: real positive value, threshold user-defined to accept or reject some recession simulations
+\item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
+}
+}
 }
 \description{
-Exponential recession model with four parameters
+Estimate exponential recession model with four parameters
 }

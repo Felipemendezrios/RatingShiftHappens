@@ -2,7 +2,7 @@
 % Please edit documentation in R/UtilitiesPublic.R
 \name{control_matrix_builder}
 \alias{control_matrix_builder}
-\title{Builder hydraulic control matrix}
+\title{Interactive builder for the hydraulic control matrix}
 \usage{
 control_matrix_builder(ncontrols)
 }
@@ -10,8 +10,8 @@ control_matrix_builder(ncontrols)
 \item{ncontrols}{integer value, number of hydraulic controls}
 }
 \value{
-matrix, hydraulic control
+matrix, hydraulic control. This matrix consists of 0s and 1s
 }
 \description{
-Builder hydraulic control matrix
+Interactive builder for the hydraulic control matrix
 }

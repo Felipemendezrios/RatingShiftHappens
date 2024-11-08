@@ -7,17 +7,20 @@
 Recession_M3_Equation()
 }
 \value{
-Parameter's description:
-
-\enumerate{
-\item{t real value, time}
-\item{alpha_1_k real value, initial stage of the first exponential function}
-\item{lambda_1 real value, fast runoff}
-\item{alpha_2_k real value, initial stage of the second exponential function}
-\item{lambda_2 real value, slow emptying of the aquifer}
-\item{beta_k real value, asymptotic stage}
-}
+string, model equation
 }
 \description{
 Recession model with two exponential and asymptotic: \deqn{\alpha_{1_k} \cdot \exp(-\lambda_1 \cdot t) + \alpha_{2_k} \cdot \exp(-\lambda_2 \cdot t) + \beta_k}
+}
+\details{
+Parameter's description:
+
+\enumerate{
+\item{ t real value, time in days}
+\item{ alpha_1_k real value, scaling coefficient in meters}
+\item{ lambda_1 real value, fast runoff in 1/days}
+\item{ alpha_2_k real value, scaling coefficient in meters}
+\item{ lambda_2 real value, slow emptying of the aquifer in 1/days}
+\item{ beta_k real value, asymptotic stage in meters}
+}
 }

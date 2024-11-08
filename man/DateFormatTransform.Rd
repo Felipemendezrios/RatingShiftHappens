@@ -7,7 +7,7 @@
 DateFormatTransform(date)
 }
 \arguments{
-\item{date}{vector, date in date, POSIXct or character format}
+\item{date}{vector, date in POSIXct, character or Date format}
 }
 \value{
 List with the following components :

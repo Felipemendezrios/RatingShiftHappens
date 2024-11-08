@@ -36,7 +36,7 @@ segmentation.engine(
 \item{temp.folder}{directory, temporary directory to write computations}
 }
 \value{
-List with the following components :
+list with the following components:
 \enumerate{
 \item summary: list, summarize the information to present to the user
 \itemize{

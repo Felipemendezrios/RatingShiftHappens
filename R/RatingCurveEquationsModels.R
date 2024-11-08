@@ -12,19 +12,21 @@ Loess_Equation<-function(){
 #' @param a real value, slope
 #' @param b real value, intercept
 #'
-#' @return equation, \deqn{Q(h)= a \cdot H + b}
+#' @return real value, discharge
 #' @export
 LinearRegression_Equation <- function(H,a,b){
   a*H+b
 }
 
-#' Equation of exponential regression \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+#' Equation of exponential regression
+#'
+#' \deqn{Q(h)=a \cdot \exp(b \cdot H)}
 #'
 #' @param H real value, stage
 #' @param a real value, initial state
 #' @param b real value, growth constant
 #'
-#' @return equation, \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+#' @return real value, discharge
 #' @export
 Exponential_Equation <- function(H,a,b){
   a*exp(b*H)
@@ -32,12 +34,14 @@ Exponential_Equation <- function(H,a,b){
 
 #' Equation of BaRatin model (b-a-c)
 #'
+#' \deqn{Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)}
+#'
 #' @param H real value, stage
 #' @param a real value, coefficient describing geometry characteristics
 #' @param b real value, offset
 #' @param c real value, exponent
 #'
-#' @return equation, \deqn{Q(h)=a \cdot (H - b)^ c}
+#' @return real value, discharge
 #' @export
 BaRatinBAC_Equation <- function(H,a,b,c){
   a*(H-b)^c
@@ -45,12 +49,14 @@ BaRatinBAC_Equation <- function(H,a,b,c){
 
 #' Equation of BaRatin model (k-a-c)
 #'
+#' \deqn{Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)}
+#'
 #' @param H real value, stage
 #' @param a real value, coefficient describing geometry characteristics
 #' @param b real value, offset
 #' @param c real value, exponent
 #'
-#' @return equation, \deqn{Q(h)=a \cdot (H - b)^ c}
+#' @return real value, discharge
 #' @export
 BaRatinKAC_Equation <- function(H,a,b,c){
   a*(H-b)^c

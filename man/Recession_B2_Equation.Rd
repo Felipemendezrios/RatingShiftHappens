@@ -7,15 +7,18 @@
 Recession_B2_Equation()
 }
 \value{
-Parameter's description:
-\enumerate{
-\item{t real value, time}
-\item{lambda_1 real value, first parameter of the exponential function}
-\item{beta_k real value, asymptotic stage}
-\item{alpha_1 real value, initial stage of the exponential function}
-\item{c real value, recession exponent}
-}
+string, model equation
 }
 \description{
 Recession with one exponential and four parameters: \deqn{\alpha \cdot \exp(-\lambda \cdot t^c) + \beta_k}
+}
+\details{
+Parameter's description:
+\enumerate{
+\item{t real value, time in days}
+\item{lambda_1 real value, decay rate constant coefficient 1/(days^c)}
+\item{beta_k real value, asymptotic stage in meters}
+\item{alpha_1 real value, scaling coefficient in meters}
+\item{c real value, recession exponent in meters}
+}
 }

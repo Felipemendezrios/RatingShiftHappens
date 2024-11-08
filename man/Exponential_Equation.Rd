@@ -2,7 +2,7 @@
 % Please edit documentation in R/RatingCurveEquationsModels.R
 \name{Exponential_Equation}
 \alias{Exponential_Equation}
-\title{Equation of exponential regression \deqn{Q(h)=a \cdot \exp(b \cdot H)}}
+\title{Equation of exponential regression}
 \usage{
 Exponential_Equation(H, a, b)
 }
@@ -14,8 +14,8 @@ Exponential_Equation(H, a, b)
 \item{b}{real value, growth constant}
 }
 \value{
-equation, \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+real value, discharge
 }
 \description{
-Equation of exponential regression \deqn{Q(h)=a \cdot \exp(b \cdot H)}
+\deqn{Q(h)=a \cdot \exp(b \cdot H)}
 }

@@ -16,8 +16,8 @@ BaRatinBAC_Equation(H, a, b, c)
 \item{c}{real value, exponent}
 }
 \value{
-equation, \deqn{Q(h)=a \cdot (H - b)^ c}
+real value, discharge
 }
 \description{
-Equation of BaRatin model (b-a-c)
+\deqn{Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)}
 }

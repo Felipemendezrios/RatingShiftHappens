@@ -14,7 +14,7 @@ LinearRegression_Equation(H, a, b)
 \item{b}{real value, intercept}
 }
 \value{
-equation, \deqn{Q(h)= a \cdot H + b}
+real value, discharge
 }
 \description{
 Equation of Linear interpolation \deqn{Q(h)= a \cdot H + b}

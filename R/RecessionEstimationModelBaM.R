@@ -1,4 +1,4 @@
-#' Two exponential recession model with five parameters
+#' Estimate two exponential recession model with five parameters
 #'
 #' @param raw.data data frame, all stage record
 #' @param data.object object, model object output by the RBaM function
@@ -8,7 +8,37 @@
 #' @param nSlimrec integer, MCMC slim step
 #' @param temp.folder.Recession directory, temporary directory to write computations
 #'
-#' @return list, recession estimation with their uncertainties
+#' @return list with the following components :
+#' \enumerate{
+#'    \item df.to.segm: data frame, description below:
+#'      \itemize{
+#'          \item indx: integer value, recession curve index
+#'          \item b_estimated: real value, asymptotic height estimation
+#'          \item ub_estimated: real value, uncertainty in asymptotic height estimation expressed as a standard deviation
+#'          \item date: date, time in POSIXct format. time at which the recession begins
+#'      }
+#'    \item rec.data.plot.h.dt: data frame, description below:
+#'      \itemize{
+#'          \item time_rec: real positive value, time recession
+#'          \item datarec: date, time in POSIXct format. time of each stage-recession
+#'          \item hrec: real value, stage-recession observed
+#'          \item uHrec: real value, uncertainty in stage-recession observed expressed as a standard deviation
+#'          \item indx: integer value, common index for all stage-recession data of a same recession curve
+#'          \item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
+#'      }
+#'    \item residuals.all.info: data frame, description below:
+#'      \itemize{
+#'          \item indx: real value, recession curve index
+#'          \item X1_obs: real value, recession duration
+#'          \item Y1_obs: real value, stage-recession observed
+#'          \item Y1_sim: real value, stage-recession simulated
+#'          \item uH_obs: real positive value, uncertainty on the stage-recession observed
+#'          \item weight: real positive value, weight assigned depending on the recession duration
+#'          \item value_rmse: real positive value, RMSE calculation
+#'          \item rmse_threshold: real positive value, threshold user-defined to accept or reject some recession simulations
+#'          \item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
+#'      }
+#' }
 #' @export
 #' @importFrom RBaM parameter parameter_VAR xtraModelInfo mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom utils read.table
@@ -91,7 +121,11 @@ Estimation_Recession_M3 <- function(raw.data,
   residuals   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)
   summary.MCMC   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Summary.txt"),header=TRUE)
 
-  residuals.indx=data.frame(residuals,uH_obs=rec.data$uHrec,indx=rec.data$indx)
+  residuals.indx=data.frame(residuals['X1_obs'],
+                            residuals['Y1_obs'],
+                            residuals['Y1_sim'],
+                            uH_obs=rec.data$uHrec,
+                            indx=rec.data$indx)
   residuals.indx$weight = NA
 
   # Mean max value of all recession
@@ -195,7 +229,7 @@ Estimation_Recession_M3 <- function(raw.data,
 
 }
 
-#' Exponential recession model with four parameters
+#' Estimate exponential recession model with four parameters
 #'
 #' @param raw.data data frame, all stage record
 #' @param data.object object, model object output by the RBaM function
@@ -205,7 +239,37 @@ Estimation_Recession_M3 <- function(raw.data,
 #' @param nSlimrec integer, MCMC slim step
 #' @param temp.folder.Recession directory, temporary directory to write computations
 #'
-#' @return list, recession estimation with their uncertainties
+#' @return list with the following components :
+#' \enumerate{
+#'    \item df.to.segm: data frame, description below:
+#'      \itemize{
+#'          \item indx: integer value, recession curve index
+#'          \item b_estimated: real value, asymptotic height estimation
+#'          \item ub_estimated: real value, uncertainty in asymptotic height estimation expressed as a standard deviation
+#'          \item date: date, time in POSIXct format. time at which the recession begins
+#'      }
+#'    \item rec.data.plot.h.dt: data frame, description below:
+#'      \itemize{
+#'          \item time_rec: real positive value, time recession
+#'          \item datarec: date, time in POSIXct format. time of each stage-recession
+#'          \item hrec: real value, stage-recession observed
+#'          \item uHrec: real value, uncertainty in stage-recession observed expressed as a standard deviation
+#'          \item indx: integer value, common index for all stage-recession data of a same recession curve
+#'          \item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
+#'      }
+#'    \item residuals.all.info: data frame, description below:
+#'      \itemize{
+#'          \item indx: real value, recession curve index
+#'          \item X1_obs: real value, recession duration
+#'          \item Y1_obs: real value, stage-recession observed
+#'          \item Y1_sim: real value, stage-recession simulated
+#'          \item uH_obs: real positive value, uncertainty on the stage-recession observed
+#'          \item weight: real positive value, weight assigned depending on the recession duration
+#'          \item value_rmse: real positive value, RMSE calculation
+#'          \item rmse_threshold: real positive value, threshold user-defined to accept or reject some recession simulations
+#'          \item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
+#'      }
+#' }
 #' @export
 #' @importFrom RBaM parameter parameter_VAR xtraModelInfo mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom utils read.table
@@ -274,7 +338,11 @@ Estimation_Recession_BR1 <- function(raw.data,
   residuals   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)
   summary.MCMC   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Summary.txt"),header=TRUE)
 
-  residuals.indx=data.frame(residuals,uH_obs=rec.data$uHrec,indx=rec.data$indx)
+  residuals.indx=data.frame(residuals['X1_obs'],
+                            residuals['Y1_obs'],
+                            residuals['Y1_sim'],
+                            uH_obs=rec.data$uHrec,
+                            indx=rec.data$indx)
   residuals.indx$weight = NA
 
   # Mean max value of all recession

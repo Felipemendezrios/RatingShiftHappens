@@ -12,7 +12,7 @@
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #'
-#' @return List with the following components :
+#' @return list with the following components:
 #' \enumerate{
 #'   \item summary: list, summarize the information to present to the user
 #'   \itemize{
@@ -365,7 +365,7 @@ segmentation.engine <- function(obs,
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #'
-#' @return List with the following components :
+#' @return list with the following components:
 #' \enumerate{
 #'   \item summary: list, summarize the information to present to the user
 #'   \itemize{
@@ -464,7 +464,7 @@ segmentation <- function(obs,
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #'
-#' @return List with the following components :
+#' @return list with the following components:
 #' \enumerate{
 #'   \item summary: list, summarize the information to present to the user
 #'   \itemize{
