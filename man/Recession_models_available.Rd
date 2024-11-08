@@ -12,3 +12,4 @@ vector, return equation of all recession model available
 \description{
 Find recession models
 }
+\keyword{internal}

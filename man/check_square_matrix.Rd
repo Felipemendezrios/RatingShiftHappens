@@ -15,3 +15,4 @@ logical, return null if matrix is not square
 \description{
 Check square matrix
 }
+\keyword{internal}

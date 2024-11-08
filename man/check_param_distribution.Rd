@@ -17,3 +17,4 @@ logical, return null if number of parameter does not match with specified distri
 \description{
 Check number of parameters depending of distribution
 }
+\keyword{internal}

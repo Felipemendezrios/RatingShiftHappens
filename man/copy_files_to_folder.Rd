@@ -14,3 +14,4 @@ copy_files_to_folder(dir.source, dir.destination)
 \description{
 Copy all files from a folder to a another folder
 }
+\keyword{internal}

@@ -17,3 +17,4 @@ equation of the model selected
 \description{
 Identify model selected is in the catalog
 }
+\keyword{internal}

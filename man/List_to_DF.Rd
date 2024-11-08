@@ -2,7 +2,7 @@
 % Please edit documentation in R/UtilitiesPrivate.R
 \name{List_to_DF}
 \alias{List_to_DF}
-\title{Convert à list to a data frame if possible}
+\title{Convert a list to a data frame if possible}
 \usage{
 List_to_DF(listx)
 }
@@ -13,5 +13,6 @@ List_to_DF(listx)
 data frame or list
 }
 \description{
-Convert à list to a data frame if possible
+Convert a list to a data frame if possible
 }
+\keyword{internal}

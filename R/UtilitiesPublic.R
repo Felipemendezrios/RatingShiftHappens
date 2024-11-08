@@ -2,7 +2,7 @@
 #'
 #' Get date format and transform date to numeric
 #'
-#' @param date vector, date in date, POSIXct or character format
+#' @param date vector, date in POSIXct, character or Date format
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -60,108 +60,6 @@ DateFormatTransform <- function(date){
 
   return(list(origin=origin,
               time=diff_days))
-}
-
-#' Replace negative and/or zero values to NA or a specified value
-#'
-#' @param data_frame data frame, data to be checked and replaced
-#' @param columns string, exact names of the columns from data frame
-#' @param consider_zero logical, if `TRUE` zero values will be replace by NA. Otherwise, zero values are not be replaced.
-#' @param replace NA or real value, data will be replace when condition are not accepted
-#'
-#' @return data frame transformed with NA values
-#' @export
-#'
-#' @examples
-#'
-#' sample_data <- data.frame(
-#' A = c(1, -2, 0, 4),
-#' B = c(-3, 5, 0, -1),
-#' C = c(0, 2, -7, 6) )
-#'
-#' # Display the original data frame
-#' print(sample_data)
-#'
-#' # Function call with consider_zero = TRUE
-#' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = TRUE)
-#'
-#' # Function call with consider_zero = FALSE
-#' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = FALSE)
-replace_negatives_or_zero_values <- function(data_frame, columns='all', consider_zero = TRUE, replace=NA) {
-
-  if(all(columns=='all')){
-    columns.match = seq(1,ncol(data_frame))
-  }else{
-    columns.match = match(columns,colnames(data_frame))
-  }
-  columns.df <- columns.match[!is.na(columns.match)]
-
-  if(length(columns.df)==0)stop('Verify columns input. Names of the columns do not match with the columns names of the data frame')
-
-  if(!is.na(replace)&&!is.numeric(replace))stop('replace must be NA or a numeric value')
-  result <- apply(data_frame[, columns.df, drop = FALSE], 2, function(x) {
-    if (consider_zero) {
-      ifelse(x <= 0, replace, x)
-    } else {
-      ifelse(x < 0, replace, x)
-    }
-  })
-  return(data.frame(result))
-}
-
-#' Convert list to data frame
-#'
-#' @param liste_df list, data frame
-#'
-#' @return data frame if possible, if not a list
-#' @export
-#'
-#' @examples
-#'
-#' sample_data <- list(
-#' A = data.frame(a=1, b=-2, c=0, d=4),
-#' B = data.frame(a=-3, b=5, c=0, d=-1))
-#'
-#' # Convert to data frame
-#' convert_list_to_dataframe(sample_data)
-#'
-#' sample_data <- list(
-#' A = data.frame(a=1, c=0, d=4),
-#' B = data.frame(a=-3, b=5, c=0, d=-1))
-#'
-#' # Convert to data frame
-#' convert_list_to_dataframe(sample_data)
-convert_list_to_dataframe <- function(liste_df){
-  result=c()
-  lengths <- sapply(liste_df, ncol)
-  if (length(unique(lengths)) > 1) {
-    warning("The number of the components in the list is not the same, replace by NA for missing values")
-    maxncol <- max(lengths)
-    list_maxncol=which(lengths==maxncol)[1]
-    namescol=names(liste_df[[list_maxncol]])
-
-    for (i in seq_along(liste_df)) {
-      if(length(liste_df[[i]])==maxncol){
-        result <- rbind(result, liste_df[[i]])
-      }else{
-        values=liste_df[[i]]
-        values_with_NA = data.frame(rbind(rep(NA,maxncol)))
-        colnames(values_with_NA)=namescol
-
-        values_with_NA[,c(match(names(values),namescol))]=values
-
-        result <- rbind(result,values_with_NA)
-      }
-
-    }
-    return(result)
-  }
-
-  for (i in seq_along(liste_df)) {
-    result <- rbind(result, liste_df[[i]])
-  }
-  rownames(result)<-NULL
-  return(result)
 }
 
 #' Builder function to generate prior information on the parameter as a object
@@ -242,11 +140,11 @@ prior_infor_param_builder <- function() {
 }
 
 
-#' Builder hydraulic control matrix
+#' Interactive builder for the hydraulic control matrix
 #'
 #' @param ncontrols integer value, number of hydraulic controls
 #'
-#' @return matrix, hydraulic control
+#' @return matrix, hydraulic control. This matrix consists of 0s and 1s
 #' @export
 control_matrix_builder <- function(ncontrols) {
 
@@ -254,11 +152,11 @@ control_matrix_builder <- function(ncontrols) {
   for(i in 1:ncontrols){
     while (TRUE) {
       cat('
-      Describe the control-by-control matrix using :
-        1 to active control
-        0 to inactive control
-        The number must be separed by a space and must be the same size as the number of controls')
-      control_i_input <- c(readline(prompt = paste0('Hydraulic control Number ',i,' \n')))
+      For each stage range, specify active control(s) using:
+        1 for active control
+        0 for inactive control
+        The numbers must be separated by a space and must be the same size as the number of controls')
+      control_i_input <- c(readline(prompt = paste0('Stage range number ',i,' (from lowest to highest) \n')))
       control_i <- as.numeric(strsplit(control_i_input, " ")[[1]])
 
       if(ncontrols!=length(control_i)){

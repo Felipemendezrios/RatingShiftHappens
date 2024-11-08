@@ -15,3 +15,4 @@ data frame, logical value. if \code{TRUE}, any NA was detected during transforma
 \description{
 Check if any column as a NA when convert to numeric format
 }
+\keyword{internal}

@@ -14,3 +14,4 @@ remove_files(dir.source, files_to_keep = NULL)
 \description{
 Remove files excepting some specific files from the directory
 }
+\keyword{internal}

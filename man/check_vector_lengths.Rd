@@ -18,3 +18,4 @@ logical, return null if the vectors have not the same length
 \description{
 Function to check if the vectors have the same length
 }
+\keyword{internal}
