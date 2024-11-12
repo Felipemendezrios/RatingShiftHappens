@@ -396,7 +396,7 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
 
   input.data.with.period=merge( list.rec.criticize$rec_data.plot.h.dt,period.indx, by='indx')
   summary.rec.extracted = list(data = input.data.with.period,
-                            shift = results$summary$shift)
+                               shift = results$summary$shift)
 
   return(list(summary.rec.extracted=summary.rec.extracted,
               summary.results.segm=results$summary,
