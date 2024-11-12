@@ -5,7 +5,6 @@
 \title{Estimate exponential recession model with four parameters}
 \usage{
 Estimation_Recession_BR1(
-  raw.data,
   data.object,
   equation_rec_model,
   temp.folder.Recession,
@@ -15,8 +14,6 @@ Estimation_Recession_BR1(
 )
 }
 \arguments{
-\item{raw.data}{data frame, all stage record}
-
 \item{data.object}{object, model object output by the RBaM function}
 
 \item{equation_rec_model}{character, equation selected to modelling recessions}
@@ -30,36 +27,19 @@ Estimation_Recession_BR1(
 \item{nSlimrec}{integer, MCMC slim step}
 }
 \value{
-list with the following components :
+list of following components:
 \enumerate{
-\item df.to.segm: data frame, description below:
+\item residuals: data frame, description below:
 \itemize{
-\item indx: integer value, recession curve index
-\item b_estimated: real value, asymptotic height estimation
-\item ub_estimated: real value, uncertainty in asymptotic height estimation expressed as a standard deviation
-\item date: date, time in POSIXct format. time at which the recession begins
-}
-\item rec.data.plot.h.dt: data frame, description below:
-\itemize{
-\item time_rec: real positive value, time recession
-\item datarec: date, time in POSIXct format. time of each stage-recession
-\item hrec: real value, stage-recession observed
-\item uHrec: real value, uncertainty in stage-recession observed expressed as a standard deviation
-\item indx: integer value, common index for all stage-recession data of a same recession curve
-\item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
-}
-\item residuals.all.info: data frame, description below:
-\itemize{
-\item indx: real value, recession curve index
-\item X1_obs: real value, recession duration
+\item X1_obs: real value, duration of recession observed
+\item X1_true: real value, unbiased recession duration
 \item Y1_obs: real value, stage-recession observed
+\item Y1_unbiased: real value, unbiased stage-recession observed
 \item Y1_sim: real value, stage-recession simulated
-\item uH_obs: real positive value, uncertainty on the stage-recession observed
-\item weight: real positive value, weight assigned depending on the recession duration
-\item value_rmse: real positive value, RMSE calculation
-\item rmse_threshold: real positive value, threshold user-defined to accept or reject some recession simulations
-\item status: string, after using RMSE weighted, recession modeled will be accepted or rejected
+\item Y1_res: real value, residual between observed value and simulated value stage-recession
+\item Y1_stdres: real value, residual standar deviation at each stage-recession
 }
+\item summary_MCMC: data frame, statistical summary of all estimated parameters
 }
 }
 \description{

@@ -239,6 +239,7 @@ Extraction_recession <- function(H,
 #' @param temp.folder.Recession directory, temporary directory to write computations of the recession
 #' @param funk string, model for estimating the recession
 #' @param ... optional arguments to funk
+#' @param RMSE_args list, optional arguments to pass in `criticize_rec_model` function for setting weighted RMSE
 #'
 #' @return  List with the following components:
 #' \enumerate{
@@ -301,7 +302,8 @@ Extraction_recession <- function(H,
 #'                                                     hrec=recessions$hrec,
 #'                                                     uHrec=recessions$uHrec,
 #'                                                     indx=recessions$indx,
-#'                                                     funk=fit)
+#'                                                     funk=fit,
+#'                                                     RMSE_args=list(rmse_threshold =0.3))
 #' # Plot recession segmentation
 #' plot_segm_recession(model_rec=model_rec,
 #'                     spec_recession=c(2,16,28,48),
@@ -325,29 +327,22 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                                                       nSlim=max(nCycles/10,1),
                                                       temp.folder=file.path(tempdir(),'BaM'),
                                                       temp.folder.Recession= file.path(tempdir(),'BaM','Recession'),
-                                                      funk='BR1',...){
-  # Check information given in input
-  if(any(time_rec<0))stop('time_rec must be positive')
-  if(any(uHrec<0))stop('uHrec must be positive')
-  if(any(indx<0))stop('indx must be positive')
-  if(any(!lubridate::is.POSIXct(daterec)))stop('daterec must be in Posixct format')
-  if(indx[1]!=1)stop('Fist number of indx must be one to start the sequence')
-  if(any(diff(unique(indx))!=1))stop('indx must be a sequence of consecutive numbers')
-  if(any(is.na(time_rec)) | any(is.na(hrec)) | any(is.na(uHrec)) | any(is.na(indx))){
-    stop('Missing values not allowed in time, stage, uncertainty or index')
-  }
-  check <- check_vector_lengths(time_rec,hrec,uHrec,indx)
-  if(is.null(check)){
-    stop('time,stage, uncertainty or index do not have the same length')
-  }
-  # Check if equation chosen exist
+                                                      funk='BR1',...,
+                                                      RMSE_args=list()){
+
   id_recession_model=which(funk==names(GetCatalog_Recession()))
-  if(length(which(funk==names(GetCatalog_Recession())))==0)
-    stop('Recession model chosen in funk input data does not exist in the catalog.\nPlease select one in `names(GetCatalog_Recession())`')
+  # Check conditions if they are satisfied
+  invisible(check_recession_modeling(time_rec=time_rec,
+                                     daterec=daterec,
+                                     hrec=hrec,
+                                     uHrec=uHrec,
+                                     indx=indx,
+                                     id_recession_model=id_recession_model))
 
+  # Get equation of the chosen model
   equation_recession_model=GetCatalog_Recession()[[id_recession_model]]$Equation
-  funk_recession_model=GetCatalog_Recession()[[id_recession_model]]$funk
-
+  # Get estimation function of the chosen model
+  recession_model=GetCatalog_Recession()[[id_recession_model]]$funk
 
   DF.order <- data.frame(time_rec=time_rec,
                          daterec=daterec,
@@ -361,14 +356,28 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                     VAR.indx=DF.order['indx'],
                     data.dir= temp.folder.Recession)
 
-  list.rec.est=funk_recession_model(raw.data=DF.order,
-                                    data.object=D,
-                                    equation_rec_model=equation_recession_model(),
-                                    temp.folder.Recession=temp.folder.Recession,
-                                    ...)
+  # For detecting and estimating shift times, there are three step:
+  # This function is an optional run with default inputs. However, the function
+  # could be used separately to modify the inputs according to the user's requirements
 
+  # 1. Recession estimation:
+  list.rec.est=recession_model(data.object=D,
+                               equation_rec_model=equation_recession_model(),
+                               temp.folder.Recession=temp.folder.Recession,
+                               ...)
+
+
+  # 2. Criticize of recession modeling (RMSE weighted)
+  list.rec.criticize <- do.call(criticize_rec_model,
+                                c(list(raw_data = DF.order,
+                                       data.object = D,
+                                       residuals = list.rec.est$residuals,
+                                       summary_MCMC = list.rec.est$summary_MCMC),
+                                  RMSE_args))
+
+  # 3. Segmentation of asymptotic height
   # Data to segment
-  df.to.segm=list.rec.est$df.to.segm
+  df.to.segm=list.rec.criticize$df.to.segm
 
   # Run recursive segmentation
   results=recursive.segmentation(obs=df.to.segm$b_estimated,
@@ -386,13 +395,13 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
 
   period.indx=results$summary$data[,c('period','indx')]
 
-  input.data.with.period=merge( list.rec.est$rec.data.plot.h.dt,period.indx, by='indx')
+  input.data.with.period=merge( list.rec.criticize$rec_data.plot.h.dt,period.indx, by='indx')
   summary.rec.extracted = list(data = input.data.with.period,
                             shift = results$summary$shift)
 
   return(list(summary.rec.extracted=summary.rec.extracted,
               summary.results.segm=results$summary,
-              summary.residual = list.rec.est$residuals.all.info,
+              summary.residual = list.rec.criticize$residuals.all.info,
               plots=results$plot,
               res=results$res,
               tree=results$tree,

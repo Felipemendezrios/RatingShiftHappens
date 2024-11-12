@@ -265,3 +265,35 @@ replace_negatives_or_zero_values <- function(data_frame, columns='all', consider
   })
   return(data.frame(result))
 }
+
+#' Checks necessary to recession modeling
+#'
+#' @param time_rec real vector, recession duration relative to the first data detected during the recession
+#' @param daterec vector, time in POSIXct format mandatory
+#' @param hrec real vector, stage value of the recessions
+#' @param uHrec real vector, uncertainty of stage
+#' @param indx  integer, factor used to gather the data of a same recession
+#' @param id_recession_model integer, position of the model selected in the catalog
+#'
+#' @return string, error message if conditions not satisfied
+check_recession_modeling <- function(time_rec, daterec, hrec, uHrec,indx,id_recession_model){
+  # Check information given in input
+  if(any(time_rec<0))stop('time_rec must be positive')
+  if(any(uHrec<0))stop('uHrec must be positive')
+  if(any(indx<0))stop('indx must be positive')
+  if(any(!lubridate::is.POSIXct(daterec)))stop('daterec must be in Posixct format')
+  if(indx[1]!=1)stop('Fist number of indx must be one to start the sequence')
+  if(any(diff(unique(indx))!=1))stop('indx must be a sequence of consecutive numbers')
+  if(any(is.na(time_rec)) | any(is.na(hrec)) | any(is.na(uHrec)) | any(is.na(indx))){
+    stop('Missing values not allowed in time, stage, uncertainty or index')
+  }
+  check <- check_vector_lengths(time_rec,hrec,uHrec,indx)
+  if(is.null(check)){
+    stop('time,stage, uncertainty or index do not have the same length')
+  }
+  # Check if equation chosen exist
+  if(length(id_recession_model)==0)
+    stop('Recession model chosen in funk input data does not exist in the catalog.\nPlease select one in `names(GetCatalog_Recession())`')
+
+  return()
+}

@@ -18,7 +18,8 @@ ModelAndSegmentation.recession.regression(
   temp.folder = file.path(tempdir(), "BaM"),
   temp.folder.Recession = file.path(tempdir(), "BaM", "Recession"),
   funk = "BR1",
-  ...
+  ...,
+  RMSE_args = list()
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ ModelAndSegmentation.recession.regression(
 \item{funk}{string, model for estimating the recession}
 
 \item{...}{optional arguments to funk}
+
+\item{RMSE_args}{list, optional arguments to pass in \code{criticize_rec_model} function for setting weighted RMSE}
 }
 \value{
 List with the following components:
@@ -111,7 +114,8 @@ model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec
                                                     hrec=recessions$hrec,
                                                     uHrec=recessions$uHrec,
                                                     indx=recessions$indx,
-                                                    funk=fit)
+                                                    funk=fit,
+                                                    RMSE_args=list(rmse_threshold =0.3))
 # Plot recession segmentation
 plot_segm_recession(model_rec=model_rec,
                     spec_recession=c(2,16,28,48),

@@ -20,6 +20,6 @@ If \code{printOnly==FALSE}, a list with the following fields:
 Rating curve and models with their equation available
 }
 \examples{
-catalog <- GetCatalog()
-GetCatalog(printOnly=TRUE)
+catalog <- GetCatalog_RC()
+GetCatalog_RC(printOnly=TRUE)
 }
