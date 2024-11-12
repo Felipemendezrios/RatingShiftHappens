@@ -543,7 +543,10 @@ Models fitting available in the package may be consulted here:
 
 ```{r}
 # Get model available to estimate the recession curve
-GetCatalog()$Recession_Equations
+names(GetCatalog_Recession())
+
+GetCatalog_Recession()$M3$Equation()
+
 ```
 For instance, the recession model with two exponential terms and asymptotic (`Recession_M3_Equation()`, proposed by @darienzoDetectionEstimationStagedischarge2021) will be considered for the calculation, and it is described below:
 
@@ -572,7 +575,7 @@ Both Bayesian estimation of the stage-recession and the recession segmentation a
                                                      indx=recessions$indx,
                                                      nSmax = 3,
                                                      nMin = 1,
-                                                     funk=Recession_M3_Equation)
+                                                     funk='M3')
 ```
 
 The estimation and segmentation have been completed. Next, plot functions have been developed to generate figures for interpreting the obtained results.

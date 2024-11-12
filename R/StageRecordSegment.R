@@ -223,7 +223,7 @@ Extraction_recession <- function(H,
 #' Model and segmentation of recession
 #'
 #' Modelling recession using a catalog of fit models available to apply segmentation procedure.
-#' Please see details for understading how to use this function
+#' Please see details for understanding how to use this function
 #'
 #' @param time_rec real vector, recession duration relative to the first data detected during the recession
 #' @param daterec vector, time in POSIXct format mandatory
@@ -237,7 +237,7 @@ Extraction_recession <- function(H,
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations of the segmentation
 #' @param temp.folder.Recession directory, temporary directory to write computations of the recession
-#' @param funk the equation for estimating the recession
+#' @param funk string, model for estimating the recession
 #' @param ... optional arguments to funk
 #'
 #' @return  List with the following components:
@@ -273,7 +273,9 @@ Extraction_recession <- function(H,
 #' @importFrom RBaM dataset
 #'
 #' @details
-#' To get the catalog of models available using `GetCatalog()$Recession_Equations`.
+#' To get the catalog of available models, including equation and estimation, please see: `?GetCatalog_Recession`.
+#' The funk input must be one of the available models in: `names(GetCatalog_Recession())`
+#'
 #' Be careful when specifying temporal folder for computations.
 #' temp.folder must contain temp.folder.Recession as the default value:
 #' temp.folder= `file.path(tempdir(),'BaM')`
@@ -292,7 +294,7 @@ Extraction_recession <- function(H,
 #' plot_rec_extracted(Rec_extracted = recessions)
 #'
 #' # Choose fit recession model
-#' fit=Recession_B2_Equation
+#' fit='BR1'
 #'
 #' model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
 #'                                                     daterec=recessions$date,
@@ -323,7 +325,7 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                                                       nSlim=max(nCycles/10,1),
                                                       temp.folder=file.path(tempdir(),'BaM'),
                                                       temp.folder.Recession= file.path(tempdir(),'BaM','Recession'),
-                                                      funk=Recession_B2_Equation,...){
+                                                      funk='BR1',...){
   # Check information given in input
   if(any(time_rec<0))stop('time_rec must be positive')
   if(any(uHrec<0))stop('uHrec must be positive')
@@ -339,11 +341,13 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
     stop('time,stage, uncertainty or index do not have the same length')
   }
   # Check if equation chosen exist
-  current.rec.model = funk() # Write equation to put in BaM model (TextFile model)
-  available.models  = Recession_models_available () # Recession models available
-  matched.model <- identify_model(current.rec.model, available.models)
+  id_recession_model=which(funk==names(GetCatalog_Recession()))
+  if(length(which(funk==names(GetCatalog_Recession())))==0)
+    stop('Recession model chosen in funk input data does not exist in the catalog.\nPlease select one in `names(GetCatalog_Recession())`')
 
-  if(is.na(matched.model))stop('Recession equation given in funk input data does not exist in the catalog.\nPlease select one of the `GetCatalog()$Recession_Equations`')
+  equation_recession_model=GetCatalog_Recession()[[id_recession_model]]$Equation
+  funk_recession_model=GetCatalog_Recession()[[id_recession_model]]$funk
+
 
   DF.order <- data.frame(time_rec=time_rec,
                          daterec=daterec,
@@ -357,9 +361,9 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                     VAR.indx=DF.order['indx'],
                     data.dir= temp.folder.Recession)
 
-  list.rec.est=Estimation_Recession(matched.model=current.rec.model,
+  list.rec.est=funk_recession_model(raw.data=DF.order,
                                     data.object=D,
-                                    raw.data=DF.order,
+                                    equation_rec_model=equation_recession_model(),
                                     temp.folder.Recession=temp.folder.Recession,
                                     ...)
 

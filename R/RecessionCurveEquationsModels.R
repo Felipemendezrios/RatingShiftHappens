@@ -34,6 +34,6 @@ Recession_M3_Equation <- function(){
 #'   \item{c real value, recession exponent in meters}
 #' }
 #' @export
-Recession_B2_Equation <- function(){
+Recession_B1_Equation <- function(){
   return('alpha*exp(-lambda*t^c)+beta_k')
 }

@@ -17,7 +17,7 @@ ModelAndSegmentation.recession.regression(
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
   temp.folder.Recession = file.path(tempdir(), "BaM", "Recession"),
-  funk = Recession_B2_Equation,
+  funk = "BR1",
   ...
 )
 }
@@ -46,7 +46,7 @@ ModelAndSegmentation.recession.regression(
 
 \item{temp.folder.Recession}{directory, temporary directory to write computations of the recession}
 
-\item{funk}{the equation for estimating the recession}
+\item{funk}{string, model for estimating the recession}
 
 \item{...}{optional arguments to funk}
 }
@@ -80,10 +80,12 @@ List with the following components:
 }
 \description{
 Modelling recession using a catalog of fit models available to apply segmentation procedure.
-Please see details for understading how to use this function
+Please see details for understanding how to use this function
 }
 \details{
-To get the catalog of models available using \code{GetCatalog()$Recession_Equations}.
+To get the catalog of available models, including equation and estimation, please see: \code{?GetCatalog_Recession}.
+The funk input must be one of the available models in: \code{names(GetCatalog_Recession())}
+
 Be careful when specifying temporal folder for computations.
 temp.folder must contain temp.folder.Recession as the default value:
 temp.folder= \code{file.path(tempdir(),'BaM')}
@@ -102,7 +104,7 @@ recessions = recessions_extracted$Rec_extracted
 plot_rec_extracted(Rec_extracted = recessions)
 
 # Choose fit recession model
-fit=Recession_B2_Equation
+fit='BR1'
 
 model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
                                                     daterec=recessions$date,
