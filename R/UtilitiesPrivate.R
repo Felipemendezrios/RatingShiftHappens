@@ -164,57 +164,6 @@ character_check <- function(donnees){
   })
 }
 
-#' Find recession models
-#'
-#' @return vector, return equation of all recession model available
-#' @keywords internal
-Recession_models_available <- function(){
-  # List all functions exported from the package
-  all_functions <- ls("package:RatingShiftHappens")
-
-  # Filter functions with names containing both "Recession" and "Equation" (Be careful to use only this combination for recession models!!)
-  recession_equation_functions <- all_functions[grep("Recession.*Equation", all_functions)]
-
-  # Initialize an empty vector to store the return values as characters
-  results <- character()
-
-  # Execute each function and store its return as a character in the results vector
-  for (func_name in recession_equation_functions) {
-    # Retrieve the function using `get`
-    func <- get(func_name, envir = asNamespace("RatingShiftHappens"))
-
-    # Call the function and convert its return value to a character
-    result <- as.character(func())
-
-    # Append the result to the results vector
-    results <- c(results, result)
-  }
-  return(results)
-}
-
-#' Identify model selected is in the catalog
-#'
-#' @param current_model name function, model selected
-#' @param model_list list, models available in the file `RecessionCurveEquationsModels.R`
-#'
-#' @return equation of the model selected
-#' @keywords internal
-identify_model <- function(current_model, model_list) {
-  # Check if exact or partial matches are present
-  match_idx <- grep(current_model, model_list, fixed = TRUE)
-
-  # If no exact match is found, try partial matching
-  if (length(match_idx) == 0) {
-    match_idx <- grep(substr(current_model, 1, 10), model_list)  # Adjust substring length as needed
-  }
-
-  # Return the matched model index (if any)
-  if (length(match_idx) > 0) {
-    return(model_list[match_idx[1]])
-  } else {
-    return(NA)  # No match found
-  }
-}
 #' Convert list to data frame
 #'
 #' @param liste_df list, data frame

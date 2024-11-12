@@ -2,7 +2,7 @@
 #'
 #' @param raw.data data frame, all stage record
 #' @param data.object object, model object output by the RBaM function
-#' @param current.rec.model character, equation selected to modelling recessions
+#' @param equation_rec_model character, equation selected to modelling recessions
 #' @param nCyclesrec integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burnrec real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlimrec integer, MCMC slim step
@@ -46,7 +46,7 @@
 #' @importFrom stringr str_extract
 Estimation_Recession_M3 <- function(raw.data,
                                     data.object,
-                                    current.rec.model,
+                                    equation_rec_model,
                                     temp.folder.Recession,
                                     nCyclesrec=100,
                                     burnrec=0.5,
@@ -91,7 +91,7 @@ Estimation_Recession_M3 <- function(raw.data,
                              prior.par =rep(list(NULL), Ncurves)) # prior distributions
 
   # use xtraModelInfo to pass the names of the inputs and the formulas
-  xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=current.rec.model))
+  xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=equation_rec_model))
   # model
   mod=RBaM::model(ID='TextFile',nX=1,nY=1,par=list(alpha_1_k,lambda_1,alpha_2_k,lambda_2,beta_k),xtra=xtra)
 
@@ -233,7 +233,7 @@ Estimation_Recession_M3 <- function(raw.data,
 #'
 #' @param raw.data data frame, all stage record
 #' @param data.object object, model object output by the RBaM function
-#' @param current.rec.model character, equation selected to modelling recessions
+#' @param equation_rec_model character, equation selected to modelling recessions
 #' @param nCyclesrec integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burnrec real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlimrec integer, MCMC slim step
@@ -277,7 +277,7 @@ Estimation_Recession_M3 <- function(raw.data,
 #' @importFrom stringr str_extract
 Estimation_Recession_BR1 <- function(raw.data,
                                      data.object,
-                                     current.rec.model,
+                                     equation_rec_model,
                                      temp.folder.Recession,
                                      nCyclesrec=100,
                                      burnrec=0.5,
@@ -308,7 +308,7 @@ Estimation_Recession_BR1 <- function(raw.data,
                              prior.par =rep(list(NULL), Ncurves)) # prior distributions
 
   # use xtraModelInfo to pass the names of the inputs and the formulas
-  xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=current.rec.model))
+  xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=equation_rec_model))
   # model
   mod=RBaM::model(ID='TextFile',nX=1,nY=1,par=list(alpha,lambda,c,beta_k),xtra=xtra)
 
@@ -443,29 +443,4 @@ Estimation_Recession_BR1 <- function(raw.data,
   return(list(df.to.segm=df.to.segm,
               rec.data.plot.h.dt=rec.data.plot.h.dt,
               residuals.all.info=residuals.all.info))
-}
-
-
-
-#' Catalog of recession models available
-#'
-#' @param matched.model character, model selected by user
-#' @param temp.folder.Recession directory, temporal folder for recession computation
-#' @param ... optional arguments specific to matched.model defined by user
-#'
-#' @return list, recession estimation with their uncertainties
-#' @export
-Estimation_Recession <- function(matched.model,
-                                 temp.folder.Recession= file.path(tempdir(),'BaM','Recession'),
-                                 ...){
-  # Create named variables for model actions
-  model_actions <- list(
-    'alpha*exp(-lambda*t^c)+beta_k' = Estimation_Recession_BR1,
-    'alpha_1_k*exp(-lambda_1*t)+alpha_2_k*exp(-lambda_2*t)+beta_k' = Estimation_Recession_M3
-  )
- # Be sure that input are all the same for all estimations!!
-  action <- model_actions[[matched.model]](current.rec.model=matched.model,
-                                           temp.folder.Recession=temp.folder.Recession,
-                                           ...)
-  return(action)
 }

@@ -7,7 +7,7 @@
 Estimation_Recession_M3(
   raw.data,
   data.object,
-  current.rec.model,
+  equation_rec_model,
   temp.folder.Recession,
   nCyclesrec = 100,
   burnrec = 0.5,
@@ -19,7 +19,7 @@ Estimation_Recession_M3(
 
 \item{data.object}{object, model object output by the RBaM function}
 
-\item{current.rec.model}{character, equation selected to modelling recessions}
+\item{equation_rec_model}{character, equation selected to modelling recessions}
 
 \item{temp.folder.Recession}{directory, temporary directory to write computations}
 
