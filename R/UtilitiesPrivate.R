@@ -169,23 +169,7 @@ character_check <- function(donnees){
 #' @param liste_df list, data frame
 #'
 #' @return data frame if possible, if not a list
-#'
 #' @keywords internal
-#' @examples
-#'
-#' sample_data <- list(
-#' A = data.frame(a=1, b=-2, c=0, d=4),
-#' B = data.frame(a=-3, b=5, c=0, d=-1))
-#'
-#' # Convert to data frame
-#' convert_list_to_dataframe(sample_data)
-#'
-#' sample_data <- list(
-#' A = data.frame(a=1, c=0, d=4),
-#' B = data.frame(a=-3, b=5, c=0, d=-1))
-#'
-#' # Convert to data frame
-#' convert_list_to_dataframe(sample_data)
 convert_list_to_dataframe <- function(liste_df){
   result=c()
   lengths <- sapply(liste_df, ncol)
@@ -228,22 +212,6 @@ convert_list_to_dataframe <- function(liste_df){
 #'
 #' @return data frame transformed with NA values
 #' @keywords internal
-#'
-#' @examples
-#'
-#' sample_data <- data.frame(
-#' A = c(1, -2, 0, 4),
-#' B = c(-3, 5, 0, -1),
-#' C = c(0, 2, -7, 6) )
-#'
-#' # Display the original data frame
-#' print(sample_data)
-#'
-#' # Function call with consider_zero = TRUE
-#' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = TRUE)
-#'
-#' # Function call with consider_zero = FALSE
-#' replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = FALSE)
 replace_negatives_or_zero_values <- function(data_frame, columns='all', consider_zero = TRUE, replace=NA) {
 
   if(all(columns=='all')){
@@ -276,6 +244,7 @@ replace_negatives_or_zero_values <- function(data_frame, columns='all', consider
 #' @param id_recession_model integer, position of the model selected in the catalog
 #'
 #' @return string, error message if conditions not satisfied
+#' @keywords internal
 check_recession_modeling <- function(time_rec, daterec, hrec, uHrec,indx,id_recession_model){
   # Check information given in input
   if(any(time_rec<0))stop('time_rec must be positive')
