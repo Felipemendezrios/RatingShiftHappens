@@ -92,8 +92,8 @@ Extraction_recession <- function(H,
   while (j <= j_max) {
 
     diff_t=as.numeric(difftime(stage.record.post$t[j],
-                    trec[m],
-                    units='days'))
+                               trec[m],
+                               units='days'))
 
     # Check 1: minimum distance between recession data (delta.t.min)
     # minimum distance in case of too
@@ -164,7 +164,7 @@ Extraction_recession <- function(H,
                                  last_time = last(date),    # Last date for each group
                                  diff_time_extremes = as.numeric(difftime(last_time, first_time, units = "days")),  # Difference in hours
                                  count_values = n()  # Total number of values for each group
-                                 ))
+                               ))
   # Check 4 : tgood
   # Select only recessions with length > tgood
   rm_indx_tgood = which(summary_temp$diff_time_extremes < tgood)
@@ -193,26 +193,26 @@ Extraction_recession <- function(H,
   if(tburn.rec!=0){
     # Apply burn of the first part of the recession to reduce data information
     data_rec_burned <- data.frame(data_rec_unburned %>%
-                             group_by(indx) %>%
-                             slice(-(1:floor(n() * tburn.rec))))
+                                    group_by(indx) %>%
+                                    slice(-(1:floor(n() * tburn.rec))))
 
   }else{
     data_rec_burned=data_rec_unburned
   }
 
   data_rec = data.frame(data_rec_burned %>%
-                           group_by(indx) %>%
-                           mutate(
-                             time_rec = as.numeric(difftime(date, first(date), units = "days")),  # Difference in hours
-                            ))
+                          group_by(indx) %>%
+                          mutate(
+                            time_rec = as.numeric(difftime(date, first(date), units = "days")),  # Difference in hours
+                          ))
 
   # Summary table
   summary_rec <- data.frame(data_rec_burned %>%
-                               group_by(indx) %>%
-                               summarise(
-                                 diff_time_extremes = as.numeric(difftime( last(date), first(date), units = "days")),  # Difference in hours
-                                 count_data = n()  # Total number of values for each group
-                               ))
+                              group_by(indx) %>%
+                              summarise(
+                                diff_time_extremes = as.numeric(difftime( last(date), first(date), units = "days")),  # Difference in hours
+                                count_data = n()  # Total number of values for each group
+                              ))
 
 
 
