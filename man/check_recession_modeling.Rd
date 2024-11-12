@@ -32,3 +32,4 @@ string, error message if conditions not satisfied
 \description{
 Checks necessary to recession modeling
 }
+\keyword{internal}

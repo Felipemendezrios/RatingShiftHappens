@@ -15,20 +15,4 @@ data frame if possible, if not a list
 \description{
 Convert list to data frame
 }
-\examples{
-
-sample_data <- list(
-A = data.frame(a=1, b=-2, c=0, d=4),
-B = data.frame(a=-3, b=5, c=0, d=-1))
-
-# Convert to data frame
-convert_list_to_dataframe(sample_data)
-
-sample_data <- list(
-A = data.frame(a=1, c=0, d=4),
-B = data.frame(a=-3, b=5, c=0, d=-1))
-
-# Convert to data frame
-convert_list_to_dataframe(sample_data)
-}
 \keyword{internal}

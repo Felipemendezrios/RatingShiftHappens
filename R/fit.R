@@ -313,6 +313,9 @@ fitRC_exponential <- function(time,H,Q,uQ,uH){
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param HmaxGrid real value, maximum stage of all data in the historical record
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
+#' @param nCycles_RC integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn_RC real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim_RC integer, MCMC slim step
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -341,7 +344,15 @@ fitRC_exponential <- function(time,H,Q,uQ,uH){
 #' @importFrom stats median
 #' @importFrom utils read.table
 #' @export
-fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,uH,HmaxGrid,
+fitRC_SimplifiedBaRatin<- function(time,
+                                   H,
+                                   Q,
+                                   uQ,
+                                   uH,
+                                   HmaxGrid,
+                                   nCycles_RC=100,
+                                   burn_RC=0.5,
+                                   nSlim_RC= max(nCycles_RC/10,1),
                                    temp.folder.RC=file.path(tempdir(),'BaM','RC')){
 
   data=data.frame(time=time,H=H,Q=Q,uQ=uQ)
@@ -393,11 +404,10 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,uH,HmaxGrid,
                 xtra=xtra) # use xtraModelInfo() to pass the control matrix
 
   # Cooking
-  nCycles=100
-  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles_RC)
 
-  cook_temp=RBaM::mcmcCooking(burn=0.5,
-                              nSlim=10)
+  cook_temp=RBaM::mcmcCooking(burn=burn_RC,
+                              nSlim=nSlim_RC)
   # Error model
   remnant_prior <-list(RBaM::remnantErrorModel(funk = "Linear",
                                                par = list(RBaM::parameter(name="gamma1",
@@ -409,10 +419,10 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,uH,HmaxGrid,
                                                                           prior.dist = "Uniform",
                                                                           prior.par = c(0,1000)))))
   # Run BaM executable
-  RBaM:: BaM(mod=M,
-             data=D,
+  RBaM:: BaM(mod = M,
+             data = D,
              workspace = temp.folder.RC,
-             mcmc=mcmc_temp,
+             mcmc = mcmc_temp,
              cook = cook_temp,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
@@ -439,14 +449,16 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,uH,HmaxGrid,
                           doParametric=TRUE, # propagate parametric uncertainty, i.e. MCMC samples?
                           doStructural=TRUE) # propagate structural uncertainty ?
 
-  RBaM:: BaM(mod=M,
-             data=D,
+  RBaM:: BaM(mod = M,
+             data = D,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
-             pred=totalU, # list of predictions
+             mcmc = mcmc_temp,
+             cook = cook_temp,
+             pred = totalU, # list of predictions
              remnant = remnant_prior,
-             doCalib=FALSE,
-             doPred=TRUE)
+             doCalib = FALSE,
+             doPred = TRUE)
 
   # Total uncertainty propagation
   env_QRC_TotalU=utils::read.table(file.path(temp.folder.RC,'QRC_TotalU.env'),header=TRUE)
@@ -512,6 +524,9 @@ fitRC_SimplifiedBaRatin<- function(time,H,Q,uQ,uH,HmaxGrid,
 #' @param a.object object, created by `prior_infor_param_builder` for describing prior information about the geometry properties
 #' @param b.object object, created by `prior_infor_param_builder` for describing prior information about the offset (thalweg or streambed)
 #' @param c.object object, created by `prior_infor_param_builder` for describing prior information about the type of hydraulic control
+#' @param nCycles_RC integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn_RC real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim_RC integer, MCMC slim step
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -542,6 +557,9 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
                                             a.object,
                                             b.object,
                                             c.object,
+                                            nCycles_RC=100,
+                                            burn_RC=0.5,
+                                            nSlim_RC= max(nCycles_RC/10,1),
                                             temp.folder.RC=file.path(tempdir(),'BaM','RC')){
   # if(length(time)<2){
   #   warning('NA was returned because it not possible to perform linear regression with fewer than two points.')
@@ -582,11 +600,10 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
                 xtra=xtra) # use xtraModelInfo() to pass the control matrix
 
   # Cooking
-  nCycles=100
-  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles_RC)
 
-  cook_temp=RBaM::mcmcCooking(burn=0.5,
-                              nSlim=10)
+  cook_temp=RBaM::mcmcCooking(burn=burn_RC,
+                              nSlim=nSlim_RC)
   # Error model
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
                                                 par = list(RBaM::parameter(name="gamma1",
@@ -598,10 +615,10 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
                                                                            prior.dist = "Uniform",
                                                                            prior.par = c(0,1000)))))
   # Run BaM executable
-  RBaM:: BaM(mod=M,
-             data=D,
+  RBaM:: BaM(mod = M,
+             data = D,
              workspace = temp.folder.RC,
-             mcmc=mcmc_temp,
+             mcmc = mcmc_temp,
              cook = cook_temp,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
@@ -632,6 +649,8 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
              data=D,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
+             mcmc=mcmc_temp,
+             cook = cook_temp,
              pred=totalU, # list of predictions
              # pred=list(totalU,paramU,maxpost), # list of predictions
              remnant = remnant_prior,
@@ -704,6 +723,9 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
 #' @param b.object list of object, created by `prior_infor_param_builder` for describing prior information about the offset (thalweg or streambed) for each hydraulic control
 #' @param c.object list of object, created by `prior_infor_param_builder` for describing prior information about the type of hydraulic control for each hydraulic control
 #' @param controlMatrix matrix, hydraulic control. The function `control_matrix_builder` was developed to help the user to created this control matrix
+#' @param nCycles_RC integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn_RC real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim_RC integer, MCMC slim step
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -735,6 +757,9 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
                             b.object,
                             c.object,
                             controlMatrix,
+                            nCycles_RC=100,
+                            burn_RC=0.5,
+                            nSlim_RC= max(nCycles_RC/10,1),
                             temp.folder.RC=file.path(tempdir(),'BaM','RC')){
   if(is.null(check_vector_lengths(a.object,b.object,c.object)))stop('It must be specified three times the number of hydraulic controls')
   if(!is.matrix(controlMatrix))stop('Control matrix must be a matrix')
@@ -779,12 +804,11 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
                 xtra=xtra) # use xtraModelInfo() to pass the control matrix
 
   # Cooking
-  nCycles=100
-  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles_RC)
 
 
-  cook_temp=RBaM::mcmcCooking(burn=0.5,
-                              nSlim=10)
+  cook_temp=RBaM::mcmcCooking(burn=burn_RC,
+                              nSlim=nSlim_RC)
 
   # Error model
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
@@ -797,10 +821,10 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
                                                                            prior.dist = "Uniform",
                                                                            prior.par = c(0,1000)))))
   # Run BaM executable
-  RBaM:: BaM(mod=M,
-             data=D,
+  RBaM:: BaM(mod = M,
+             data = D,
              workspace = temp.folder.RC,
-             mcmc=mcmc_temp,
+             mcmc = mcmc_temp,
              cook = cook_temp,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
@@ -841,14 +865,16 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
                             doStructural=TRUE) # propagate structural uncertainty ?
   }
 
-  RBaM:: BaM(mod=M,
-             data=D,
+  RBaM:: BaM(mod = M,
+             data = D,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
-             pred=totalU, # list of predictions
+             mcmc = mcmc_temp,
+             cook = cook_temp,
+             pred = totalU, # list of predictions
              remnant = remnant_prior,
-             doCalib=FALSE,
-             doPred=TRUE)
+             doCalib = FALSE,
+             doPred = TRUE)
 
   # Total uncertainty propagation
   env_QRC_TotalU=utils::read.table(file.path(temp.folder.RC,'QRC_TotalU.env'),header=TRUE)
@@ -926,6 +952,9 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
 #' @param k.object list of object, created by `prior_infor_param_builder` for describing prior information about the activation stage for each hydraulic control; when the water level falls below , the control becomes inactive;
 #' @param c.object list of object, created by `prior_infor_param_builder` for describing prior information about the type of hydraulic control for each hydraulic control
 #' @param controlMatrix matrix, hydraulic control. The function `control_matrix_builder` was developed to help the user to created this control matrix
+#' @param nCycles_RC integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn_RC real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim_RC integer, MCMC slim step
 #'
 #' @return List with the following components :
 #' \enumerate{
@@ -956,6 +985,9 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
                             k.object,
                             c.object,
                             controlMatrix,
+                            nCycles_RC=100,
+                            burn_RC=0.5,
+                            nSlim_RC= max(nCycles_RC/10,1),
                             temp.folder.RC=file.path(tempdir(),'BaM','RC')){
 
   if(is.null(check_vector_lengths(a.object,k.object,c.object)))stop('It must be specified three times the number of hydraulic controls')
@@ -996,12 +1028,10 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
                 xtra=xtra) # use xtraModelInfo() to pass the control matrix
 
   # Cooking
-  nCycles=100
-  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles_RC)
 
-
-  cook_temp=RBaM::mcmcCooking(burn=0.5,
-                              nSlim=10)
+  cook_temp=RBaM::mcmcCooking(burn=burn_RC,
+                              nSlim=nSlim_RC)
 
   # Error model fixed for all functions in the package
   remnant_prior <- list(RBaM::remnantErrorModel(funk = "Linear",
@@ -1014,10 +1044,10 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
                                                                            prior.dist = "Uniform",
                                                                            prior.par = c(0,1000)))))
   # Run BaM executable
-  RBaM:: BaM(mod=M,
-             data=D,
+  RBaM:: BaM(mod = M,
+             data = D,
              workspace = temp.folder.RC,
-             mcmc=mcmc_temp,
+             mcmc = mcmc_temp,
              cook = cook_temp,
              dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
@@ -1058,14 +1088,16 @@ fitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
                             doStructural=TRUE) # propagate structural uncertainty ?
   }
 
-  RBaM:: BaM(mod=M,
-             data=D,
+  RBaM:: BaM(mod = M,
+             data = D,
              workspace = temp.folder.RC,
              dir.exe = file.path(find.package("RBaM"), "bin"),
-             pred=totalU, # list of predictions
+             pred = totalU, # list of predictions
+             mcmc = mcmc_temp,
+             cook = cook_temp,
              remnant = remnant_prior,
-             doCalib=FALSE,
-             doPred=TRUE)
+             doCalib = FALSE,
+             doPred = TRUE)
 
   # Total uncertainty propagation
   env_QRC_TotalU=utils::read.table(file.path(temp.folder.RC,'QRC_TotalU.env'),header=TRUE)

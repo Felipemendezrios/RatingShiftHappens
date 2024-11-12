@@ -15,6 +15,9 @@ fitRC_BaRatinBAC(
   b.object,
   c.object,
   controlMatrix,
+  nCycles_RC = 100,
+  burn_RC = 0.5,
+  nSlim_RC = max(nCycles_RC/10, 1),
   temp.folder.RC = file.path(tempdir(), "BaM", "RC")
 )
 }
@@ -38,6 +41,12 @@ fitRC_BaRatinBAC(
 \item{c.object}{list of object, created by \code{prior_infor_param_builder} for describing prior information about the type of hydraulic control for each hydraulic control}
 
 \item{controlMatrix}{matrix, hydraulic control. The function \code{control_matrix_builder} was developed to help the user to created this control matrix}
+
+\item{nCycles_RC}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles}
+
+\item{burn_RC}{real between 0 (included) and 1 (excluded), MCMC burning factor}
+
+\item{nSlim_RC}{integer, MCMC slim step}
 
 \item{temp.folder.RC}{directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve}
 }

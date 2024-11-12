@@ -26,20 +26,4 @@ data frame transformed with NA values
 \description{
 Replace negative and/or zero values to NA or a specified value
 }
-\examples{
-
-sample_data <- data.frame(
-A = c(1, -2, 0, 4),
-B = c(-3, 5, 0, -1),
-C = c(0, 2, -7, 6) )
-
-# Display the original data frame
-print(sample_data)
-
-# Function call with consider_zero = TRUE
-replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = TRUE)
-
-# Function call with consider_zero = FALSE
-replace_negatives_or_zero_values(sample_data, c("A", "B", "C"), consider_zero = FALSE)
-}
 \keyword{internal}
