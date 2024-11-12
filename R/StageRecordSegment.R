@@ -366,7 +366,6 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
                                temp.folder.Recession=temp.folder.Recession,
                                ...)
 
-
   # 2. Criticize of recession modeling (RMSE weighted)
   list.rec.criticize <- do.call(criticize_rec_model,
                                 c(list(raw_data = DF.order,
