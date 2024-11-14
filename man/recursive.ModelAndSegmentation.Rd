@@ -17,7 +17,8 @@ recursive.ModelAndSegmentation(
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
   funk = fitRC_exponential,
-  ...
+  ...,
+  mu_prior = list()
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ recursive.ModelAndSegmentation(
 \item{funk}{the function for estimating the rating curve to be applied: see ‘Details’}
 
 \item{...}{optional arguments to funk}
+
+\item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
 }
 \value{
 List with the following components :
@@ -74,6 +77,9 @@ Recursive procedure for an \strong{unknown} number of segments, updating the rat
 \details{
 Some functions for estimating the rating curve are available in this package.
 Use \code{GetCatalog()$models} to discover the supported models. More information in \code{?GetCatalog()}.
+User may enter prior knowledge about the mu parameter (see \code{?segmentation.engine}, ) instead of default values.
+This information must be provided using the parameter function in the RBaM package, as shown in the example of
+creating an prior knowledge on "a" for computing the rating curve
 }
 \examples{
 # Define fit model for rating curve

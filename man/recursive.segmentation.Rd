@@ -13,7 +13,8 @@ recursive.segmentation(
   nCycles = 100,
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
-  temp.folder = file.path(tempdir(), "BaM")
+  temp.folder = file.path(tempdir(), "BaM"),
+  mu_prior = list()
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ recursive.segmentation(
 \item{nSlim}{integer, MCMC slim step}
 
 \item{temp.folder}{directory, temporary directory to write computations}
+
+\item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
 }
 \value{
 list with the following components:
@@ -59,6 +62,10 @@ list with the following components:
 }
 \description{
 Recursive segmentation procedure for an \strong{unknown} number of segments
+}
+\details{
+User may enter prior knowledge about the mu parameter (see \code{?segmentation.engine}) instead of default values.
+This information must be provided using the parameter function in the RBaM package, as shown in the example.
 }
 \examples{
 # Apply recursive segmentation

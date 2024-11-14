@@ -11,6 +11,7 @@
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
+#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
 #'
 #' @return list with the following components:
 #' \enumerate{
@@ -34,12 +35,31 @@
 #'   \item DIC: real, DIC estimation
 #'   \item origin.date.p: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #' }
+#' @details
+#' The residuals between the gaugings and the RC are defined as follows:
+#' \deqn{r_i = \tilde{Q_i} - \hat{Q_i} \quad i = 1, \dots, N}
+#' where \eqn{\tilde{Q_i}}  is the gauged discharge, \eqn{\hat{Q_i}} is the RC-estimated discharge and N is the number of gaugings.
+#' Non-informative prior knowledge has been provided by default. If the user wants to modify this, it is advised to keep
+#' in mind that residual must tend towards zero to obtain satisfactory results. Besides, a same prior will be assigned for all calculation.
+#' Additionally, please ensure that the prior has been created using the `parameter` function from `RBaM` package;
+#' otherwise, an error message will appear as shown below:
+#' - Error in mu_list$name : the $ operator is invalid for atomic vectors
+#'
+#' More information about prior knowledge on mu parameter available in `sources`.
+#'
+#' @source \url{https://theses.hal.science/tel-03211343}
+#' @source \url{https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/2020WR028607}
+#'
 #' @examples
 #' # Run segmentation engine function at two segments
 #' # for data set : RhoneRiver (further details on ?RhoneRiver)
 #' res=segmentation.engine(obs=RhoneRiver$H,
 #'                         time=RhoneRiver$Year,
-#'                         u=RhoneRiver$uH,nS=2)
+#'                         u=RhoneRiver$uH,nS=2,
+#'                         mu_prior = list(RBaM::parameter(name=paste0('mu'),
+#'                                         init=c(0),
+#'                                         prior.dist = 'Gaussian',
+#'                                         prior.par = c(0,50))))
 #' # Data information
 #' knitr::kable(head(res$summary$data),
 #'              align = 'c',row.names = FALSE)
@@ -63,24 +83,23 @@ segmentation.engine <- function(obs,
                                 nCycles=100,
                                 burn=0.5,
                                 nSlim=max(nCycles/10,1),
-                                temp.folder=file.path(tempdir(),'BaM')){
+                                temp.folder=file.path(tempdir(),'BaM'),
+                                mu_prior=list(NULL)){
 
-  if(length(obs)<nS){
-    stop('Number of observations is lower than the number of segments',call.=FALSE)
-  }
-  if(any(is.na(obs)) | any(is.na(time)) | any(is.na(u))){
-    stop('Missing values not allowed in observation, time and uncertainty')
-  }
-  if(nS<=0){
-    stop('Maximum number of segments should be larger than 0',call.=FALSE)
-  }
-  if(trunc(length(obs)/nS)<nMin){
-    stop(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
-                ') and the number of segments (',nS,')'))
-  }
-  if(is.null(check_vector_lengths(obs,time,u))){
-    stop('The observations, time and uncertainty have not the same length')
-  }
+  if(length(obs)<nS)stop('Number of observations is lower than the number of segments',call.=FALSE)
+  if(any(is.na(obs)) | any(is.na(time)) | any(is.na(u)))stop('Missing values not allowed in observation, time and uncertainty')
+
+  if(nS<=0)stop('Maximum number of segments should be larger than 0',call.=FALSE)
+  if(trunc(length(obs)/nS)<nMin)stop(paste0('The minimum number of observations per segment (',nMin,') cannot be matched with the number of observations (',length(obs),
+                                            ') and the number of segments (',nS,')'))
+  if(is.null(check_vector_lengths(obs,time,u)))stop('The observations, time and uncertainty have not the same length')
+
+  ## Think how to check if mu_prior has been properly provided
+  # if(!is.null(mu_prior[[1]])){
+  #   if(length(mu_prior)!=1)stop('Please provide a value for `mu_prior`; the same prior is mandatory for calculations')
+  #   if(class(mu_prior[[1]]!='parameter'))stop('Please ensure `mu_prior` have been created beforehand using the parameter function from the RBaM package')
+  # }
+
   # sort data frame case time not ascending
   DF.order <- data.frame(obs=obs,
                          time=time,
@@ -106,25 +125,36 @@ segmentation.engine <- function(obs,
   u <- DF.order.f$u
   npar = nS + nS - 1
 
-
   priors <- vector(mode = 'list',length = npar)
+  # Extract mu parameter from if user-defined
 
-  for(i in 1:nS){
-    priors [[i]] <- RBaM::parameter(name=paste0('mu',i),
-                                    init=mean(obs),
-                                    prior.dist = 'FlatPrior' ,
-                                    prior.par = NULL)
+  if(is.null(mu_prior[[1]])){
+    # Set default for mu_prior if no mu_prior are provided
+    for(i in 1:nS){
+      priors [[i]] <- RBaM::parameter(name=paste0('mu',i),
+                                      init=mean(obs),
+                                      prior.dist = 'FlatPrior' ,
+                                      prior.par = NULL)
+    }
+  }else{
+    # Use the provided mu parameter from mu_prior
+    for(i in 1:nS){
+      mu_list <- mu_prior[[1]]
+      mu_list$name <- paste0(mu_list$name,i)
+      priors [[i]] <- mu_list
+    }
   }
 
-  prior_tau_init <- as.numeric(stats::quantile(time,probs = seq(1,nS-1)/nS))
-
   if(i>1){
-    for(i in 1:(nS-1)){
-      priors [[nS+i]] <- RBaM::parameter(name=paste0('tau',i),
-                                         init= prior_tau_init[i],
-                                         prior.dist = 'FlatPrior' ,
-                                         prior.par = NULL)
-    }
+      # Set default for tau_prior
+      prior_tau_init <- as.numeric(stats::quantile(time,probs = seq(1,nS-1)/nS))
+
+      for(i in 1:(nS-1)){
+        priors [[nS+i]] <- RBaM::parameter(name=paste0('tau',i),
+                                           init= prior_tau_init[i],
+                                           prior.dist = 'FlatPrior' ,
+                                           prior.par = NULL)
+      }
   }
   # Config_Xtra
   xtra=RBaM::xtraModelInfo(object=c(nS=nS,
@@ -203,14 +233,14 @@ segmentation.engine <- function(obs,
     shift <- c()
     for(j in 1:(nS-1)){
 
-        shift.time.p.unc=data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
-                                                  (nS+j)],
-                                    I95_lower=stats::quantile(mcmc.segm[,(nS+j)],
-                                                              probs=c(0.025)),
-                                    I95_upper=stats::quantile(mcmc.segm[,(nS+j)],
-                                                              probs=c(0.975)))
-        shift <- rbind(shift,
-                       shift.time.p.unc)
+      shift.time.p.unc=data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
+                                                (nS+j)],
+                                  I95_lower=stats::quantile(mcmc.segm[,(nS+j)],
+                                                            probs=c(0.025)),
+                                  I95_upper=stats::quantile(mcmc.segm[,(nS+j)],
+                                                            probs=c(0.975)))
+      shift <- rbind(shift,
+                     shift.time.p.unc)
     }
     rownames(shift) <- NULL
     shift <- shift[order(shift$tau),]
@@ -334,7 +364,7 @@ segmentation.engine <- function(obs,
                                                              origin.date = origin.date)
 
       density_inc_95$taU_MAP <- NumericFormatTransform(numeric.date = density_inc_95$taU_MAP,
-                                                             origin.date = origin.date)
+                                                       origin.date = origin.date)
     }
 
   }
@@ -349,7 +379,7 @@ segmentation.engine <- function(obs,
               data.p = list(obs.p=obss,time.p=times,u.p=us),
               DIC=mcmc.DIC[1,2],
               origin.date.p=origin.date
-              ))
+  ))
 }
 #' Segmentation
 #'
@@ -364,6 +394,7 @@ segmentation.engine <- function(obs,
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
+#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
 #'
 #' @return list with the following components:
 #' \enumerate{
@@ -384,6 +415,10 @@ segmentation.engine <- function(obs,
 #'   }
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #' }
+#' @details
+#' User may enter prior knowledge about the mu parameter (see `?segmentation.engine`) instead of default values.
+#' This information must be provided using the parameter function in the RBaM package, as shown in the example.
+#'
 #' @examples
 #' # Run segmentation engine function at two segments
 #' res=segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
@@ -408,6 +443,7 @@ segmentation.engine <- function(obs,
 #' plotSegmentation(res$summary,
 #'                  res$plot)
 #' @export
+#' @importFrom rlang is_empty
 segmentation <- function(obs,
                          time=1:length(obs),
                          u=0*obs,
@@ -416,8 +452,8 @@ segmentation <- function(obs,
                          nCycles=100,
                          burn=0.5,
                          nSlim=max(nCycles/10,1),
-                         temp.folder=file.path(tempdir(),'BaM')){
-
+                         temp.folder=file.path(tempdir(),'BaM'),
+                         mu_prior = list()){
 
   if(nSmax<=0){
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
@@ -436,7 +472,16 @@ segmentation <- function(obs,
                      ') and the number of segments (',nS,')'))
       DICs [i] <- NA
     }else{
-      res[[i]] <- segmentation.engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder)
+
+      # Check if prior knowledge has been provided:
+      if(!rlang::is_empty(mu_prior)){
+        mu_args <- mu_prior
+      }else{
+        mu_args <- list(NULL)
+      }
+
+      res[[i]] <- segmentation.engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,
+                                      mu_prior = mu_args)
       DICs [i] <- res[[i]]$DIC
     }
   }
@@ -463,6 +508,7 @@ segmentation <- function(obs,
 #' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
+#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
 #'
 #' @return list with the following components:
 #' \enumerate{
@@ -484,6 +530,10 @@ segmentation <- function(obs,
 #'    \item tree: data frame, provide tree structure
 #'    \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #'   }
+#' @details
+#' User may enter prior knowledge about the mu parameter (see `?segmentation.engine`) instead of default values.
+#' This information must be provided using the parameter function in the RBaM package, as shown in the example.
+#'
 #' @examples
 #' # Apply recursive segmentation
 #' results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
@@ -511,7 +561,8 @@ recursive.segmentation <- function(obs,
                                    nCycles=100,
                                    burn=0.5,
                                    nSlim=max(nCycles/10,1),
-                                   temp.folder=file.path(tempdir(),'BaM')){
+                                   temp.folder=file.path(tempdir(),'BaM'),
+                                   mu_prior = list()){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
@@ -534,7 +585,8 @@ recursive.segmentation <- function(obs,
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
       partial.segmentation=segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
-                                        nSmax,nMin,nCycles,burn,nSlim,temp.folder) # Apply segmentation to subseries stored in node X[[j]]
+                                        nSmax,nMin,nCycles,burn,nSlim,temp.folder,
+                                        mu_prior=mu_prior) # Apply segmentation to subseries stored in node X[[j]]
       # Save results for this node
       allRes[[k]]=partial.segmentation
       # Save optimal number of segments

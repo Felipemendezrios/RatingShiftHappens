@@ -3,6 +3,11 @@
 \name{segmentation.engine}
 \alias{segmentation.engine}
 \title{Segmentation engine}
+\source{
+\url{https://theses.hal.science/tel-03211343}
+
+\url{https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/2020WR028607}
+}
 \usage{
 segmentation.engine(
   obs,
@@ -13,7 +18,8 @@ segmentation.engine(
   nCycles = 100,
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
-  temp.folder = file.path(tempdir(), "BaM")
+  temp.folder = file.path(tempdir(), "BaM"),
+  mu_prior = list(NULL)
 )
 }
 \arguments{
@@ -34,6 +40,8 @@ segmentation.engine(
 \item{nSlim}{integer, MCMC slim step}
 
 \item{temp.folder}{directory, temporary directory to write computations}
+
+\item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
 }
 \value{
 list with the following components:
@@ -62,12 +70,30 @@ for shift times with their associated probability densities
 \description{
 Segmentation procedure for a \strong{known} given number of segments
 }
+\details{
+The residuals between the gaugings and the RC are defined as follows:
+\deqn{r_i = \tilde{Q_i} - \hat{Q_i} \quad i = 1, \dots, N}
+where \eqn{\tilde{Q_i}}  is the gauged discharge, \eqn{\hat{Q_i}} is the RC-estimated discharge and N is the number of gaugings.
+Non-informative prior knowledge has been provided by default. If the user wants to modify this, it is advised to keep
+in mind that residual must tend towards zero to obtain satisfactory results. Besides, a same prior will be assigned for all calculation.
+Additionally, please ensure that the prior has been created using the \code{parameter} function from \code{RBaM} package;
+otherwise, an error message will appear as shown below:
+\itemize{
+\item Error in mu_list$name : the $ operator is invalid for atomic vectors
+}
+
+More information about prior knowledge on mu parameter available in \code{sources}.
+}
 \examples{
 # Run segmentation engine function at two segments
 # for data set : RhoneRiver (further details on ?RhoneRiver)
 res=segmentation.engine(obs=RhoneRiver$H,
                         time=RhoneRiver$Year,
-                        u=RhoneRiver$uH,nS=2)
+                        u=RhoneRiver$uH,nS=2,
+                        mu_prior = list(RBaM::parameter(name=paste0('mu'),
+                                        init=c(0),
+                                        prior.dist = 'Gaussian',
+                                        prior.par = c(0,50))))
 # Data information
 knitr::kable(head(res$summary$data),
              align = 'c',row.names = FALSE)

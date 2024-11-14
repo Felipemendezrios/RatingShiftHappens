@@ -15,10 +15,14 @@
 #' @param temp.folder directory, temporary directory to write computations
 #' @param funk the function for estimating the rating curve to be applied: see ‘Details’
 #' @param ... optional arguments to funk
+#' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
 #'
 #' @details
 #' Some functions for estimating the rating curve are available in this package.
 #' Use `GetCatalog()$models` to discover the supported models. More information in `?GetCatalog()`.
+#' User may enter prior knowledge about the mu parameter (see `?segmentation.engine`, ) instead of default values.
+#' This information must be provided using the parameter function in the RBaM package, as shown in the example of
+#' creating an prior knowledge on "a" for computing the rating curve
 #' @return List with the following components :
 #' \enumerate{
 #'   \item summary: list, summarize the information to present to the user
@@ -214,7 +218,10 @@ recursive.ModelAndSegmentation <- function(H,
                                            burn=0.5,
                                            nSlim=max(nCycles/10,1),
                                            temp.folder=file.path(tempdir(),'BaM'),
-                                           funk=fitRC_exponential,...){
+                                           funk=fitRC_exponential,
+                                           ...,
+                                           mu_prior = list()
+                                           ){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
@@ -225,16 +232,11 @@ recursive.ModelAndSegmentation <- function(H,
   parents=c(0) # Vector containing the indices of the parents of each node - same size as X
   continue=TRUE # Logical determining whether recursion should continue
 
-  if(any(Q<0)){
-    stop('Dishcarge cannot be negative, verify information')
-  }
-  if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ) | any(is.na(uH)))){
-    stop('Missing values not allowed in time, stage, discharge or uncertainties')
-  }
+  if(any(Q<0))stop('Dishcarge cannot be negative, verify information')
+  if(any(is.na(time)) | any(is.na(H)) | any(is.na(Q)) | any(is.na(uQ) | any(is.na(uH))))stop('Missing values not allowed in time, stage, discharge or uncertainties')
+
   check <- check_vector_lengths(time,H,Q,uQ,uH)
-  if(is.null(check)){
-    stop('time, hauteur, discharge or uncertainties do not have the same length')
-  }
+  if(is.null(check))stop('time, hauteur, discharge or uncertainties do not have the same length')
 
   DF.order <- data.frame(H=H,
                          time=time,
@@ -247,6 +249,7 @@ recursive.ModelAndSegmentation <- function(H,
 
   # Save results from first prediction using the grid for plotting rating curve
   if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
+
     residualsData.all <- list(funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,
                                    temp.folder.RC=file.path(temp.folder,'RC'),...)) # initialize first residual data to be segmented
 
@@ -287,11 +290,13 @@ recursive.ModelAndSegmentation <- function(H,
         nSopt=1
         ##
       }else{
+        # Apply segmentation to subseries stored in node residuals[[j]]
         partial.segmentation=segmentation(obs=residuals[[j]],
                                           time=TIME[[j]],
                                           u=u_residuals[[j]],
                                           nSmax,nMin,nCycles,burn,nSlim,
-                                          temp.folder=temp.folder) # Apply segmentation to subseries stored in node residuals[[j]]
+                                          temp.folder=temp.folder,
+                                          mu_prior=mu_prior)  # Pass mu_prior to segmentation if user-defined
         # Save results for this node
         allRes[[k]]=partial.segmentation
         # Save optimal number of segments

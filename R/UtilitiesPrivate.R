@@ -54,25 +54,6 @@ check_square_matrix <- function(x){
   }
 }
 
-#' Check number of parameters depending of distribution
-#'
-#' @param distribution string, distribution
-#' @param prior real vector, prior information about parameter
-#'
-#' @return logical, return null if number of parameter does not match with specified distribution
-#' @keywords internal
-check_param_distribution <- function(distribution, prior){
-  if(distribution == 'Gaussian' && length(prior)==2){
-    return('ok')
-  }else if(distribution == 'LogNormal' && length(prior)==2){
-    return('ok')
-  }else if(distribution == 'Uniform' && length(prior)==3){
-    return('ok')
-  }else{
-    return(NULL)
-  }
-}
-
 #' Convert a list to a data frame if possible
 #'
 #' @param listx list

@@ -29,7 +29,8 @@ Imports:
 	RColorBrewer,
 	stringr,
 	scales,
-	tibble
+	tibble,
+	rlang
 Suggests: 
     knitr,
     rmarkdown
