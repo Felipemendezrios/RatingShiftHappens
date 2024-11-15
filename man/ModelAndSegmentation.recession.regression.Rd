@@ -116,11 +116,15 @@ model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec
                                                     indx=recessions$indx,
                                                     funk=fit,
                                                     RMSE_args=list(rmse_threshold =0.3))
-# Plot recession segmentation
-plot_segm_recession(model_rec=model_rec,
-                    spec_recession=c(2,16,28,48),
-                    recession_rejected=FALSE,
-                    )
+
+# Plot recession segmentation user-defined
+plot_sim_obs_recession (model_rec=model_rec,
+                        spec_recession=c(2,16,28,48),
+                        recession_rejected=TRUE,
+                        all_recession=FALSE)
+
+# Plot the shift times detected
+plot_segm_recession(model_rec=model_rec)
 
 # Plot using all data of stage record
 plot_H_segm_recession(time=ArdecheRiverMeyrasStage$Date,

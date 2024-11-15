@@ -247,3 +247,17 @@ check_recession_modeling <- function(time_rec, daterec, hrec, uHrec,indx,id_rece
 
   return()
 }
+
+#' Get legend of the ggplot
+#'
+#' @param myggplot ggplot
+#'
+#' @return ggplot, legend
+#' @keywords internal
+#' @source http://www.sthda.com/english/wiki/wiki.php?id_contents=7930#add-a-common-legend-for-multiple-ggplot2-graphs
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}

@@ -30,7 +30,8 @@ Imports:
 	stringr,
 	scales,
 	tibble,
-	rlang
+	rlang,
+	gridExtra
 Suggests: 
     knitr,
     rmarkdown

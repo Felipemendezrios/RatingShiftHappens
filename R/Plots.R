@@ -1447,38 +1447,36 @@ plot_rec_extracted <- function(Rec_extracted,
 }
 
 
-#' Plot recession modeled and segmentation
+#' Comparison between simulation and observation
 #'
 #' @param model_rec list, results obtained by using `ModelAndSegmentation.recession.regression` function
 #' @param spec_recession integer vector, number of recession to plot the observed and simulated recession data separately
 #' @param recession_rejected logical, `TRUE` = includes plot of all recession rejected
 #' @param all_recession logical, `TRUE` = plot all recessions with observed and simulated recession data
 #'
-#' @return list of plots
-#' \enumerate{
-#'   \item plot.rec.segmented: ggplot, recession data indexed by period, and  estimated shift time is indicated vertically
-#'   \item plot.b.segmented: ggplot, asymptotic height indexed by period, and the estimated shift time is indicated vertically
-#'   \item plot.obs.vs.sim: list of ggplot, comparison between recession observed and simulated and the status if this is accepted or rejected
-#'  }
+#' @return ggplot, comparison between recession observed and simulated and the status if this is accepted or rejected
+#'
 #' @details
 #' If all_recession = `TRUE`, spec_recession will not be plotted, because they have already been plotted
 #' @export
-plot_segm_recession <- function(model_rec,
-                                spec_recession=NULL,
-                                recession_rejected=TRUE,
-                                all_recession=FALSE){
+#' @importFrom gridExtra arrangeGrob grid.arrange
+plot_sim_obs_recession <- function(model_rec,
+                                   spec_recession=NULL,
+                                   recession_rejected=TRUE,
+                                   all_recession=FALSE){
 
   if(!is.null(spec_recession)){
     if(any(spec_recession<=0))stop('spec_recession must be positive')
     if(any(spec_recession %% 1 != 0))stop('spec_recession must be a integer')
+    if(any(spec_recession > model_rec$n.rec.max))stop('spec_recession must be between the number of curves specified in the data')
   }
-  if(any(spec_recession > model_rec$n.rec.max))stop('spec_recession must be between the number of curves specified in the data')
-  if(all(!is.null(spec_recession) & all_recession & recession_rejected == FALSE))stop('A recession must be selected in spec_recession or plot all recesssion or the plot recession rejected')
+  if(all(is.null(spec_recession) & isFALSE(all_recession) &
+         isFALSE(recession_rejected)))stop('A recession must be selected in spec_recession or all recesssion or the plot recession rejected')
 
-  if(all_recession!=FALSE){
+  if(all_recession == TRUE){
     DF.obs.vs.sim = model_rec$summary.residual
   }else if(!is.null(spec_recession)){
-    if(recession_rejected==TRUE){
+    if(recession_rejected == TRUE){
       # Get recession rejected
       indx.rec.rejected=unique(model_rec$summary.residual$indx[which(model_rec$summary.residual$status=='Rejected')])
       indx.plot=c(spec_recession,indx.rec.rejected)
@@ -1486,11 +1484,107 @@ plot_segm_recession <- function(model_rec,
     }else{
       DF.obs.vs.sim = model_rec$summary.residual[model_rec$summary.residual$indx %in% spec_recession,]
     }
-  }else if(recession_rejected==TRUE){
+  }else if(recession_rejected == TRUE){
     # Get recession rejected
     indx.rec.rejected=unique(model_rec$summary.residual$indx[which(model_rec$summary.residual$status=='Rejected')])
+    if(length(indx.rec.rejected)==0)stop('No simulated recessions have been rejected. Please specify either all recessions or only some')
     DF.obs.vs.sim = model_rec$summary.residual[model_rec$summary.residual$indx %in% indx.rec.rejected,]
   }
+
+  # Plot MAP simulation and observed data
+  PlotREC.obs.sim=list()
+  indx_to_plot=unique(DF.obs.vs.sim$indx)
+
+  # Plot the first plot to get legend
+  data_sample <- DF.obs.vs.sim[which(DF.obs.vs.sim$indx==indx_to_plot[1]),]
+
+  plot_sample =
+    ggplot(data=data_sample,
+           aes(x=X1_obs,
+               y=Y1_obs,
+               ymin=Y1_obs+stats::qnorm(0.025)*uH_obs,
+               ymax=Y1_obs+stats::qnorm(0.975)*uH_obs,
+               col=factor('Observations')))+
+    geom_pointrange()+
+    geom_line(aes(x=X1_obs,
+                  y=Y1_sim,
+                  col=factor('Simulation (MAP)')))+
+    labs(title=paste0('Recession number ',indx_to_plot[1]),
+         subtitle = paste0('Status: ', unique(data_sample$status)),
+         x='Time [days]',
+         y='H [m]',
+         col= NULL)+
+    scale_color_manual(values=c('Simulation (MAP)'='orange',
+                                'Observations'='black'))+
+    theme_bw()+
+    theme(plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(color = ifelse(unique(data_sample$status)=='Accepted',
+                                                     'green4',
+                                                     'red'),
+                                       size=12,
+                                       hjust = 0.5),
+          legend.key.height = unit(0.8,'cm'),
+          legend.text = element_text(size=12))
+
+  common_legend=get_legend(plot_sample)
+
+  for (i in 1:length(indx_to_plot)){
+
+    PlotREC.obs.sim[[i]]<-local({
+      inner_list <- DF.obs.vs.sim[which(DF.obs.vs.sim$indx==indx_to_plot[i]),]
+
+      ggplot(data=inner_list,
+             aes(x=X1_obs,
+                 y=Y1_obs,
+                 ymin=Y1_obs+stats::qnorm(0.025)*uH_obs,
+                 ymax=Y1_obs+stats::qnorm(0.975)*uH_obs,
+                 col=factor('Observations')))+
+        geom_pointrange()+
+        geom_line(aes(x=X1_obs,
+                      y=Y1_sim,
+                      col=factor('Simulation (MAP)')))+
+        labs(title=paste0('Recession number ',indx_to_plot[i]),
+             subtitle = paste0('Status: ', unique(inner_list$status)),
+             x='Time [days]',
+             y='H [m]',
+             col= NULL)+
+        scale_color_manual(values=c('Simulation (MAP)'='orange',
+                                    'Observations'='black'))+
+        theme_bw()+
+        theme(plot.title = element_text(hjust = 0.5),
+              plot.subtitle = element_text(color= ifelse(unique(inner_list$status)=='Accepted',
+                                                        'green4',
+                                                        'red'),
+                                          size=12,
+                                          hjust = 0.5),
+              legend.position = "none")
+    })
+  }
+  # Define number of columns
+  ncol_plot = ifelse(length(PlotREC.obs.sim)==1,1,ifelse(length(PlotREC.obs.sim)<=6,2,4))
+
+  grobs <- lapply(PlotREC.obs.sim, ggplotGrob)
+
+  grid_PlotREC.obs.sim <- gridExtra::grid.arrange(
+    do.call(gridExtra::arrangeGrob, c(grobs, ncol = ncol_plot)),
+    common_legend,
+    widths = c(5,1))
+
+  return(grid_PlotREC.obs.sim)
+}
+
+
+#' Plot recession modeled and segmented
+#'
+#' @param model_rec list, results obtained by using `ModelAndSegmentation.recession.regression` function
+#'
+#' @return list of plots with the following components:
+#'  \enumerate{
+#'   \item plot.rec.segmented: ggplot, recession data indexed by period, and  estimated shift time is indicated vertically
+#'   \item plot.b.segmented: ggplot, asymptotic height indexed by period, and the estimated shift time is indicated vertically
+#'  }
+#' @export
+plot_segm_recession <- function(model_rec){
 
   # Plot: recession extracted showing the segmentation
   h.t.summary = model_rec$summary.rec.extracted
@@ -1501,7 +1595,6 @@ plot_segm_recession <- function(model_rec,
 
   colnames(h.t.summary$data) <- c('indx','time_rec','time','obs','u','status','period','I95_lower','I95_upper')
 
-  # plot.ht.segmentation =
   plot.rec.segmented = plotSegmentation(summary=h.t.summary,
                                         plot_summary=model_rec$plots)$final_plot
 
@@ -1515,44 +1608,8 @@ plot_segm_recession <- function(model_rec,
   plot.b.segmented[[1]] = plot.b.segmented[[1]]+
     ylab('River bed estimation (m)')
 
-  # Plot MAP simulation and observed data
-  PlotREC.obs.sim=list()
-  indx_to_plot=unique(DF.obs.vs.sim$indx)
-
-  for (i in 1:length(indx_to_plot)){
-
-    PlotREC.obs.sim[[i]]<-local({
-      inner_list <- DF.obs.vs.sim[which(DF.obs.vs.sim$indx==indx_to_plot[i]),]
-
-      ggplot(data=inner_list,
-             aes(x=X1_obs,
-                 y=Y1_obs,
-                 ymin=Y1_obs+stats::qnorm(0.025)*uH_obs,
-                 ymax=Y1_obs+stats::qnorm(0.975)*uH_obs,
-                 col=factor('Recession \nobserved')))+
-        geom_pointrange()+
-        geom_line(aes(x=X1_obs,
-                      y=Y1_sim,
-                      col=factor('Recession \nsimulation (MAP)')))+
-        labs(title=paste0('Recession number ',indx_to_plot[i]),
-             x='Time [days]',
-             y='H [m]',
-             col= paste0('Status: ', unique(inner_list$status)))+
-        scale_color_manual(values=c('Recession \nsimulation (MAP)'='orange',
-                                    'Recession \nobserved'='black'))+
-        theme_bw()+
-        theme(plot.title = element_text(hjust = 0.5),
-              legend.title = element_text(color= ifelse(unique(inner_list$status)=='Accepted',
-                                                        'green4',
-                                                        'red'),
-                                          size=12),
-              legend.key.height = unit(0.8,'cm'))
-    })
-  }
-
   return(list(plot.rec.segmented=plot.rec.segmented,
-              plot.b.segmented=plot.b.segmented,
-              plot.obs.vs.sim=PlotREC.obs.sim))
+              plot.b.segmented=plot.b.segmented))
 }
 
 #' Plot segmentation using all stage record

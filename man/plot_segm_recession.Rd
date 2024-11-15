@@ -2,35 +2,20 @@
 % Please edit documentation in R/Plots.R
 \name{plot_segm_recession}
 \alias{plot_segm_recession}
-\title{Plot recession modeled and segmentation}
+\title{Plot recession modeled and segmented}
 \usage{
-plot_segm_recession(
-  model_rec,
-  spec_recession = NULL,
-  recession_rejected = TRUE,
-  all_recession = FALSE
-)
+plot_segm_recession(model_rec)
 }
 \arguments{
 \item{model_rec}{list, results obtained by using \code{ModelAndSegmentation.recession.regression} function}
-
-\item{spec_recession}{integer vector, number of recession to plot the observed and simulated recession data separately}
-
-\item{recession_rejected}{logical, \code{TRUE} = includes plot of all recession rejected}
-
-\item{all_recession}{logical, \code{TRUE} = plot all recessions with observed and simulated recession data}
 }
 \value{
-list of plots
+list of plots with the following components:
 \enumerate{
 \item plot.rec.segmented: ggplot, recession data indexed by period, and  estimated shift time is indicated vertically
 \item plot.b.segmented: ggplot, asymptotic height indexed by period, and the estimated shift time is indicated vertically
-\item plot.obs.vs.sim: list of ggplot, comparison between recession observed and simulated and the status if this is accepted or rejected
 }
 }
 \description{
-Plot recession modeled and segmentation
-}
-\details{
-If all_recession = \code{TRUE}, spec_recession will not be plotted, because they have already been plotted
+Plot recession modeled and segmented
 }
