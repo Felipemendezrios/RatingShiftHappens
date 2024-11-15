@@ -21,19 +21,19 @@ Recession_M3_Equation <- function(){
 
 #' Model 2:
 #'
-#' Recession with one exponential and four parameters: \deqn{\alpha \cdot \exp(-\lambda \cdot t^c) + \beta_k}
+#' Recession with one exponential and four parameters: \deqn{\alpha_k \cdot \exp(-\lambda \cdot t^c) + \beta_k}
 #'
 #' @return string, model equation
 #' @details
 #' Parameter's description:
 #' \enumerate{
 #'   \item{t real value, time in days}
-#'   \item{lambda_1 real value, decay rate constant coefficient 1/(days^c)}
+#'   \item{lambda real value, decay rate constant coefficient 1/(days^c)}
 #'   \item{beta_k real value, asymptotic stage in meters}
-#'   \item{alpha_1 real value, scaling coefficient in meters}
+#'   \item{alpha_k real value, scaling coefficient in meters}
 #'   \item{c real value, recession exponent in meters}
 #' }
 #' @export
 Recession_B1_Equation <- function(){
-  return('alpha*exp(-lambda*t^c)+beta_k')
+  return('alpha_k*exp(-lambda*t^c)+beta_k')
 }

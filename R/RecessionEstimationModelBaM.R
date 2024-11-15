@@ -139,11 +139,17 @@ Estimation_Recession_BR1 <- function(data.object,
 
   rec.data=data.object$data
 
+  Ncurves=max(rec.data$indx)
   # Define prior information :
   # Parameters
-  alpha=RBaM::parameter(name='alpha',
-                        init=max(rec.data$hrec)-min(rec.data$hrec),
-                        prior.dist='FlatPrior+')
+  alpha_k=RBaM::parameter_VAR(name='alpha_k',
+                              index='indx',
+                              d=data.object,
+                              # The next 3 lines specify the parameter's initial guess and prior FOR EACH INDEX
+                              init=rep(max(rec.data$hrec)-min(rec.data$hrec),Ncurves),
+                              prior.dist=rep('FlatPrior+',Ncurves),
+                              prior.par =rep(list(NULL), Ncurves))
+
   # Details : https://en.wikipedia.org/wiki/Exponential_decay
   lambda=RBaM::parameter(name='lambda',
                          init=log(2)/stats::median(rec.data$time_rec),
@@ -152,7 +158,6 @@ Estimation_Recession_BR1 <- function(data.object,
                     init=1,
                     prior.dist='FlatPrior+')
 
-  Ncurves=max(rec.data$indx)
   beta_k=RBaM::parameter_VAR(name='beta_k',
                              index='indx',
                              d=data.object,
@@ -164,7 +169,7 @@ Estimation_Recession_BR1 <- function(data.object,
   # use xtraModelInfo to pass the names of the inputs and the formulas
   xtra=RBaM::xtraModelInfo(object=list(inputs=c('t'),formulas=equation_rec_model))
   # model
-  mod=RBaM::model(ID='TextFile',nX=1,nY=1,par=list(alpha,lambda,c,beta_k),xtra=xtra)
+  mod=RBaM::model(ID='TextFile',nX=1,nY=1,par=list(alpha_k,lambda,c,beta_k),xtra=xtra)
 
   # Cooking
   mcmc_temp=RBaM::mcmcOptions(nCycles=nCyclesrec)
