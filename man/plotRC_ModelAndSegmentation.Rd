@@ -6,7 +6,7 @@
 \usage{
 plotRC_ModelAndSegmentation(
   summary,
-  equation = Exponential_Equation,
+  equation = Equation_RC_Exponential,
   ...,
   Hmin_user = 0,
   Hmax_user = 2,
