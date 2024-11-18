@@ -495,6 +495,7 @@ segmentation <- function(obs,
               nS=nS,
               origin.date=res[[nS]]$origin.date.p))
 }
+
 #' Recursive segmentation
 #'
 #' Recursive segmentation procedure for an \strong{unknown} number of segments
@@ -717,7 +718,3 @@ recursive.segmentation <- function(obs,
               tree=tree,
               origin.date=DF.origin.date))
 }
-
-
-
-
