@@ -521,9 +521,9 @@ FitRC_SimplifiedBaRatin<- function(time,
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param HmaxGrid real value, maximum stage of all data in the historical record
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
-#' @param a.object object, created by `prior_infor_param_builder` for describing prior information about the geometry properties
-#' @param b.object object, created by `prior_infor_param_builder` for describing prior information about the offset (thalweg or streambed)
-#' @param c.object object, created by `prior_infor_param_builder` for describing prior information about the type of hydraulic control
+#' @param a.object object, created by `Builder_Prior_Knowledge` for describing prior information about the geometry properties
+#' @param b.object object, created by `Builder_Prior_Knowledge` for describing prior information about the offset (thalweg or streambed)
+#' @param c.object object, created by `Builder_Prior_Knowledge` for describing prior information about the type of hydraulic control
 #' @param nCycles_RC integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burn_RC real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim_RC integer, MCMC slim step
@@ -719,10 +719,10 @@ FitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
 #' @param uH real vector, uncertainty in stage record in meters (as a standard deviation)
 #' @param HmaxGrid real value, maximum stage of all data in the historical record
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
-#' @param a.object list of object, created by `prior_infor_param_builder` for describing prior information about the geometry properties for each hydraulic control
-#' @param b.object list of object, created by `prior_infor_param_builder` for describing prior information about the offset (thalweg or streambed) for each hydraulic control
-#' @param c.object list of object, created by `prior_infor_param_builder` for describing prior information about the type of hydraulic control for each hydraulic control
-#' @param controlMatrix matrix, hydraulic control. The function `control_matrix_builder` was developed to help the user to created this control matrix
+#' @param a.object list of object, created by `Builder_Prior_Knowledge` for describing prior information about the geometry properties for each hydraulic control
+#' @param b.object list of object, created by `Builder_Prior_Knowledge` for describing prior information about the offset (thalweg or streambed) for each hydraulic control
+#' @param c.object list of object, created by `Builder_Prior_Knowledge` for describing prior information about the type of hydraulic control for each hydraulic control
+#' @param controlMatrix matrix, hydraulic control. The function `Builder_ControlMatrix` was developed to help the user to created this control matrix
 #' @param nCycles_RC integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burn_RC real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim_RC integer, MCMC slim step
@@ -949,10 +949,10 @@ FitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
 #' @param Q real vector, discharge
 #' @param uQ real vector, uncertainty in discharge (as a standard deviation)
 #' @param temp.folder.RC directory, temporary directory to write computations of rating curve using observed stages and grid for plotting rating curve
-#' @param a.object list of object, created by `prior_infor_param_builder` for describing prior information about the geometry properties for each hydraulic control
-#' @param k.object list of object, created by `prior_infor_param_builder` for describing prior information about the activation stage for each hydraulic control; when the water level falls below , the control becomes inactive;
-#' @param c.object list of object, created by `prior_infor_param_builder` for describing prior information about the type of hydraulic control for each hydraulic control
-#' @param controlMatrix matrix, hydraulic control. The function `control_matrix_builder` was developed to help the user to created this control matrix
+#' @param a.object list of object, created by `Builder_Prior_Knowledge` for describing prior information about the geometry properties for each hydraulic control
+#' @param k.object list of object, created by `Builder_Prior_Knowledge` for describing prior information about the activation stage for each hydraulic control; when the water level falls below , the control becomes inactive;
+#' @param c.object list of object, created by `Builder_Prior_Knowledge` for describing prior information about the type of hydraulic control for each hydraulic control
+#' @param controlMatrix matrix, hydraulic control. The function `Builder_ControlMatrix` was developed to help the user to created this control matrix
 #' @param nCycles_RC integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
 #' @param burn_RC real between 0 (included) and 1 (excluded), MCMC burning factor
 #' @param nSlim_RC integer, MCMC slim step

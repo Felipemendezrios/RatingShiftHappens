@@ -114,7 +114,7 @@ Segmentation_Engine <- function(obs,
 
   # Date transformation function to passe to numeric format if necessary
   if(!is.numeric(DF.order.f$time)){
-    DateTransformed <- DateFormatTransform(date=DF.order.f$time)
+    DateTransformed <- TransformDateFormat(date=DF.order.f$time)
     DF.order.f$time <- DateTransformed$time
     origin.date <- DateTransformed$origin
     numeric.check=FALSE

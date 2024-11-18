@@ -314,7 +314,7 @@ Criticize_Recessions <- function(raw_data,
   # RMSE is in the same units that input data -> meters
   rmse_curve=data.frame(residuals.indx %>%
                           dplyr::group_by(indx) %>%
-                          dplyr::summarize(value_rmse=rmse.weighted(Y1_obs,Y1_sim,weight)))
+                          dplyr::summarize(value_rmse=RMSE_Weighted(Y1_obs,Y1_sim,weight)))
 
   # criticize recession modeled curve by curve
 

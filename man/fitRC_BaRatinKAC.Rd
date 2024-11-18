@@ -31,13 +31,13 @@ FitRC_BaRatinKAC(
 
 \item{uH}{real vector, uncertainty in stage record in meters (as a standard deviation)}
 
-\item{a.object}{list of object, created by \code{prior_infor_param_builder} for describing prior information about the geometry properties for each hydraulic control}
+\item{a.object}{list of object, created by \code{Builder_Prior_Knowledge} for describing prior information about the geometry properties for each hydraulic control}
 
-\item{k.object}{list of object, created by \code{prior_infor_param_builder} for describing prior information about the activation stage for each hydraulic control; when the water level falls below , the control becomes inactive;}
+\item{k.object}{list of object, created by \code{Builder_Prior_Knowledge} for describing prior information about the activation stage for each hydraulic control; when the water level falls below , the control becomes inactive;}
 
-\item{c.object}{list of object, created by \code{prior_infor_param_builder} for describing prior information about the type of hydraulic control for each hydraulic control}
+\item{c.object}{list of object, created by \code{Builder_Prior_Knowledge} for describing prior information about the type of hydraulic control for each hydraulic control}
 
-\item{controlMatrix}{matrix, hydraulic control. The function \code{control_matrix_builder} was developed to help the user to created this control matrix}
+\item{controlMatrix}{matrix, hydraulic control. The function \code{Builder_ControlMatrix} was developed to help the user to created this control matrix}
 
 \item{nCycles_RC}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles}
 

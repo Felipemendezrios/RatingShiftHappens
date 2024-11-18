@@ -1630,7 +1630,7 @@ PlotSegmentation_Recessions_Hdt <- function(time,
     origin.date <- min(data$time)
 
     # Date transformation function to passe to numeric format if necessary
-    DateTransformed <- DateFormatTransform(date=data$time)
+    DateTransformed <- TransformDateFormat(date=data$time)
     data$time <- DateTransformed$time
     origin.date <- DateTransformed$origin
 

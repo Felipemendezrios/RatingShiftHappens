@@ -33,11 +33,11 @@ FitRC_SimplifiedBaRatinWithPrior(
 
 \item{HmaxGrid}{real value, maximum stage of all data in the historical record}
 
-\item{a.object}{object, created by \code{prior_infor_param_builder} for describing prior information about the geometry properties}
+\item{a.object}{object, created by \code{Builder_Prior_Knowledge} for describing prior information about the geometry properties}
 
-\item{b.object}{object, created by \code{prior_infor_param_builder} for describing prior information about the offset (thalweg or streambed)}
+\item{b.object}{object, created by \code{Builder_Prior_Knowledge} for describing prior information about the offset (thalweg or streambed)}
 
-\item{c.object}{object, created by \code{prior_infor_param_builder} for describing prior information about the type of hydraulic control}
+\item{c.object}{object, created by \code{Builder_Prior_Knowledge} for describing prior information about the type of hydraulic control}
 
 \item{nCycles_RC}{integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles}
 

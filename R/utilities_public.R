@@ -13,18 +13,18 @@
 #' @export
 #'
 #' @examples
-#' DateFormatTransform(
+#' TransformDateFormat(
 #'                    c(as.POSIXct('2024-04-19 12:30:00',
 #'                      tz='UTC'),
 #'                      as.POSIXct('2024-03-19 18:30:00',
 #'                      tz='UTC')))
 #'
-#' DateFormatTransform(c(as.Date('2024/02/19'),
+#' TransformDateFormat(c(as.Date('2024/02/19'),
 #'                       as.Date('2024/02/10')))
 #'
-#' DateFormatTransform(c(as.character('20240419'),
+#' TransformDateFormat(c(as.character('20240419'),
 #'                       as.character('20240119')))
-DateFormatTransform <- function(date){
+TransformDateFormat <- function(date){
 
   # Transform date to numeric format: origin default is "1970-01-01 00:00:00 UTC"
   if(lubridate::is.Date(date)){
@@ -67,7 +67,7 @@ DateFormatTransform <- function(date){
 #' @return object, prior information on the parameter defined
 #' @export
 #' @importFrom RBaM getCatalogue
-prior_infor_param_builder <- function() {
+Builder_Prior_Knowledge <- function() {
 
   name <- as.character(readline(prompt = 'Enter a name of the parameter: '))
 
@@ -146,7 +146,7 @@ prior_infor_param_builder <- function() {
 #'
 #' @return matrix, hydraulic control. This matrix consists of 0s and 1s
 #' @export
-control_matrix_builder <- function(ncontrols) {
+Builder_ControlMatrix <- function(ncontrols) {
 
   control_matrix_build <- c()
   for(i in 1:ncontrols){
@@ -185,6 +185,6 @@ control_matrix_builder <- function(ncontrols) {
 #'
 #' @return real value, RMSE weighted value to qualify the fit
 #' @export
-rmse.weighted <- function(observations, predicted, weights) {
+RMSE_Weighted <- function(observations, predicted, weights) {
   sqrt(sum(weights * (observations - predicted)^2) / sum(weights))
 }
