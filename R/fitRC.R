@@ -33,7 +33,7 @@
 #' subset = RhoneRiverGaugings[1:20,]
 #'
 #' # LOESS regression to estimate a simple rating curve
-#' fit.funk=fitRC_loess(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
+#' fit.funk=FitRC_LOESS(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
 #' fit=fit.funk$ResultsResiduals
 #'
 #' # plot rating curve with model results
@@ -53,7 +53,7 @@
 #' arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #' abline(h=0, col='red')
-fitRC_loess<-function(time,H,Q,uQ,uH){
+FitRC_LOESS<-function(time,H,Q,uQ,uH){
   if(length(time)<=2){ # because second degree polynomial by default (loess function)
     warning('NA was returned because it not possible to perform LOESS regression with only two points.
     A second degree polynomial requires at least three points for prediction')
@@ -123,7 +123,7 @@ fitRC_loess<-function(time,H,Q,uQ,uH){
 #' subset = RhoneRiverGaugings[1:20,]
 #'
 #' # Linear regression to estimate a simple rating curve
-#' fit.funk=fitRC_LinearRegression(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
+#' fit.funk=FitRC_LinearRegression(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
 #' fit=fit.funk$ResultsResiduals
 #'
 #' # Parameters of the linear regression
@@ -146,7 +146,7 @@ fitRC_loess<-function(time,H,Q,uQ,uH){
 #' arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #' abline(h=0, col='red')
-fitRC_LinearRegression <- function(time,H,Q,uQ,uH){
+FitRC_LinearRegression <- function(time,H,Q,uQ,uH){
   if(length(time)<2){ # because second degree polynomial by default (loess function)
     warning('NA was returned because it not possible to perform linear regression with fewer than two points.')
     return(list(NA,NA))
@@ -222,7 +222,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ,uH){
 #' subset = RhoneRiverGaugings[1:20,]
 #'
 #' # Exponential regression to estimate a simple rating curve
-#' fit.all=fitRC_exponential(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
+#' fit.all=FitRC_Exponential(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
 #'
 #' fit=fit.all$ResultsResiduals
 #' fit.param=fit.all$parameters
@@ -247,7 +247,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ,uH){
 #' arrows(fit$time, fit$Q_res - fit$uQ_obs, fit$time, fit$Q_res + fit$uQ_obs, angle = 90,
 #'        code = 3, length = 0.1)
 #' abline(h=0, col='red')
-fitRC_exponential <- function(time,H,Q,uQ,uH){
+FitRC_Exponential <- function(time,H,Q,uQ,uH){
   if(length(time)<=2){
     warning('NA was returned because it not possible to perform exponentiel regression with only two points.
     A second degree polynomial requires at least three points for prediction')
@@ -344,7 +344,7 @@ fitRC_exponential <- function(time,H,Q,uQ,uH){
 #' @importFrom stats median
 #' @importFrom utils read.table
 #' @export
-fitRC_SimplifiedBaRatin<- function(time,
+FitRC_SimplifiedBaRatin<- function(time,
                                    H,
                                    Q,
                                    uQ,
@@ -552,7 +552,7 @@ fitRC_SimplifiedBaRatin<- function(time,
 #'        }
 #' }
 #' @export
-fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
+FitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
                                             HmaxGrid,
                                             a.object,
                                             b.object,
@@ -751,7 +751,7 @@ fitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
 #'        }
 #' }
 #' @export
-fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
+FitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
                             HmaxGrid,
                             a.object,
                             b.object,
@@ -980,7 +980,7 @@ fitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
 #'        }
 #' }
 #' @export
-fitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
+FitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
                             a.object,
                             k.object,
                             c.object,

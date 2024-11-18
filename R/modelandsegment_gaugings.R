@@ -45,7 +45,7 @@
 #' @export
 #' @examples
 #' # Define fit model for rating curve
-#' fit=fitRC_exponential
+#' fit=FitRC_Exponential
 #' equation=EquationRC_Exponential
 #'
 #' # Apply recursive model and segmentation
@@ -133,7 +133,7 @@
 #'
 #'
 #' # example with BaRatin method (k-a-c)
-#' fit=fitRC_BaRatinKAC
+#' fit=FitRC_BaRatinKAC
 #'
 #' # Hydraulic matrix control is also required.
 #' # The `control_matrix_builder` was developed to help the user to create this matrix.
@@ -218,7 +218,7 @@ recursive.ModelAndSegmentation <- function(H,
                                            burn=0.5,
                                            nSlim=max(nCycles/10,1),
                                            temp.folder=file.path(tempdir(),'BaM'),
-                                           funk=fitRC_exponential,
+                                           funk=FitRC_Exponential,
                                            ...,
                                            mu_prior = list()
                                            ){
@@ -248,7 +248,7 @@ recursive.ModelAndSegmentation <- function(H,
 
 
   # Save results from first prediction using the grid for plotting rating curve
-  if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
+  if(identical(funk,FitRC_SimplifiedBaRatin)||identical(funk,FitRC_SimplifiedBaRatinWithPrior)||identical(funk,FitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
 
     residualsData.all <- list(funk(time=DF.order$time,H=DF.order$H,Q=DF.order$Q,uQ=DF.order$uQ,uH=DF.order$uH,
                                    temp.folder.RC=file.path(temp.folder,'RC'),...)) # initialize first residual data to be segmented
@@ -321,7 +321,7 @@ recursive.ModelAndSegmentation <- function(H,
           NewuH=residualsData[[newParents[m]]]$uH[match(id.lines,residualsData[[newParents[m]]]$id)]
 
           # Save results from first prediction using the grid for plotting rating curve
-          if(identical(funk,fitRC_SimplifiedBaRatin)||identical(funk,fitRC_SimplifiedBaRatinWithPrior)||identical(funk,fitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
+          if(identical(funk,FitRC_SimplifiedBaRatin)||identical(funk,FitRC_SimplifiedBaRatinWithPrior)||identical(funk,FitRC_BaRatinKAC)||identical(funk,fitRC_BaRatinBAC)){
 
             # Update rating curve estimation
             residualsData.all[[p]] <- funk(time=newTIME[[m]],H=NewH,Q=NewQ,uQ=NewuQ,uH=NewuH,

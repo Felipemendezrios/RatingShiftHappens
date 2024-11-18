@@ -14,11 +14,13 @@
 #' @export
 GetCatalog_RC<-function(printOnly=FALSE){
   # available models
-  models=c('fitRC_loess',
-           'fitRC_BaRatinBAC',
-           'fitRC_BaRatinKAC',
-           'fitRC_exponential',
-           'fitRC_LinearRegression')
+  models=c('FitRC_LOESS',
+           'FitRC_Exponential',
+           'FitRC_LinearRegression',
+           'FitRC_SimplifiedBaRatin',
+           'FitRC_SimplifiedBaRatinWithPrior',
+           'FitRC_BaRatinBAC',
+           'FitRC_BaRatinKAC')
 
   equations=c('EquationRC_LOESS',
               'EquationRC_BaRatinBAC',

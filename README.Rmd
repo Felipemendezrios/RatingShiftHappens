@@ -193,9 +193,9 @@ GetCatalog_RC()$equations
 ```
 All these equations Q(h) allow for the proper transformation of stage to discharge, following the specified assumption for each fitting model.
 
-Models can either be non-parametric, such as as `fitRC_loess`, which relies solely on data for calculation, or parametric, like `fitRC_BaRatinKAC` with three parameters (a,b,c) per hydraulic control, integrating physics and geometry properties of the river in the estimation process. 
+Models can either be non-parametric, such as as `FitRC_LOESS`, which relies solely on data for calculation, or parametric, like `FitRC_BaRatinKAC` with three parameters (a,b,c) per hydraulic control, integrating physics and geometry properties of the river in the estimation process. 
 
-Hereafter, the employed model will be an exponential regression (`fitRC_exponential`) and the BaRatin model for estimating discharge.
+Hereafter, the employed model will be an exponential regression (`FitRC_Exponential`) and the BaRatin model for estimating discharge.
 
 The exponential regression needs two parameters, denoted as *a* and *b*, following the equation :
 
@@ -227,7 +227,7 @@ An exponential regression model is employed  to construct the rating curve using
 results=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,Q=ArdecheRiverGaugings$Q,
                                        time=ArdecheRiverGaugings$Date,
                                        uQ=ArdecheRiverGaugings$uQ,
-                                       nSmax=2,nMin=2,funk=fitRC_exponential)
+                                       nSmax=2,nMin=2,funk=FitRC_Exponential)
 
 # Data information
 knitr::kable(head(results$summary$data),
@@ -373,7 +373,7 @@ resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
                                               uQ=ArdecheRiverGaugings$uQ,
                                               nSmax=3,
                                               nMin=2,
-                                              funk=fitRC_BaRatinKAC,
+                                              funk=FitRC_BaRatinKAC,
                                               a.object=a.object,
                                               k.object=k.object,
                                               c.object=c.object,
@@ -427,7 +427,7 @@ resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
                                                     uH=rep(0.05,length(ArdecheRiverGaugings$H)),
                                                     nSmax=3,
                                                     nMin=2,
-                                                    funk=fitRC_BaRatinKAC,
+                                                    funk=FitRC_BaRatinKAC,
                                                     a.object=a.object,
                                                     k.object=k.object,
                                                     c.object=c.object,

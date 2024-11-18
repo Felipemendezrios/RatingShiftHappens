@@ -16,7 +16,7 @@ recursive.ModelAndSegmentation(
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
-  funk = fitRC_exponential,
+  funk = FitRC_Exponential,
   ...,
   mu_prior = list()
 )
@@ -83,7 +83,7 @@ creating an prior knowledge on "a" for computing the rating curve
 }
 \examples{
 # Define fit model for rating curve
-fit=fitRC_exponential
+fit=FitRC_Exponential
 equation=EquationRC_Exponential
 
 # Apply recursive model and segmentation
@@ -171,7 +171,7 @@ plotResidual_ModelAndSegmentation(summary=results$summary,
 
 
 # example with BaRatin method (k-a-c)
-fit=fitRC_BaRatinKAC
+fit=FitRC_BaRatinKAC
 
 # Hydraulic matrix control is also required.
 # The `control_matrix_builder` was developed to help the user to create this matrix.
