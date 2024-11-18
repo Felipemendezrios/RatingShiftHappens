@@ -35,7 +35,7 @@ Three fundamental functions are available to segment a random variable :
 You can install the development version of [RatingShiftHappens](https://github.com/Felipemendezrios/RatingShiftHappens) from GitHub using the following command. Please note that the [RBaM](https://github.com/BaM-tools/RBaM) package developed by [@renardBaMBayesianModeling2017](https://hal.inrae.fr/hal-02606929) is also required to run this package.
 
 ``` {r  results='hide',message=FALSE}
-# Before first use, install Rating Shift Happens and RBaM packages ones and for all, following these commands: 
+# Before first use, install RatingShiftHappens and RBaM packages ones and for all, following these commands: 
 
 # devtools::install_github("Felipemendezrios/RatingShiftHappens")
 # devtools::install_github('BaM-tools/RBaM') 
@@ -47,15 +47,15 @@ Functions will be explained more precisely below along with an example.
 
 ##  Segmentation procedure for a *known* given number of segments
 
-This basic example demonstrates the segmentation of annual maximum stages (H, m) for the Rhone River at Beaucaire, France, along with the associated uncertainties expressed as standard deviations (uH), divided into two groups. More information about the data set, please refer to the documentation available in `?RhoneRiverGaugings`.
+This basic example demonstrates the segmentation of annual maximum stages (H, m) for the Rhone River at Beaucaire, France, along with the associated uncertainties expressed as standard deviations (uH), divided into two groups. More information about the data set, please refer to the documentation available in `?RhoneRiverAMAX`.
 
 In this package, all uncertainties are expressed as standard deviations rather than expanded uncertainties. Uncertainty in stage measurements will be in meters, while for discharge, it will be in cubic meters per second.
 
 ```{r Segmentation_Engine}
  # Run segmentation engine function at two segments
- res=Segmentation_Engine(obs=RhoneRiverGaugings$H,
-                         time=RhoneRiverGaugings$Year,
-                         u=RhoneRiverGaugings$uH,
+ res=Segmentation_Engine(obs=RhoneRiverAMAX$H,
+                         time=RhoneRiverAMAX$Year,
+                         u=RhoneRiverAMAX$uH,
                          nS=2)
  # Data information
  knitr::kable(head(res$summary$data),
@@ -85,7 +85,6 @@ MCMC sampling demonstrate all combinations of parameters estimated.
 
 ```{r}
 knitr::kable(head(res$mcmc),align = 'c')
-
 ```
 
 The `RBaM` package provides several functions to explore MCMC samples.
@@ -97,7 +96,6 @@ The `RBaM` package provides several functions to explore MCMC samples.
   # Density plot for each parameter
   plots=RBaM::densityPlot(res$mcmc)
   gridExtra::grid.arrange(grobs=plots,ncol=3)
-
 ```
 
 
@@ -119,9 +117,9 @@ This is a basic example, which shows you how to segment the same dataset with an
 
 ```{r Segmentation}
  # Run segmentation engine function at two segments
- res=Segmentation(obs=RhoneRiverGaugings$H,
-                  time=RhoneRiverGaugings$Year,
-                  u=RhoneRiverGaugings$uH,
+ res=Segmentation(obs=RhoneRiverAMAX$H,
+                  time=RhoneRiverAMAX$Year,
+                  u=RhoneRiverAMAX$uH,
                   nSmax=3)
 
  # Get lower DIC value and optimal number of segments (to define optimal solution)
@@ -152,9 +150,9 @@ This is a basic example, which shows you how to segment the data set with an **u
 
 ```{r Recursive_Segmentation}
  # Apply recursive segmentation
- results=Recursive_Segmentation(obs=RhoneRiverGaugings$H,
-                                time=RhoneRiverGaugings$Year,
-                                u=RhoneRiverGaugings$uH,
+ results=Recursive_Segmentation(obs=RhoneRiverAMAX$H,
+                                time=RhoneRiverAMAX$Year,
+                                u=RhoneRiverAMAX$uH,
                                 nSmax=3)
  
  # Data information
@@ -321,7 +319,7 @@ As stage increases, the riffle becomes drowned and the stage-discharge relation 
 
 At high flows, part of the water flows into two floodways located on the right and left banks. Since the two floodways get activated at roughly the same stage, they are combined into a single control. 
 
-To assist the user in entering the hydraulic control matrix, the `control_matrix_builder` function was developed. This function interacts with the user to facilitate the creation of the matrix.
+To assist the user in entering the hydraulic control matrix, the `Builder_ControlMatrix` function was developed. This function interacts with the user to facilitate the creation of the matrix.
 
 ```{r}
 # Hydraulic control matrix
@@ -363,7 +361,7 @@ k.object=list(k1,k2,k3)
 c.object=list(c1,c2,c3)
 ```
 
-The `prior_infor_param_builder` function was developed and available to help the user to create these objects in a interactive way.
+The `Builder_Prior_Knowledge` function was developed and available to help the user to create these objects in a interactive way.
 
 ```{r}
 # Apply recursive model and segmentation with BaRatin multi-control method
@@ -377,8 +375,7 @@ resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
                                               a.object=a.object,
                                               k.object=k.object,
                                               c.object=c.object,
-                                              controlMatrix=controlMatrix
-                                              )
+                                              controlMatrix=controlMatrix)
 
  # Visualize tree structure
  PlotTree(resultsBaRatin$tree)
@@ -391,15 +388,15 @@ resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
 Plot the rating curves after using BaRatin method. It is possible to plot all nodes in the tree structure by setting `allnodes=TRUE`. To reduce calculation time, it is advisable to specify the vector of nodes for plotting the rating curve.
 
 ```{r}
-  # Plot the rating curves after using BaRatin method  
-  plotsRC=PlotRCSegmentation_Gaugings_Tree(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                                           autoscale=FALSE,
-                                           temp.folder=file.path(tempdir(),'BaM'),
-                                           CalibrationData='CalibrationData.txt',
-                                           allnodes=FALSE,
-                                           nodes=terminal)
+ # Plot the rating curves after using BaRatin method  
+ plotsRC=PlotRCSegmentation_Gaugings_Tree(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                                          autoscale=FALSE,
+                                          temp.folder=file.path(tempdir(),'BaM'),
+                                          CalibrationData='CalibrationData.txt',
+                                          allnodes=FALSE,
+                                          nodes=terminal)
   
-  plotsRC$PlotRCPred
+ plotsRC$PlotRCPred
 
  # Plot shift times in stage record
  PlotSegmentation_Gaugings_Hdt(summary=resultsBaRatin$summary,
@@ -431,8 +428,7 @@ resultsBaRatinWithuH=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
                                                     a.object=a.object,
                                                     k.object=k.object,
                                                     c.object=c.object,
-                                                    controlMatrix=controlMatrix
-                                                    )
+                                                    controlMatrix=controlMatrix)
 
  # Visualize tree structure
  PlotTree(resultsBaRatinWithuH$tree)
@@ -475,12 +471,11 @@ To accomplish this, the method is divided into three steps:
 
 1. Extraction of the stage-recessions 
 2. Bayesian estimation of the stage-recessions
-3. recessions segmentation
+3. Recessions segmentation
 
 #### Extraction of the stage-recessions
 
-The first step consists in extracting all stage-recession data. However, not all existing recessions are
-extracted, but only those that meet the user-defined criteria.
+The first step consists in extracting all stage-recession data. However, not all existing recessions are extracted, but only those that meet the user-defined criteria.
 
 A stage-recession period is a period of the stage record characterized by only decreasing stage values.
 A parameter is used to separate the recessions: $\chi$ [m]. According to this parameter a recession period $k$ is ended when the rise or fall of stage (e.g. due to incoming rainfall event) between two consequent data exceeds $\chi$ (hence, when [$h_{rec}(t_i)$ - $h_{rec}(t_{i-1})$] > $\chi$).
@@ -532,12 +527,9 @@ The previously shown stage record does not have any associated uncertainty. Ther
 
 #### Bayesian estimation of the stage-recessions
 
-Once the stage-recession data have been extracted, the second step of the proposed method is based
-on the estimation of all recessions through a probabilistic Bayesian pooling approach.
+Once the stage-recession data have been extracted, the second step of the proposed method is based on the estimation of all recessions through a probabilistic Bayesian pooling approach.
 
-Using this approach all recessions are not estimated singularly but together in a unique model where
-some recession parameters are constant to all recessions and other parameters are specific to the each
-recession. We refer the reader to a similar ’pooling’ approach described in @mansanarezShiftHappensAdjusting2019.
+Using this approach all recessions are not estimated singularly but together in a unique model where some recession parameters are constant to all recessions and other parameters are specific to the each recession. We refer the reader to a similar ’pooling’ approach described in @mansanarezShiftHappensAdjusting2019.
 
 Models fitting available in the package may be consulted here: 
 
@@ -559,16 +551,14 @@ The estimation of the stable parameters will remain constant across all periods,
 
 #### Recessions segmentation
 
-Once the recession model has been estimated, the third step of the method consists in the segmentation
-of the estimated recessions. In particular we analyse the temporal evolution of the asymptotic
-stage parameter $\beta_k$, which corresponds to the elevation b of the lowest control.
+Once the recession model has been estimated, the third step of the method consists in the segmentation of the estimated recessions. In particular we analyse the temporal evolution of the asymptotic stage parameter $\beta_k$, which corresponds to the elevation b of the lowest control.
 
 This information may be interpreted as a random variable that needs to be segmented using a recursive segmentation procedure, specifically the `Recursive_Segmentation()`function. The time associated to each parameter $\beta_k$ is the time at which the corresponding recession begins.
 
-Both Bayesian estimation of the stage-recession and the recession segmentation are groupped in the same function `ModelAndSegmentation.recession.regression` as shown here:
+Both Bayesian estimation of the stage-recession and the recession segmentation are grouped in the same function `ModelAndSegmentation_Recessions` as shown here:
 
 ```{r}
- model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
+ model_rec=ModelAndSegmentation_Recessions(time_rec=recessions$time_rec,
                                                      daterec=recessions$date,
                                                      hrec=recessions$hrec,
                                                      uHrec=recessions$uHrec,

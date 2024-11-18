@@ -86,10 +86,10 @@ More information about prior knowledge on mu parameter available in \code{source
 }
 \examples{
 # Run segmentation engine function at two segments
-# for data set : RhoneRiverGaugings (further details on ?RhoneRiverGaugings)
-res=Segmentation_Engine(obs=RhoneRiverGaugings$H,
-                        time=RhoneRiverGaugings$Year,
-                        u=RhoneRiverGaugings$uH,nS=2,
+# for data set : RhoneRiverAMAX (further details on ?RhoneRiverAMAX)
+res=Segmentation_Engine(obs=RhoneRiverAMAX$H,
+                        time=RhoneRiverAMAX$Year,
+                        u=RhoneRiverAMAX$uH,nS=2,
                         mu_prior = list(RBaM::parameter(name=paste0('mu'),
                                         init=c(0),
                                         prior.dist = 'Gaussian',

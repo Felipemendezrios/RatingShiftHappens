@@ -42,7 +42,7 @@ LOESS model used to estimate a simple rating curve
 }
 \examples{
 # Dataset
-subset = RhoneRiverGaugings[1:20,]
+subset = RhoneRiverAMAX[1:20,]
 
 # LOESS regression to estimate a simple rating curve
 fit.funk=FitRC_LOESS(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)

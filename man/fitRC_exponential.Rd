@@ -43,7 +43,7 @@ Exponential regression expressed as \deqn{Q(h)=a \cdot \exp(b \cdot h)}
 }
 \examples{
 # Dataset
-subset = RhoneRiverGaugings[1:20,]
+subset = RhoneRiverAMAX[1:20,]
 
 # Exponential regression to estimate a simple rating curve
 fit.all=FitRC_Exponential(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)

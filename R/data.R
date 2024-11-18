@@ -19,7 +19,7 @@
 #' }
 #'
 #' @source \url{https://doi.org/10.1016/j.jhydrol.2023.129840}
-"RhoneRiverGaugings"
+"RhoneRiverAMAX"
 
 #' Stage record of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
 #'
