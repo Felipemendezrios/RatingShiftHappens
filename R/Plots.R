@@ -2,7 +2,7 @@
 #'
 #' Plot the tree resulting from any recursive segmentation procedures
 #'
-#' @param tree data frame, tree resulting from the call of recursive.segmentation and recursive.ModelAndSegmentation
+#' @param tree data frame, tree resulting from the call of recursive.segmentation and ModelAndSegmentation_Gaugings
 #'
 #' @return a ggplot
 #'
@@ -621,9 +621,9 @@ plotSegmentation <- function(summary,
 
 #' Plot Rating curve after segmentation
 #'
-#' Plot of all the rating curve after using the function `recursive.ModelAndSegmentation`, along with associated uncertainties
+#' Plot of all the rating curve after using the function `ModelAndSegmentation_Gaugings`, along with associated uncertainties
 #'
-#' @param summary data.frame, summary data resulting from the function `recursive.ModelAndSegmentation` saved in `$summary`
+#' @param summary data.frame, summary data resulting from the function `ModelAndSegmentation_Gaugings` saved in `$summary`
 #' @param equation the equation to be considered for plotting : see ‘Details’
 #' @param ... extra arguments for the specified equation : see 'Details'. Respect the name of the arguments (a, b, ..., c, control matrix) depending of the equation used.
 #' @param Hmin_user real value, minimal stage record set by user for plotting in meters
@@ -637,9 +637,9 @@ plotSegmentation <- function(summary,
 #' @details
 #' Some equations for estimating the rating curve are available in this package.
 #' Use `GetCatalog()$Equations` to discover the equations supported. More information in `?GetCatalog()`.
-#' For the extra information, you can view the arguments through `args()`  by enclosing the equation specified in the input arguments in brackets as shown in the example of `?recursive.ModelAndSegmentation``.
-#' Information about parameters values are available from the function `recursive.ModelAndSegmentation` saved in `$summary$param.equation`. Save each parameter estimates separately
-#' Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example `?recursive.ModelAndSegmentation`.
+#' For the extra information, you can view the arguments through `args()`  by enclosing the equation specified in the input arguments in brackets as shown in the example of `?ModelAndSegmentation_Gaugings``.
+#' Information about parameters values are available from the function `ModelAndSegmentation_Gaugings` saved in `$summary$param.equation`. Save each parameter estimates separately
+#' Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example `?ModelAndSegmentation_Gaugings`.
 #' @export
 #' @importFrom scales viridis_pal
 #' @importFrom stats qnorm
@@ -651,7 +651,7 @@ plotRC_ModelAndSegmentation=function(summary,
                                      H_step_discretization=0.01,
                                      autoscale=TRUE,
                                      logscale = FALSE){
-  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
                                            If not please use plotSegmentation() function')
 
   if(identical(equation,EquationRC_BaRatinKAC)||identical(equation,EquationRC_BaRatinBAC))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
@@ -896,7 +896,7 @@ plotRC_ModelAndSegmentation=function(summary,
 
 #' Plot stage time series after segmentation
 #'
-#' Plots focusing on the observed data and shift times after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#' Plots focusing on the observed data and shift times after using `ModelAndSegmentation_Gaugings` function, along with associated uncertainties
 #'
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
@@ -915,7 +915,7 @@ plot_H_ModelAndSegmentation <- function(summary,
                                         plot_summary,
                                         uH=0,
                                         ...){
-  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
                                            If not please use plotSegmentation() function')
   # Adapt summary to use PlotSegmentation function to plot segmentation of stage time series
   data_adapted <- data.frame(time=summary$data$time,
@@ -938,7 +938,7 @@ plot_H_ModelAndSegmentation <- function(summary,
 }
 #' Plot discharge time series after segmentation
 #'
-#' Plots focusing on the observed data and shift times after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#' Plots focusing on the observed data and shift times after using `ModelAndSegmentation_Gaugings` function, along with associated uncertainties
 #'
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
@@ -957,7 +957,7 @@ plot_Q_ModelAndSegmentation <- function(summary,
                                         plot_summary,
                                         uH=NA,
                                         ...){
-  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
                                            If not please use plotSegmentation() function')
   # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
   data_adapted <- data.frame(time=summary$data$time,
@@ -981,7 +981,7 @@ plot_Q_ModelAndSegmentation <- function(summary,
 
 #' Plot residuals with updating rating curve
 #'
-#' Plot residuals after using `recursive.ModelAndSegmentation` function, along with associated uncertainties
+#' Plot residuals after using `ModelAndSegmentation_Gaugings` function, along with associated uncertainties
 #'
 #' @param summary list, summary data resulting from model and segmentation function
 #' @param plot_summary list, plot data resulting from any segmentation function
@@ -992,7 +992,7 @@ plot_Q_ModelAndSegmentation <- function(summary,
 plotResidual_ModelAndSegmentation <- function(summary,
                                               plot_summary,
                                               ...){
-  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
                                                          If not please use plotSegmentation() function')
 
   if(is.null(summary$shift))stop('Any shift time detected')
@@ -1022,7 +1022,7 @@ plotResidual_ModelAndSegmentation <- function(summary,
 
 #' Plot all gaugings after segmentation
 #'
-#' @param summary list, summary data resulting from the `recursive.ModelAndSegmentation` function
+#' @param summary list, summary data resulting from the `ModelAndSegmentation_Gaugings` function
 #' @param show_gauging logical, if `TRUE` : gaugings are plotted
 #' @param show_RC logical, if `TRUE` : rating curves estimation are plotted
 #' @param logscale logical, if `TRUE` : log scale is applied
@@ -1035,9 +1035,9 @@ plotGaugingsSegmented <- function(summary,
                                   show_gauging=TRUE,
                                   show_RC=FALSE,
                                   logscale=FALSE){
-  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
+  if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
                                            If not please use plotSegmentation() function')
-  if(is.null(summary$data))stop('Input data does not match the format of the "recursive.ModelAndSegmentation" results')
+  if(is.null(summary$data))stop('Input data does not match the format of the "ModelAndSegmentation_Gaugings" results')
   plot_RC_customized = ggplot(summary$data, aes(x=H,
                                                 y=Q,
                                                 ymin=Q_I95_lower,
@@ -1100,12 +1100,12 @@ plotGaugingsSegmented <- function(summary,
 
 #' Plot rating curve from a tree structure
 #'
-#' Plot all rating curve specified in the nodes after using `recursive.ModelAndSegmentation` function.
+#' Plot all rating curve specified in the nodes after using `ModelAndSegmentation_Gaugings` function.
 #'
 #' @param Hgrid data frame, grid user-defined for plotting rating curve
 #' @param autoscale logical, auto scale following data for plotting Hgrid
 #' @param temp.folder directory, temporary directory to write computations
-#' @param CalibrationData character, name of the calibration data used in the `recursive.ModelAndSegmentation` function. It must to match or an error message will be appear
+#' @param CalibrationData character, name of the calibration data used in the `ModelAndSegmentation_Gaugings` function. It must to match or an error message will be appear
 #' @param allnodes logical, if TRUE all node will be plotted and the parameter nodes in the input data function will not be considered. If FALSE, it must to specify the nodes to plot.
 #' @param nodes integer vector, the nodes from tree structure for plotting rating curve.
 #'
@@ -1115,7 +1115,7 @@ plotGaugingsSegmented <- function(summary,
 #'     \item list, data frame with numeric data of each rating curve plotted before
 #' }
 #' @details
-#' The function allows plotting any node from the tree structure, as shown in the example from `recursive.ModelAndSegmentation`.
+#' The function allows plotting any node from the tree structure, as shown in the example from `ModelAndSegmentation_Gaugings`.
 #' The rating curves consist of the optimal rating curve after estimation, along with the parametric and total uncertainty.
 #' Gauging data used for calibration during segmentation have been plotted. Hence, the smaller the number of the node, the more gauging data have been used for calibration.
 #' @export
@@ -1136,7 +1136,7 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
 
   if(allnodes==FALSE & any(nodes>length(list.files(temp.folder,pattern = 'it_'))))stop('At least one specified node does not exist. Check node input data')
   if(allnodes==FALSE & !is.vector(nodes))(stop('Nodes must be a vector'))
-  if(any(CalibrationData==list.files(file.path(temp.folder,'it_1')))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder. Please, check the name of calibration data used in the recursive.ModelAndSegmentation function')
+  if(any(CalibrationData==list.files(file.path(temp.folder,'it_1')))==FALSE)stop('CalibrationData given in input data does not exist in the directory specified in temp.folder. Please, check the name of calibration data used in the ModelAndSegmentation_Gaugings function')
 
   # Extract all data required from specified nodes
   allData=list()

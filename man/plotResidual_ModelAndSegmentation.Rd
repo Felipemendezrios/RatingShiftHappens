@@ -17,5 +17,5 @@ plotResidual_ModelAndSegmentation(summary, plot_summary, ...)
 ggplot, residual segmentation
 }
 \description{
-Plot residuals after using \code{recursive.ModelAndSegmentation} function, along with associated uncertainties
+Plot residuals after using \code{ModelAndSegmentation_Gaugings} function, along with associated uncertainties
 }

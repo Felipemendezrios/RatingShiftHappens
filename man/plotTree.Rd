@@ -7,7 +7,7 @@
 plotTree(tree)
 }
 \arguments{
-\item{tree}{data frame, tree resulting from the call of recursive.segmentation and recursive.ModelAndSegmentation}
+\item{tree}{data frame, tree resulting from the call of recursive.segmentation and ModelAndSegmentation_Gaugings}
 }
 \value{
 a ggplot

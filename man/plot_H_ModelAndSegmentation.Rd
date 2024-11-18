@@ -25,5 +25,5 @@ vertical lines indicating the 95\% credibility interval and a red cross represen
 }
 }
 \description{
-Plots focusing on the observed data and shift times after using \code{recursive.ModelAndSegmentation} function, along with associated uncertainties
+Plots focusing on the observed data and shift times after using \code{ModelAndSegmentation_Gaugings} function, along with associated uncertainties
 }

@@ -16,7 +16,7 @@ plotRC_ModelAndSegmentation(
 )
 }
 \arguments{
-\item{summary}{data.frame, summary data resulting from the function \code{recursive.ModelAndSegmentation} saved in \verb{$summary}}
+\item{summary}{data.frame, summary data resulting from the function \code{ModelAndSegmentation_Gaugings} saved in \verb{$summary}}
 
 \item{equation}{the equation to be considered for plotting : see ‘Details’}
 
@@ -36,10 +36,10 @@ plotRC_ModelAndSegmentation(
 ggplot, rating curve after segmentation
 }
 \description{
-Plot of all the rating curve after using the function \code{recursive.ModelAndSegmentation}, along with associated uncertainties
+Plot of all the rating curve after using the function \code{ModelAndSegmentation_Gaugings}, along with associated uncertainties
 }
 \details{
 Some equations for estimating the rating curve are available in this package.
 Use \code{GetCatalog()$Equations} to discover the equations supported. More information in \code{?GetCatalog()}.
-For the extra information, you can view the arguments through \code{args()}  by enclosing the equation specified in the input arguments in brackets as shown in the example of \verb{?recursive.ModelAndSegmentation``. Information about parameters values are available from the function }recursive.ModelAndSegmentation\verb{saved in}$summary$param.equation\verb{. Save each parameter estimates separately Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example }?recursive.ModelAndSegmentation`.
+For the extra information, you can view the arguments through \code{args()}  by enclosing the equation specified in the input arguments in brackets as shown in the example of \verb{?ModelAndSegmentation_Gaugings``. Information about parameters values are available from the function }ModelAndSegmentation_Gaugings\verb{saved in}$summary$param.equation\verb{. Save each parameter estimates separately Please ensure that you enter the same number of rating curve parameters in the extra information as shown in the example }?ModelAndSegmentation_Gaugings`.
 }

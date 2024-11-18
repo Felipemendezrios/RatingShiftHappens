@@ -222,9 +222,9 @@ This function enables the modeling of the rating curve and ensures its continual
 
 An exponential regression model is employed  to construct the rating curve using observed data point represented by stage and discharge information. This regression estimates the relationships between a dependent variable and one independent variables from a statistical perspective.
 
-```{r recursive.ModelAndSegmentation}
+```{r ModelAndSegmentation_Gaugings}
 # Apply recursive model and segmentation
-results=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,Q=ArdecheRiverGaugings$Q,
+results=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,Q=ArdecheRiverGaugings$Q,
                                        time=ArdecheRiverGaugings$Date,
                                        uQ=ArdecheRiverGaugings$uQ,
                                        nSmax=2,nMin=2,funk=FitRC_Exponential)
@@ -367,7 +367,7 @@ The `prior_infor_param_builder` function was developed and available to help the
 
 ```{r}
 # Apply recursive model and segmentation with BaRatin multi-control method
-resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
                                               Q=ArdecheRiverGaugings$Q,
                                               time=ArdecheRiverGaugings$Date,
                                               uQ=ArdecheRiverGaugings$uQ,
@@ -420,7 +420,7 @@ Uncertainty associated to water level measurements during low flows could lead t
 
 ```{r}
 # Apply recursive model and segmentation with BaRatin multi-control method. Assumption, 0.05 m for uncertainty in th gauged height
-resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+resultsBaRatinWithuH=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
                                                     Q=ArdecheRiverGaugings$Q,
                                                     time=ArdecheRiverGaugings$Date,
                                                     uQ=ArdecheRiverGaugings$uQ,

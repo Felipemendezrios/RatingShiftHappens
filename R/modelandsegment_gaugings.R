@@ -49,7 +49,7 @@
 #' equation=EquationRC_Exponential
 #'
 #' # Apply recursive model and segmentation
-#' results=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+#' results=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
 #'                                        Q=ArdecheRiverGaugings$Q,
 #'                                        time=ArdecheRiverGaugings$Date,
 #'                                        uQ=ArdecheRiverGaugings$uQ,
@@ -159,7 +159,7 @@
 #' k.object=list(k1,k2,k3)
 #' c.object=list(c1,c2,c3)
 #'
-#' resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+#' resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
 #'                                               Q=ArdecheRiverGaugings$Q,
 #'                                               time=ArdecheRiverGaugings$Date,
 #'                                               uQ=ArdecheRiverGaugings$uQ,
@@ -207,7 +207,7 @@
 #'
 #' # Plot all gaugings after segmentation in a plot H-Q
 #' plotGaugingsSegmented(summary=resultsBaRatin$summary)
-recursive.ModelAndSegmentation <- function(H,
+ModelAndSegmentation_Gaugings <- function(H,
                                            Q,
                                            time=1:length(H),
                                            uQ=0*Q,

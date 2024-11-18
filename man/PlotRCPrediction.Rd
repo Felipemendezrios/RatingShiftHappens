@@ -20,7 +20,7 @@ plotRCPrediction(
 
 \item{temp.folder}{directory, temporary directory to write computations}
 
-\item{CalibrationData}{character, name of the calibration data used in the \code{recursive.ModelAndSegmentation} function. It must to match or an error message will be appear}
+\item{CalibrationData}{character, name of the calibration data used in the \code{ModelAndSegmentation_Gaugings} function. It must to match or an error message will be appear}
 
 \item{allnodes}{logical, if TRUE all node will be plotted and the parameter nodes in the input data function will not be considered. If FALSE, it must to specify the nodes to plot.}
 
@@ -34,10 +34,10 @@ List with the following components :
 }
 }
 \description{
-Plot all rating curve specified in the nodes after using \code{recursive.ModelAndSegmentation} function.
+Plot all rating curve specified in the nodes after using \code{ModelAndSegmentation_Gaugings} function.
 }
 \details{
-The function allows plotting any node from the tree structure, as shown in the example from \code{recursive.ModelAndSegmentation}.
+The function allows plotting any node from the tree structure, as shown in the example from \code{ModelAndSegmentation_Gaugings}.
 The rating curves consist of the optimal rating curve after estimation, along with the parametric and total uncertainty.
 Gauging data used for calibration during segmentation have been plotted. Hence, the smaller the number of the node, the more gauging data have been used for calibration.
 }

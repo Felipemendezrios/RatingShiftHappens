@@ -12,7 +12,7 @@ plotGaugingsSegmented(
 )
 }
 \arguments{
-\item{summary}{list, summary data resulting from the \code{recursive.ModelAndSegmentation} function}
+\item{summary}{list, summary data resulting from the \code{ModelAndSegmentation_Gaugings} function}
 
 \item{show_gauging}{logical, if \code{TRUE} : gaugings are plotted}
 
