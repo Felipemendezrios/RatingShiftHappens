@@ -761,6 +761,7 @@ FitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
                             burn_RC=0.5,
                             nSlim_RC= max(nCycles_RC/10,1),
                             temp.folder.RC=file.path(tempdir(),'BaM','RC')){
+
   if(is.null(check_vector_lengths(a.object,b.object,c.object)))stop('It must be specified three times the number of hydraulic controls')
   if(!is.matrix(controlMatrix))stop('Control matrix must be a matrix')
   if(ncol(controlMatrix)!=length(a.object))stop('The number of the columns in the control matrix must be identical to the number of objects describing the parameters')

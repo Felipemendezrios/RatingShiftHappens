@@ -12,7 +12,7 @@ plot_sim_obs_recession(
 )
 }
 \arguments{
-\item{model_rec}{list, results obtained by using \code{ModelAndSegmentation.recession.regression} function}
+\item{model_rec}{list, results obtained by using \code{ModelAndSegmentation_Recessions} function}
 
 \item{spec_recession}{integer vector, number of recession to plot the observed and simulated recession data separately}
 

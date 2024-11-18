@@ -7,7 +7,7 @@
 plot_rec_extracted(Rec_extracted, error_bar_plot = FALSE)
 }
 \arguments{
-\item{Rec_extracted}{data frame, recession extracted after using \code{Extraction_recession}}
+\item{Rec_extracted}{data frame, recession extracted after using \code{Extract_Recessions}}
 
 \item{error_bar_plot}{logical, \code{TRUE} = plot error bar.}
 }

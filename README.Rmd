@@ -495,7 +495,7 @@ Let $N_{rec}$ denote the number of extracted recessions, and $N_k$ the number of
 
 The total number of stage values across all recessions is therefore:$N_{tot} = \sum_{k=1}^{N_{rec}} N_k$
 
-For more details, please refer to the documentation `?Extraction_recession`.
+For more details, please refer to the documentation `?Extract_Recessions`.
 
 Let's examine the stage record for the Ardèche at the Meyras hydrometric station (`?ArdecheRiverStage`):
 
@@ -509,7 +509,7 @@ The previously shown stage record does not have any associated uncertainty. Ther
 
 
 ```{r}
- recessions_extracted=Extraction_recession(H=ArdecheRiverStage$H,
+ recessions_extracted=Extract_Recessions(H=ArdecheRiverStage$H,
                                            uH=0.05,
                                            time=ArdecheRiverStage$Date,
                                            chi=0.5,

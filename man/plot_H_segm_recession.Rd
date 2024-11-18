@@ -22,5 +22,5 @@ ggplot, plot all stage record after segmentation showing homogeneous periods
 Plot segmentation using all stage record
 }
 \details{
-For an example, please see \code{?ModelAndSegmentation.recession.regression}.
+For an example, please see \code{?ModelAndSegmentation_Recessions}.
 }

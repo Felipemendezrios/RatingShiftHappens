@@ -22,7 +22,7 @@
 #'
 #' @examples
 #'
-#' recessions=Extraction_recession(H=ArdecheRiverStage$H,
+#' recessions=Extract_Recessions(H=ArdecheRiverStage$H,
 #'                                 uH=0.05,
 #'                                 time=ArdecheRiverStage$Date,
 #'                                 chi=0.5,
@@ -36,16 +36,16 @@
 #'
 #' # Plot all recession extracted
 #' plot_rec_extracted(Rec_extracted = recessions$Rec_extracted)
-Extraction_recession <- function(H,
-                                 uH,
-                                 time,
-                                 filter.H=1,
-                                 chi=stats::quantile(H,probs = 0.95,na.rm = TRUE),
-                                 delta.t.min=0,
-                                 delta.t.max=20,
-                                 tgood=10,
-                                 Nmin.rec=10,
-                                 tburn.rec=0){
+Extract_Recessions <- function(H,
+                               uH,
+                               time,
+                               filter.H=1,
+                               chi=stats::quantile(H,probs = 0.95,na.rm = TRUE),
+                               delta.t.min=0,
+                               delta.t.max=20,
+                               tgood=10,
+                               Nmin.rec=10,
+                               tburn.rec=0){
 
   if(any(is.na(H) | is.na(uH) | is.na(time)))stop('NA value in input data. Be sure to remove them before running function')
   if(is.null(check_vector_lengths(H,time)))stop('The input data have not the same length')
@@ -220,200 +220,6 @@ Extraction_recession <- function(H,
               summary_rec=summary_rec))
 }
 
-#' Model and segmentation of recession
-#'
-#' Modelling recession using a catalog of fit models available to apply segmentation procedure.
-#' Please see details for understanding how to use this function
-#'
-#' @param time_rec real vector, recession duration relative to the first data detected during the recession
-#' @param daterec vector, time in POSIXct format mandatory
-#' @param hrec real vector, stage value of the recessions
-#' @param uHrec real vector, uncertainty of stage
-#' @param indx  integer, factor used to gather the data of a same recession
-#' @param nSmax integer, maximum number of segments to assess
-#' @param nMin integer, minimum number of observations by segment
-#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
-#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
-#' @param nSlim integer, MCMC slim step
-#' @param temp.folder directory, temporary directory to write computations of the segmentation
-#' @param temp.folder.Recession directory, temporary directory to write computations of the recession
-#' @param funk string, model for estimating the recession
-#' @param ... optional arguments to funk
-#' @param RMSE_args list, optional arguments to pass in `criticize_rec_model` function for setting weighted RMSE
-#'
-#' @return  List with the following components:
-#' \enumerate{
-#'   \item summary.rec.extracted : list with this sub components:
-#'      \itemize{
-#'          \item data: data frame, all data of recession (time, date, H and uH) with their respective period after segmentation and status if the recession model was accepted or rejected
-#'          \item shift: data frame, all detected shift time
-#'          }
-#'   \item summary.results.segm: list with this sub components:
-#'      \itemize{
-#'          \item data: data frame, asymptotic height estimation by curve accepted with their respective period after segmentation
-#'          \item shift: data frame, all detected shift time
-#'      }
-#'   \item summary.residual: data frame, the residual information between the MAP simulation and the observation with weighted RMSE to criticise the recession estimate and finally the acceptance or rejection status.
-#'   \item plots: list, data formatted to use as input for some plot functions
-#'   \item res: list, provide all the information of the periods from tree structure
-#'      \itemize{
-#'          \item tau: real vector, estimated shift times
-#'          \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
-#'          \item mcmc: data frame, MCMC simulation
-#'          \item data.p: list, separate and assign information by identified stable period indexed by the list number
-#'          \item DIC: real, DIC estimation
-#'          \item nS: integer, optimal number of segments following DIC criterion
-#'      }
-#'    \item tree: data frame, provide tree structure
-#'    \item origin.date: positive real or date, date describing origin of the segmentation for a sample
-#' }
-#' @export
-#' @import dplyr
-#' @importFrom stringr str_detect
-#' @importFrom utils read.table
-#' @importFrom RBaM dataset
-#'
-#' @details
-#' To get the catalog of available models, including equation and estimation, please see: `?GetCatalog_Recession`.
-#' The funk input must be one of the available models in: `names(GetCatalog_Recession())`
-#'
-#' Be careful when specifying temporal folder for computations.
-#' temp.folder must contain temp.folder.Recession as the default value:
-#' temp.folder= `file.path(tempdir(),'BaM')`
-#' temp.folder.Recession= `file.path(tempdir(),'BaM','Recession')`
-#'
-#' @examples
-#' recessions_extracted=Extraction_recession(H=ArdecheRiverStage$H,
-#'                                           uH=0.05,
-#'                                           time=ArdecheRiverStage$Date,
-#'                                           chi=0.5,
-#'                                           tgood=30)
-#'
-#' recessions = recessions_extracted$Rec_extracted
-#'
-#' # Plot all recession extracted
-#' plot_rec_extracted(Rec_extracted = recessions)
-#'
-#' # Choose fit recession model
-#' fit='BR1'
-#'
-#' model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
-#'                                                     daterec=recessions$date,
-#'                                                     hrec=recessions$hrec,
-#'                                                     uHrec=recessions$uHrec,
-#'                                                     indx=recessions$indx,
-#'                                                     funk=fit,
-#'                                                     RMSE_args=list(rmse_threshold =0.3))
-#'
-#' # Plot recession segmentation user-defined
-#' plot_sim_obs_recession (model_rec=model_rec,
-#'                         spec_recession=c(2,16,28,48),
-#'                         recession_rejected=TRUE,
-#'                         all_recession=FALSE)
-#'
-#' # Plot the shift times detected
-#' plot_segm_recession(model_rec=model_rec)
-#'
-#' # Plot using all data of stage record
-#' plot_H_segm_recession(time=ArdecheRiverStage$Date,
-#'                       obs=ArdecheRiverStage$H,
-#'                       u=0.05,
-#'                       plot_summary = model_rec$plot)
-ModelAndSegmentation.recession.regression <- function(time_rec,
-                                                      daterec,
-                                                      hrec,
-                                                      uHrec,
-                                                      indx,
-                                                      nSmax=3,
-                                                      nMin= 1,
-                                                      nCycles=100,
-                                                      burn=0.5,
-                                                      nSlim=max(nCycles/10,1),
-                                                      temp.folder=file.path(tempdir(),'BaM'),
-                                                      temp.folder.Recession= file.path(tempdir(),'BaM','Recession'),
-                                                      funk='BR1',...,
-                                                      RMSE_args=list()){
-
-  id_recession_model=which(funk==names(GetCatalog_Recession()))
-  # Check conditions if they are satisfied
-  invisible(check_recession_modeling(time_rec=time_rec,
-                                     daterec=daterec,
-                                     hrec=hrec,
-                                     uHrec=uHrec,
-                                     indx=indx,
-                                     id_recession_model=id_recession_model))
-
-  # Get equation of the chosen model
-  equation_recession_model=GetCatalog_Recession()[[id_recession_model]]$Equation
-  # Get estimation function of the chosen model
-  recession_model=GetCatalog_Recession()[[id_recession_model]]$funk
-
-  DF.order <- data.frame(time_rec=time_rec,
-                         daterec=daterec,
-                         hrec=hrec,
-                         uHrec=uHrec,
-                         indx=indx)
-  # dataset object
-  D = RBaM::dataset(X=DF.order['time_rec'],
-                    Y=DF.order['hrec'],
-                    Yu=DF.order['uHrec'],
-                    VAR.indx=DF.order['indx'],
-                    data.dir= temp.folder.Recession)
-
-  # For detecting and estimating shift times, there are three step:
-  # This function is an optional run with default inputs. However, the function
-  # could be used separately to modify the inputs according to the user's requirements
-
-  # 1. Recession estimation:
-  list.rec.est=recession_model(data.object=D,
-                               equation_rec_model=equation_recession_model(),
-                               temp.folder.Recession=temp.folder.Recession,
-                               ...)
-
-  # 2. Criticize of recession modeling (RMSE weighted)
-  list.rec.criticize <- do.call(criticize_rec_model,
-                                c(list(raw_data = DF.order,
-                                       data.object = D,
-                                       residuals = list.rec.est$residuals,
-                                       summary_MCMC = list.rec.est$summary_MCMC),
-                                  RMSE_args))
-
-  # 3. Segmentation of asymptotic height
-  # Data to segment
-  df.to.segm=list.rec.criticize$df.to.segm
-
-  # Run recursive segmentation
-  results=recursive.segmentation(obs=df.to.segm$b_estimated,
-                                 time=df.to.segm$date,
-                                 u=df.to.segm$ub_estimated,
-                                 nSmax=nSmax,
-                                 nMin=nMin,
-                                 nCycles=nCycles,
-                                 burn=burn,
-                                 nSlim=nSlim,
-                                 temp.folder=temp.folder)
-
-  # return data recession with period after segmentation
-  results$summary$data$indx =  df.to.segm$indx
-
-  period.indx=results$summary$data[,c('period','indx')]
-
-  input.data.with.period=merge( list.rec.criticize$rec_data.plot.h.dt,period.indx, by='indx')
-  summary.rec.extracted = list(data = input.data.with.period,
-                               shift = results$summary$shift)
-
-  return(list(summary.rec.extracted=summary.rec.extracted,
-              summary.results.segm=results$summary,
-              summary.residual = list.rec.criticize$residuals.all.info,
-              plots=results$plot,
-              res=results$res,
-              tree=results$tree,
-              origin.date=results$origin.date,
-              n.rec.max=max(DF.order$indx)))
-
-}
-
-
 #' Criticize recession modeling
 #'
 #' Weighted RMSE is used as indicator to qualify the performance of recession modeling.
@@ -460,13 +266,13 @@ ModelAndSegmentation.recession.regression <- function(time_rec,
 #' @export
 #' @importFrom tidyr pivot_longer
 #' @importFrom stringr str_extract
-criticize_rec_model <- function(raw_data,
-                                data.object,
-                                residuals,
-                                summary_MCMC,
-                                rmse_threshold = 0.3,
-                                min.weight = 0.1,
-                                max.weight = 1){
+Criticize_Recessions <- function(raw_data,
+                                 data.object,
+                                 residuals,
+                                 summary_MCMC,
+                                 rmse_threshold = 0.3,
+                                 min.weight = 0.1,
+                                 max.weight = 1){
 
 
   if(max.weight < min.weight)stop('max.weight must be higher than min.weight')
@@ -577,4 +383,198 @@ criticize_rec_model <- function(raw_data,
   return(list(df.to.segm=df.to.segm,
               rec_data.plot.h.dt=rec_data.plot.h.dt,
               residuals.all.info=residuals.all.info))
+}
+
+
+#' Model and segmentation of recession
+#'
+#' Modelling recession using a catalog of fit models available to apply segmentation procedure.
+#' Please see details for understanding how to use this function
+#'
+#' @param time_rec real vector, recession duration relative to the first data detected during the recession
+#' @param daterec vector, time in POSIXct format mandatory
+#' @param hrec real vector, stage value of the recessions
+#' @param uHrec real vector, uncertainty of stage
+#' @param indx  integer, factor used to gather the data of a same recession
+#' @param nSmax integer, maximum number of segments to assess
+#' @param nMin integer, minimum number of observations by segment
+#' @param nCycles integer, number of MCMC adaptation cycles. Total number of simulations equal to 100*nCycles
+#' @param burn real between 0 (included) and 1 (excluded), MCMC burning factor
+#' @param nSlim integer, MCMC slim step
+#' @param temp.folder directory, temporary directory to write computations of the segmentation
+#' @param temp.folder.Recession directory, temporary directory to write computations of the recession
+#' @param funk string, model for estimating the recession
+#' @param ... optional arguments to funk
+#' @param RMSE_args list, optional arguments to pass in `Criticize_Recessions` function for setting weighted RMSE
+#'
+#' @return  List with the following components:
+#' \enumerate{
+#'   \item summary.rec.extracted : list with this sub components:
+#'      \itemize{
+#'          \item data: data frame, all data of recession (time, date, H and uH) with their respective period after segmentation and status if the recession model was accepted or rejected
+#'          \item shift: data frame, all detected shift time
+#'          }
+#'   \item summary.results.segm: list with this sub components:
+#'      \itemize{
+#'          \item data: data frame, asymptotic height estimation by curve accepted with their respective period after segmentation
+#'          \item shift: data frame, all detected shift time
+#'      }
+#'   \item summary.residual: data frame, the residual information between the MAP simulation and the observation with weighted RMSE to criticise the recession estimate and finally the acceptance or rejection status.
+#'   \item plots: list, data formatted to use as input for some plot functions
+#'   \item res: list, provide all the information of the periods from tree structure
+#'      \itemize{
+#'          \item tau: real vector, estimated shift times
+#'          \item segments: list, segment maximum a posterior (MAP) value indexed by the list number
+#'          \item mcmc: data frame, MCMC simulation
+#'          \item data.p: list, separate and assign information by identified stable period indexed by the list number
+#'          \item DIC: real, DIC estimation
+#'          \item nS: integer, optimal number of segments following DIC criterion
+#'      }
+#'    \item tree: data frame, provide tree structure
+#'    \item origin.date: positive real or date, date describing origin of the segmentation for a sample
+#' }
+#' @export
+#' @import dplyr
+#' @importFrom stringr str_detect
+#' @importFrom utils read.table
+#' @importFrom RBaM dataset
+#'
+#' @details
+#' To get the catalog of available models, including equation and estimation, please see: `?GetCatalog_Recession`.
+#' The funk input must be one of the available models in: `names(GetCatalog_Recession())`
+#'
+#' Be careful when specifying temporal folder for computations.
+#' temp.folder must contain temp.folder.Recession as the default value:
+#' temp.folder= `file.path(tempdir(),'BaM')`
+#' temp.folder.Recession= `file.path(tempdir(),'BaM','Recession')`
+#'
+#' @examples
+#' recessions_extracted=Extract_Recessions(H=ArdecheRiverStage$H,
+#'                                           uH=0.05,
+#'                                           time=ArdecheRiverStage$Date,
+#'                                           chi=0.5,
+#'                                           tgood=30)
+#'
+#' recessions = recessions_extracted$Rec_extracted
+#'
+#' # Plot all recession extracted
+#' plot_rec_extracted(Rec_extracted = recessions)
+#'
+#' # Choose fit recession model
+#' fit='BR1'
+#'
+#' model_rec=ModelAndSegmentation_Recessions(time_rec=recessions$time_rec,
+#'                                                     daterec=recessions$date,
+#'                                                     hrec=recessions$hrec,
+#'                                                     uHrec=recessions$uHrec,
+#'                                                     indx=recessions$indx,
+#'                                                     funk=fit,
+#'                                                     RMSE_args=list(rmse_threshold =0.3))
+#'
+#' # Plot recession segmentation user-defined
+#' plot_sim_obs_recession (model_rec=model_rec,
+#'                         spec_recession=c(2,16,28,48),
+#'                         recession_rejected=TRUE,
+#'                         all_recession=FALSE)
+#'
+#' # Plot the shift times detected
+#' plot_segm_recession(model_rec=model_rec)
+#'
+#' # Plot using all data of stage record
+#' plot_H_segm_recession(time=ArdecheRiverStage$Date,
+#'                       obs=ArdecheRiverStage$H,
+#'                       u=0.05,
+#'                       plot_summary = model_rec$plot)
+ModelAndSegmentation_Recessions <- function(time_rec,
+                                            daterec,
+                                            hrec,
+                                            uHrec,
+                                            indx,
+                                            nSmax=3,
+                                            nMin= 1,
+                                            nCycles=100,
+                                            burn=0.5,
+                                            nSlim=max(nCycles/10,1),
+                                            temp.folder=file.path(tempdir(),'BaM'),
+                                            temp.folder.Recession= file.path(tempdir(),'BaM','Recession'),
+                                            funk='BR1',...,
+                                            RMSE_args=list()){
+
+  id_recession_model=which(funk==names(GetCatalog_Recession()))
+  # Check conditions if they are satisfied
+  invisible(check_recession_modeling(time_rec=time_rec,
+                                     daterec=daterec,
+                                     hrec=hrec,
+                                     uHrec=uHrec,
+                                     indx=indx,
+                                     id_recession_model=id_recession_model))
+
+  # Get equation of the chosen model
+  equation_recession_model=GetCatalog_Recession()[[id_recession_model]]$Equation
+  # Get estimation function of the chosen model
+  recession_model=GetCatalog_Recession()[[id_recession_model]]$funk
+
+  DF.order <- data.frame(time_rec=time_rec,
+                         daterec=daterec,
+                         hrec=hrec,
+                         uHrec=uHrec,
+                         indx=indx)
+  # dataset object
+  D = RBaM::dataset(X=DF.order['time_rec'],
+                    Y=DF.order['hrec'],
+                    Yu=DF.order['uHrec'],
+                    VAR.indx=DF.order['indx'],
+                    data.dir= temp.folder.Recession)
+
+  # For detecting and estimating shift times, there are three step:
+  # This function is an optional run with default inputs. However, the function
+  # could be used separately to modify the inputs according to the user's requirements
+
+  # 1. Recession estimation:
+  list.rec.est=recession_model(data.object=D,
+                               equation_rec_model=equation_recession_model(),
+                               temp.folder.Recession=temp.folder.Recession,
+                               ...)
+
+  # 2. Criticize of recession modeling (RMSE weighted)
+  list.rec.criticize <- do.call(Criticize_Recessions,
+                                c(list(raw_data = DF.order,
+                                       data.object = D,
+                                       residuals = list.rec.est$residuals,
+                                       summary_MCMC = list.rec.est$summary_MCMC),
+                                  RMSE_args))
+
+  # 3. Segmentation of asymptotic height
+  # Data to segment
+  df.to.segm=list.rec.criticize$df.to.segm
+
+  # Run recursive segmentation
+  results=recursive.segmentation(obs=df.to.segm$b_estimated,
+                                 time=df.to.segm$date,
+                                 u=df.to.segm$ub_estimated,
+                                 nSmax=nSmax,
+                                 nMin=nMin,
+                                 nCycles=nCycles,
+                                 burn=burn,
+                                 nSlim=nSlim,
+                                 temp.folder=temp.folder)
+
+  # return data recession with period after segmentation
+  results$summary$data$indx =  df.to.segm$indx
+
+  period.indx=results$summary$data[,c('period','indx')]
+
+  input.data.with.period=merge( list.rec.criticize$rec_data.plot.h.dt,period.indx, by='indx')
+  summary.rec.extracted = list(data = input.data.with.period,
+                               shift = results$summary$shift)
+
+  return(list(summary.rec.extracted=summary.rec.extracted,
+              summary.results.segm=results$summary,
+              summary.residual = list.rec.criticize$residuals.all.info,
+              plots=results$plot,
+              res=results$res,
+              tree=results$tree,
+              origin.date=results$origin.date,
+              n.rec.max=max(DF.order$indx)))
+
 }

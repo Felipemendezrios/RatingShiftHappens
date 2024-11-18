@@ -25,11 +25,11 @@
 #' @importFrom RBaM parameter parameter_VAR xtraModelInfo mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom utils read.table
 Estimate_Rec_M3 <- function(data.object,
-                                    equation_rec_model,
-                                    temp.folder.Recession,
-                                    nCyclesrec=100,
-                                    burnrec=0.5,
-                                    nSlimrec=max(nCyclesrec/10,1)){
+                            equation_rec_model,
+                            temp.folder.Recession,
+                            nCyclesrec=100,
+                            burnrec=0.5,
+                            nSlimrec=max(nCyclesrec/10,1)){
 
   rec.data=data.object$data
   Ncurves=max(rec.data$indx)
@@ -131,11 +131,11 @@ Estimate_Rec_M3 <- function(data.object,
 #' @importFrom RBaM parameter parameter_VAR xtraModelInfo mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom utils read.table
 Estimate_Rec_BR1 <- function(data.object,
-                                     equation_rec_model,
-                                     temp.folder.Recession,
-                                     nCyclesrec=100,
-                                     burnrec=0.5,
-                                     nSlimrec=max(nCyclesrec/10,1)){
+                             equation_rec_model,
+                             temp.folder.Recession,
+                             nCyclesrec=100,
+                             burnrec=0.5,
+                             nSlimrec=max(nCyclesrec/10,1)){
 
   rec.data=data.object$data
 

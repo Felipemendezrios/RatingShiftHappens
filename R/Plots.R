@@ -1345,7 +1345,7 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
 
 #' Plot recession extracted
 #'
-#' @param Rec_extracted data frame, recession extracted after using `Extraction_recession`
+#' @param Rec_extracted data frame, recession extracted after using `Extract_Recessions`
 #' @param error_bar_plot logical, `TRUE` = plot error bar.
 #'
 #' @return list, plots of recession extracted. First plot indicates recession following stage record, second plot shows recession time and stage and third plot indicates the minimum recession stage.
@@ -1449,7 +1449,7 @@ plot_rec_extracted <- function(Rec_extracted,
 
 #' Comparison between simulation and observation
 #'
-#' @param model_rec list, results obtained by using `ModelAndSegmentation.recession.regression` function
+#' @param model_rec list, results obtained by using `ModelAndSegmentation_Recessions` function
 #' @param spec_recession integer vector, number of recession to plot the observed and simulated recession data separately
 #' @param recession_rejected logical, `TRUE` = includes plot of all recession rejected
 #' @param all_recession logical, `TRUE` = plot all recessions with observed and simulated recession data
@@ -1576,7 +1576,7 @@ plot_sim_obs_recession <- function(model_rec,
 
 #' Plot recession modeled and segmented
 #'
-#' @param model_rec list, results obtained by using `ModelAndSegmentation.recession.regression` function
+#' @param model_rec list, results obtained by using `ModelAndSegmentation_Recessions` function
 #'
 #' @return list of plots with the following components:
 #'  \enumerate{
@@ -1623,7 +1623,7 @@ plot_segm_recession <- function(model_rec){
 #' @export
 #'
 #' @details
-#' For an example, please see `?ModelAndSegmentation.recession.regression`.
+#' For an example, please see `?ModelAndSegmentation_Recessions`.
 #'
 plot_H_segm_recession <- function(time,
                                   obs,

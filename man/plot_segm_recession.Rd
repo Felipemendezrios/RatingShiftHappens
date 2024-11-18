@@ -7,7 +7,7 @@
 plot_segm_recession(model_rec)
 }
 \arguments{
-\item{model_rec}{list, results obtained by using \code{ModelAndSegmentation.recession.regression} function}
+\item{model_rec}{list, results obtained by using \code{ModelAndSegmentation_Recessions} function}
 }
 \value{
 list of plots with the following components:
