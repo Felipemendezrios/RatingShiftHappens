@@ -81,8 +81,8 @@ knitr::kable(head(results$summary$shift),
 results$tree
 
 # Visualize tree structure
-plotTree(results$tree)
+PlotTree(results$tree)
 # Plot segmentation
-plotSegmentation(summary=results$summary,
+PlotSegmentation(summary=results$summary,
                  plot_summary=results$plot)
 }

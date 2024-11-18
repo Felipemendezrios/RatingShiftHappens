@@ -112,7 +112,7 @@ terminal = results$tree$indx[which(results$tree$nS==1)]
 terminal
 
 # Visualize tree structure
-plotTree(results$tree)
+PlotTree(results$tree)
 
 # See the arguments of the specified fit model for the rating curve
 args(equation)
@@ -125,13 +125,13 @@ a=results$summary$param.equation$a
 b=results$summary$param.equation$b
 
 # Plot the rating curve after segmentation following a regression exponential
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             equation=equation,
                             a=a,
                             b=b)
 
 # Plot the rating curves after segmentation with zoom user-defined
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             equation = equation,
                             autoscale = FALSE,
                             Hmin_user = 1,
@@ -140,14 +140,14 @@ plotRC_ModelAndSegmentation(summary=results$summary,
                             a=a,b=b)
 
 # Plot the rating curves after segmentation in log scale
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             logscale=TRUE,
                             equation = equation,
                             a=a,
                             b=b)
 
 # Plot the rating curves after segmentation in log scale with zoom
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             a=a,
                             b=b,
                             logscale=TRUE,
@@ -158,16 +158,16 @@ plotRC_ModelAndSegmentation(summary=results$summary,
                             H_step_discretization = 0.01)
 
 # Plot shift times in stage record
-plot_H_ModelAndSegmentation(summary=results$summary,
-                            plot_summary=results$plot)
+PlotSegmentation_Gaugings_Hdt(summary=results$summary,
+                              plot_summary=results$plot)
 
 # Plot shift times in discharge observations
-plot_Q_ModelAndSegmentation(summary=results$summary,
-                            plot_summary=results$plot)
+PlotSegmentation_Gaugings_Qdt(summary=results$summary,
+                              plot_summary=results$plot)
 
 # Plot residual
-plotResidual_ModelAndSegmentation(summary=results$summary,
-                                  plot_summary=results$plot)
+PlotSegmentation_Gaugings_Residual(summary=results$summary,
+                                   plot_summary=results$plot)
 
 
 # example with BaRatin method (k-a-c)
@@ -211,19 +211,19 @@ resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
                                               )
 
 # Visualize tree structure
-plotTree(resultsBaRatin$tree)
+PlotTree(resultsBaRatin$tree)
 
 # Terminal nodes
 terminal = resultsBaRatin$tree$indx[which(resultsBaRatin$tree$nS==1)]
 terminal
 
 # Plot the rating curves after using BaRatin method. Function specially created to this method
-plots_prediction=plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                                  autoscale=FALSE,
-                                  temp.folder=file.path(tempdir(),'BaM'),
-                                  CalibrationData='CalibrationData.txt',
-                                  allnodes=FALSE,
-                                  nodes=terminal)
+plots_prediction=PlotRCSegmentation_Gaugings_Tree(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                                                  autoscale=FALSE,
+                                                  temp.folder=file.path(tempdir(),'BaM'),
+                                                  CalibrationData='CalibrationData.txt',
+                                                  allnodes=FALSE,
+                                                  nodes=terminal)
 
 # Plot rating curve of the first terminal node
 plots_prediction$PlotRCPred[[1]]
@@ -232,17 +232,17 @@ plots_prediction$PlotRCPred[[1]]
 plots_prediction$allData[[1]]
 
 # Plot shift times in stage record
-plot_H_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                            plot_summary=resultsBaRatin$plot)
+PlotSegmentation_Gaugings_Hdt(summary=resultsBaRatin$summary,
+                              plot_summary=resultsBaRatin$plot)
 
 # Plot shift times in discharge observations
-plot_Q_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                            plot_summary=resultsBaRatin$plot)
+PlotSegmentation_Gaugings_Qdt(summary=resultsBaRatin$summary,
+                              plot_summary=resultsBaRatin$plot)
 
 # Plot residual
-plotResidual_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                                  plot_summary=resultsBaRatin$plot)
+PlotSegmentation_Gaugings_Residual(summary=resultsBaRatin$summary,
+                                   plot_summary=resultsBaRatin$plot)
 
 # Plot all gaugings after segmentation in a plot H-Q
-plotGaugingsSegmented(summary=resultsBaRatin$summary)
+PlotSegmentation_Gaugings_QdH(summary=resultsBaRatin$summary)
 }

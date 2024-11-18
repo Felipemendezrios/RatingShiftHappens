@@ -87,6 +87,6 @@ knitr::kable(head(res$results[[nSopt]]$summary$data),
 knitr::kable(head(res$results[[nSopt]]$summary$shift),
              align = 'c',row.names = FALSE)
 # Plot segmentation
-plotSegmentation(res$summary,
+PlotSegmentation(res$summary,
                  res$plot)
 }

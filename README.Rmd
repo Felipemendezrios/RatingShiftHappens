@@ -64,7 +64,7 @@ In this package, all uncertainties are expressed as standard deviations rather t
  knitr::kable(head(res$summary$shift),
               align = 'c',row.names = F)
  # Plot segmentation
- Plots=plotSegmentation(summary=res$summary,
+ Plots=PlotSegmentation(summary=res$summary,
                         plot_summary=res$plot)
  
  # Observations of the random variable and shift time estimated 
@@ -142,7 +142,7 @@ This is a basic example, which shows you how to segment the same dataset with an
  knitr::kable(head(res$results[[nSopt]]$summary$shift),
               align = 'c',row.names = F)
  # Final plot segmentation
- plotSegmentation(summary=res$summary,
+ PlotSegmentation(summary=res$summary,
                   plot_summary = res$plot)$final_plot
 ``` 
 
@@ -167,10 +167,10 @@ This is a basic example, which shows you how to segment the data set with an **u
  results$tree
 
  # Visualize tree structure
- plotTree(tree=results$tree)
+ PlotTree(tree=results$tree)
  
  # Final plot segmentation
- plotSegmentation(summary=results$summary,
+ PlotSegmentation(summary=results$summary,
                   plot_summary = results$plot)$final_plot
 ```
 
@@ -249,20 +249,20 @@ Several plot functions are available to simplify graphical representation, align
 
 ```{r}
 # Visualize tree structure
-plotTree(results$tree)
+PlotTree(results$tree)
 
 # parameter of the rating curve 
 a=results$summary$param.equation$a
 b=results$summary$param.equation$b
 
 # Plot the rating curve after segmentation following a regression exponential
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             equation = EquationRC_Exponential,
                             a=a,
                             b=b)
 
 # Plot the rating curves after segmentation with zoom user-defined
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             equation = EquationRC_Exponential, 
                             a=a,
                             b=b,
@@ -272,14 +272,14 @@ plotRC_ModelAndSegmentation(summary=results$summary,
                             H_step_discretization = 0.01)
 
 # Plot the rating curves after segmentation in log scale
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             logscale=TRUE,
                             equation = EquationRC_Exponential,
                             a=a,
                             b=b)
 
 # Plot the rating curves after segmentation in log scale with zoom
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             logscale=TRUE,
                             equation = EquationRC_Exponential,
                             a=a,
@@ -290,16 +290,16 @@ plotRC_ModelAndSegmentation(summary=results$summary,
                             H_step_discretization = 0.01)
 
 # Plot shift times in stage record
-plot_H_ModelAndSegmentation(summary=results$summary,
-                            plot_summary=results$plot)$final_plot
+PlotSegmentation_Gaugings_Hdt(summary=results$summary,
+                              plot_summary=results$plot)$final_plot
 
 # Plot shift times in discharge observations
-plot_Q_ModelAndSegmentation(summary=results$summary,
-                            plot_summary=results$plot)$final_plot
+PlotSegmentation_Gaugings_Qdt(summary=results$summary,
+                              plot_summary=results$plot)$final_plot
 
 # Plot residual
-plotResidual_ModelAndSegmentation(summary=results$summary,
-                                  plot_summary=results$plot)$final_plot
+PlotSegmentation_Gaugings_Residual(summary=results$summary,
+                                   plot_summary=results$plot)$final_plot
 
 ```
 
@@ -381,7 +381,7 @@ resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
                                               )
 
  # Visualize tree structure
- plotTree(resultsBaRatin$tree)
+ PlotTree(resultsBaRatin$tree)
 
  # Terminal nodes
  terminal = resultsBaRatin$tree$indx[which(resultsBaRatin$tree$nS==1)]
@@ -392,26 +392,26 @@ Plot the rating curves after using BaRatin method. It is possible to plot all no
 
 ```{r}
   # Plot the rating curves after using BaRatin method  
-  plotsRC=plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                          autoscale=FALSE,
-                          temp.folder=file.path(tempdir(),'BaM'),
-                          CalibrationData='CalibrationData.txt',
-                          allnodes=FALSE,
-                          nodes=terminal)
+  plotsRC=PlotRCSegmentation_Gaugings_Tree(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                                           autoscale=FALSE,
+                                           temp.folder=file.path(tempdir(),'BaM'),
+                                           CalibrationData='CalibrationData.txt',
+                                           allnodes=FALSE,
+                                           nodes=terminal)
   
   plotsRC$PlotRCPred
 
  # Plot shift times in stage record
- plot_H_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                             plot_summary=resultsBaRatin$plot)$final_plot
+ PlotSegmentation_Gaugings_Hdt(summary=resultsBaRatin$summary,
+                               plot_summary=resultsBaRatin$plot)$final_plot
 
  # Plot shift times in discharge observations
- plot_Q_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                             plot_summary=resultsBaRatin$plot)$final_plot
+ PlotSegmentation_Gaugings_Qdt(summary=resultsBaRatin$summary,
+                               plot_summary=resultsBaRatin$plot)$final_plot
 
  # Plot residual
- plotResidual_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                                   plot_summary=resultsBaRatin$plot)$final_plot
+ PlotSegmentation_Gaugings_Residual(summary=resultsBaRatin$summary,
+                                    plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
 ##### A particular case: the impact of vegetation 
@@ -435,32 +435,32 @@ resultsBaRatinWithuH=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
                                                     )
 
  # Visualize tree structure
- plotTree(resultsBaRatinWithuH$tree)
+ PlotTree(resultsBaRatinWithuH$tree)
 
  # Terminal nodes
  terminal = resultsBaRatinWithuH$tree$indx[which(resultsBaRatinWithuH$tree$nS==1)]
  terminal
 
- plotsRC= plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                           autoscale=FALSE,
-                           temp.folder=file.path(tempdir(),'BaM'),
-                           CalibrationData='CalibrationData.txt',
-                           allnodes=FALSE,
-                           nodes=terminal)
+ plotsRC= PlotRCSegmentation_Gaugings_Tree(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                                           autoscale=FALSE,
+                                           temp.folder=file.path(tempdir(),'BaM'),
+                                           CalibrationData='CalibrationData.txt',
+                                           allnodes=FALSE, 
+                                           nodes=terminal)
  
  plotsRC$PlotRCPred
 
  # Plot shift times in stage record
- plot_H_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
-                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+ PlotSegmentation_Gaugings_Hdt(summary=resultsBaRatinWithuH$summary,
+                               plot_summary=resultsBaRatinWithuH$plot)$final_plot
 
  # Plot shift times in discharge observations
- plot_Q_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
-                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+ PlotSegmentation_Gaugings_Qdt(summary=resultsBaRatinWithuH$summary,
+                               plot_summary=resultsBaRatinWithuH$plot)$final_plot
 
  # Plot residual
- plotResidual_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
-                                   plot_summary=resultsBaRatinWithuH$plot)$final_plot
+ PlotSegmentation_Gaugings_Residual(summary=resultsBaRatinWithuH$summary,
+                                    plot_summary=resultsBaRatinWithuH$plot)$final_plot
 ```
 
 ### Stage-recession analysis
@@ -521,7 +521,7 @@ The previously shown stage record does not have any associated uncertainty. Ther
  recessions = recessions_extracted$Rec_extracted
  
  # Plot information of recession extracted
- plot_rec_extracted(Rec_extracted = recessions)
+ PlotExtract_Recessions(Rec_extracted = recessions)
 
  # Check summary table of recession extracted
  knitr::kable(head(recessions_extracted$summary_rec),
@@ -583,16 +583,13 @@ The estimation and segmentation have been completed. Next, plot functions have b
 
 ```{r}
 # Plot recession segmentation
- plot_segm_recession(model_rec=model_rec,
-                     spec_recession=c(2,16,28,48),
-                     recession_rejected=TRUE,
-                     )
+ PlotSegmentation_Recessions(model_rec=model_rec)
 
  # Plot using all data of stage record
- plot_H_segm_recession(time=ArdecheRiverStage$Date,
-                       obs=ArdecheRiverStage$H,
-                       u=0.05,
-                       plot_summary = model_rec$plot)
+ PlotSegmentation_Recessions_Hdt(time=ArdecheRiverStage$Date,
+                                 obs=ArdecheRiverStage$H,
+                                 u=0.05,
+                                 plot_summary = model_rec$plot)
 ```
 
 ## Références

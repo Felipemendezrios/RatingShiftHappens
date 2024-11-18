@@ -261,3 +261,22 @@ get_legend<-function(myggplot){
   legend <- tmp$grobs[[leg]]
   return(legend)
 }
+
+#' Customized axis label with logarithmic scale
+#'
+#' @param x real values
+#'
+#' @return character, label in logarithmic scale
+#' @keywords internal
+custom_format <- function(x) {
+  ifelse(x >= 1,
+         as.character(round(x)),
+         sapply(x, function(val) {
+           formatted <- format(val, scientific = FALSE)
+           if (grepl("\\.0+$", formatted)) {
+             formatted <- sub("\\.0+$", "", formatted)
+           }
+           formatted
+         })
+  )
+}

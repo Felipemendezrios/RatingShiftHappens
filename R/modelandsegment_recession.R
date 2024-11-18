@@ -35,7 +35,7 @@
 #' recessions$summary_rec
 #'
 #' # Plot all recession extracted
-#' plot_rec_extracted(Rec_extracted = recessions$Rec_extracted)
+#' PlotExtract_Recessions(Rec_extracted = recessions$Rec_extracted)
 Extract_Recessions <- function(H,
                                uH,
                                time,
@@ -458,7 +458,7 @@ Criticize_Recessions <- function(raw_data,
 #' recessions = recessions_extracted$Rec_extracted
 #'
 #' # Plot all recession extracted
-#' plot_rec_extracted(Rec_extracted = recessions)
+#' PlotExtract_Recessions(Rec_extracted = recessions)
 #'
 #' # Choose fit recession model
 #' fit='BR1'
@@ -472,19 +472,19 @@ Criticize_Recessions <- function(raw_data,
 #'                                                     RMSE_args=list(rmse_threshold =0.3))
 #'
 #' # Plot recession segmentation user-defined
-#' plot_sim_obs_recession (model_rec=model_rec,
-#'                         spec_recession=c(2,16,28,48),
-#'                         recession_rejected=TRUE,
-#'                         all_recession=FALSE)
+#' PlotSimObs_Recessions (model_rec=model_rec,
+#'                        spec_recession=c(2,16,28,48),
+#'                        recession_rejected=TRUE,
+#'                        all_recession=FALSE)
 #'
 #' # Plot the shift times detected
-#' plot_segm_recession(model_rec=model_rec)
+#' PlotSegmentation_Recessions(model_rec=model_rec)
 #'
 #' # Plot using all data of stage record
-#' plot_H_segm_recession(time=ArdecheRiverStage$Date,
-#'                       obs=ArdecheRiverStage$H,
-#'                       u=0.05,
-#'                       plot_summary = model_rec$plot)
+#' PlotSegmentation_Recessions_Hdt(time=ArdecheRiverStage$Date,
+#'                                 obs=ArdecheRiverStage$H,
+#'                                 u=0.05,
+#'                                 plot_summary = model_rec$plot)
 ModelAndSegmentation_Recessions <- function(time_rec,
                                             daterec,
                                             hrec,

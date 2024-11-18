@@ -15,12 +15,12 @@
 #'                                nSmax=2)
 #'
 #' # plot recursion tree
-#' plotTree(results$tree)
+#' PlotTree(results$tree)
 #' @export
 #' @import ggplot2
 #' @importFrom stats rnorm setNames
 #' @importFrom scales viridis_pal
-plotTree <- function(tree){
+PlotTree <- function(tree){
   DF=tree
   n=NROW(DF)
 
@@ -136,7 +136,7 @@ plotTree <- function(tree){
 #' @importFrom ggnewscale new_scale_color
 #' @importFrom scales viridis_pal
 #' @importFrom stats setNames quantile
-plotSegmentation <- function(summary,
+PlotSegmentation <- function(summary,
                              plot_summary,
                              shift_data_reported=NULL,
                              show_unc_interval=FALSE) {
@@ -643,7 +643,7 @@ plotSegmentation <- function(summary,
 #' @export
 #' @importFrom scales viridis_pal
 #' @importFrom stats qnorm
-plotRC_ModelAndSegmentation=function(summary,
+PlotRCSegmentation_Gaugings=function(summary,
                                      equation=EquationRC_Exponential,
                                      ...,
                                      Hmin_user = 0,
@@ -652,9 +652,9 @@ plotRC_ModelAndSegmentation=function(summary,
                                      autoscale=TRUE,
                                      logscale = FALSE){
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
-                                           If not please use plotSegmentation() function')
+                                           If not please use PlotSegmentation() function')
 
-  if(identical(equation,EquationRC_BaRatinKAC)||identical(equation,EquationRC_BaRatinBAC))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
+  if(identical(equation,EquationRC_BaRatinKAC)||identical(equation,EquationRC_BaRatinBAC))stop('To plot the rating curve using Baratin method, you must to use the function PlotRCSegmentation_Gaugings_Tree')
 
   # Check discretization
   if(H_step_discretization<=0)stop('The discretization must be a positive non-zero value')
@@ -875,19 +875,7 @@ plotRC_ModelAndSegmentation=function(summary,
 
     breaks <- 10^seq(floor(log10(min_y)), ceiling(log10(max_y)), by = 1)
 
-    # Custom label formatting function
-    custom_format <- function(x) {
-      ifelse(x >= 1,
-             as.character(round(x)),
-             sapply(x, function(val) {
-               formatted <- format(val, scientific = FALSE)
-               if (grepl("\\.0+$", formatted)) {
-                 formatted <- sub("\\.0+$", "", formatted)
-               }
-               formatted
-             })
-      )
-    }
+    # Custom label formatting function (custom_format)
     RC_plot= RC_plot+ scale_y_continuous(trans = "log10", breaks = breaks, labels=custom_format)
   }
 
@@ -911,12 +899,12 @@ plotRC_ModelAndSegmentation=function(summary,
 #'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
 #'   }
 #' @export
-plot_H_ModelAndSegmentation <- function(summary,
-                                        plot_summary,
-                                        uH=0,
-                                        ...){
+PlotSegmentation_Gaugings_Hdt <- function(summary,
+                                          plot_summary,
+                                          uH=0,
+                                          ...){
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
-                                           If not please use plotSegmentation() function')
+                                           If not please use PlotSegmentation() function')
   # Adapt summary to use PlotSegmentation function to plot segmentation of stage time series
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$H,
@@ -927,7 +915,7 @@ plot_H_ModelAndSegmentation <- function(summary,
   summary_plot = list(data=data_adapted,
                       shift=summary$shift)
 
-  plot_segmentation=plotSegmentation(summary = summary_plot,
+  plot_segmentation=PlotSegmentation(summary = summary_plot,
                                      plot_summary = plot_summary,
                                      ...)
 
@@ -953,12 +941,12 @@ plot_H_ModelAndSegmentation <- function(summary,
 #'         vertical lines indicating the 95% credibility interval and a red cross representing shift time assignment
 #'   }
 #' @export
-plot_Q_ModelAndSegmentation <- function(summary,
-                                        plot_summary,
-                                        uH=NA,
-                                        ...){
+PlotSegmentation_Gaugings_Qdt <- function(summary,
+                                          plot_summary,
+                                          uH=NA,
+                                          ...){
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
-                                           If not please use plotSegmentation() function')
+                                           If not please use PlotSegmentation() function')
   # Adapt summary to use PlotSegmentation function to plot segmentation of discharge measurements
   data_adapted <- data.frame(time=summary$data$time,
                              obs=summary$data$Q,
@@ -969,7 +957,7 @@ plot_Q_ModelAndSegmentation <- function(summary,
   summary_plot = list(data=data_adapted,
                       shift=summary$shift)
 
-  plot_segmentation=plotSegmentation(summary = summary_plot,
+  plot_segmentation=PlotSegmentation(summary = summary_plot,
                                      plot_summary = plot_summary,
                                      ...)
 
@@ -989,11 +977,11 @@ plot_Q_ModelAndSegmentation <- function(summary,
 #'
 #' @return ggplot, residual segmentation
 #' @export
-plotResidual_ModelAndSegmentation <- function(summary,
-                                              plot_summary,
-                                              ...){
+PlotSegmentation_Gaugings_Residual <- function(summary,
+                                               plot_summary,
+                                               ...){
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
-                                                         If not please use plotSegmentation() function')
+                                                         If not please use PlotSegmentation() function')
 
   if(is.null(summary$shift))stop('Any shift time detected')
 
@@ -1010,7 +998,7 @@ plotResidual_ModelAndSegmentation <- function(summary,
   summary_plot = list(data=data_adapted,
                       shift=summary$shift)
 
-  plotresidual=plotSegmentation(summary = summary_plot,
+  plotresidual=PlotSegmentation(summary = summary_plot,
                                 plot_summary = plot_summary,
                                 ...)
 
@@ -1031,12 +1019,12 @@ plotResidual_ModelAndSegmentation <- function(summary,
 #' @export
 #' @importFrom scales viridis_pal
 
-plotGaugingsSegmented <- function(summary,
-                                  show_gauging=TRUE,
-                                  show_RC=FALSE,
-                                  logscale=FALSE){
+PlotSegmentation_Gaugings_QdH <- function(summary,
+                                          show_gauging=TRUE,
+                                          show_RC=FALSE,
+                                          logscale=FALSE){
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with ModelAndSegmentation_Gaugings function.
-                                           If not please use plotSegmentation() function')
+                                           If not please use PlotSegmentation() function')
   if(is.null(summary$data))stop('Input data does not match the format of the "ModelAndSegmentation_Gaugings" results')
   plot_RC_customized = ggplot(summary$data, aes(x=H,
                                                 y=Q,
@@ -1062,19 +1050,7 @@ plotGaugingsSegmented <- function(summary,
 
     breaks <- 10^seq(floor(log10(min(summary$data$Q))), ceiling(log10(max(summary$data$Q))), by = 1)
 
-    # Custom label formatting function
-    custom_format <- function(x) {
-      ifelse(x >= 1,
-             as.character(round(x)),
-             sapply(x, function(val) {
-               formatted <- format(val, scientific = FALSE)
-               if (grepl("\\.0+$", formatted)) {
-                 formatted <- sub("\\.0+$", "", formatted)
-               }
-               formatted
-             })
-      )
-    }
+    # Custom label formatting function (custom_format)
     plot_RC_customized= plot_RC_customized +
       scale_y_continuous(trans = "log10", breaks = breaks, labels=custom_format)
 
@@ -1123,12 +1099,12 @@ plotGaugingsSegmented <- function(summary,
 #' @importFrom stringr str_detect
 #' @importFrom tibble rownames_to_column
 #' @importFrom tidyr pivot_longer
-plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
-                             autoscale=FALSE,
-                             temp.folder=file.path(tempdir(),'BaM'),
-                             CalibrationData='CalibrationData.txt',
-                             allnodes=FALSE,
-                             nodes=1){
+PlotRCSegmentation_Gaugings_Tree <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
+                                             autoscale=FALSE,
+                                             temp.folder=file.path(tempdir(),'BaM'),
+                                             CalibrationData='CalibrationData.txt',
+                                             allnodes=FALSE,
+                                             nodes=1){
 
   if(!is.data.frame(Hgrid))(stop('Hgrid must be a data frame'))
   if(!dir.exists(file.path(temp.folder,'it_1')))(stop('Segmentation using the BaRatin method is required before using this function.
@@ -1351,8 +1327,8 @@ plotRCPrediction <- function(Hgrid=data.frame(grid=seq(-1,2,by=0.01)),
 #' @return list, plots of recession extracted. First plot indicates recession following stage record, second plot shows recession time and stage and third plot indicates the minimum recession stage.
 #' @export
 #' @importFrom RColorBrewer brewer.pal
-plot_rec_extracted <- function(Rec_extracted,
-                               error_bar_plot = FALSE){
+PlotExtract_Recessions <- function(Rec_extracted,
+                                   error_bar_plot = FALSE){
 
   colors=RColorBrewer::brewer.pal(10,'Paired')
 
@@ -1447,7 +1423,7 @@ plot_rec_extracted <- function(Rec_extracted,
 }
 
 
-#' Comparison between simulation and observation
+#' Comparison between simulated and observed data-recession
 #'
 #' @param model_rec list, results obtained by using `ModelAndSegmentation_Recessions` function
 #' @param spec_recession integer vector, number of recession to plot the observed and simulated recession data separately
@@ -1460,10 +1436,10 @@ plot_rec_extracted <- function(Rec_extracted,
 #' If all_recession = `TRUE`, spec_recession will not be plotted, because they have already been plotted
 #' @export
 #' @importFrom gridExtra arrangeGrob grid.arrange
-plot_sim_obs_recession <- function(model_rec,
-                                   spec_recession=NULL,
-                                   recession_rejected=TRUE,
-                                   all_recession=FALSE){
+PlotSimObs_Recessions <- function(model_rec,
+                                  spec_recession=NULL,
+                                  recession_rejected=TRUE,
+                                  all_recession=FALSE){
 
   if(!is.null(spec_recession)){
     if(any(spec_recession<=0))stop('spec_recession must be positive')
@@ -1584,7 +1560,7 @@ plot_sim_obs_recession <- function(model_rec,
 #'   \item plot.b.segmented: ggplot, asymptotic height indexed by period, and the estimated shift time is indicated vertically
 #'  }
 #' @export
-plot_segm_recession <- function(model_rec){
+PlotSegmentation_Recessions <- function(model_rec){
 
   # Plot: recession extracted showing the segmentation
   h.t.summary = model_rec$summary.rec.extracted
@@ -1595,14 +1571,14 @@ plot_segm_recession <- function(model_rec){
 
   colnames(h.t.summary$data) <- c('indx','time_rec','time','obs','u','status','period','I95_lower','I95_upper')
 
-  plot.rec.segmented = plotSegmentation(summary=h.t.summary,
+  plot.rec.segmented = PlotSegmentation(summary=h.t.summary,
                                         plot_summary=model_rec$plots)$final_plot
 
   plot.rec.segmented[[1]] = plot.rec.segmented[[1]]+
     ylab('Recession-stage (m)')
 
   # Plot segmentation asymptotic height
-  plot.b.segmented = plotSegmentation(summary=model_rec$summary.results.segm,
+  plot.b.segmented = PlotSegmentation(summary=model_rec$summary.results.segm,
                                       plot_summary=model_rec$plots)$final_plot
 
   plot.b.segmented[[1]] = plot.b.segmented[[1]]+
@@ -1625,10 +1601,10 @@ plot_segm_recession <- function(model_rec){
 #' @details
 #' For an example, please see `?ModelAndSegmentation_Recessions`.
 #'
-plot_H_segm_recession <- function(time,
-                                  obs,
-                                  u,
-                                  plot_summary){
+PlotSegmentation_Recessions_Hdt <- function(time,
+                                            obs,
+                                            u,
+                                            plot_summary){
   if(any(is.na(obs) | is.na(u) | is.na(time)))stop('NA value in input data. Be sure to remove them before running function')
   if(is.null(check_vector_lengths(obs,time)))stop('The input data have not the same length')
   if(!lubridate::is.POSIXct(time))stop('time must be POSIXct format')
@@ -1680,6 +1656,6 @@ plot_H_segm_recession <- function(time,
     plot.data=list(data=data.frame(data,period=1),
                    shift=shift.plot)
   }
-  plotSegmentation(summary=plot.data,
+  PlotSegmentation(summary=plot.data,
                    plot_summary=plot_summary)$final_plot
 }

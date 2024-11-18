@@ -63,5 +63,5 @@ recessions$Rec_extracted
 recessions$summary_rec
 
 # Plot all recession extracted
-plot_rec_extracted(Rec_extracted = recessions$Rec_extracted)
+PlotExtract_Recessions(Rec_extracted = recessions$Rec_extracted)
 }

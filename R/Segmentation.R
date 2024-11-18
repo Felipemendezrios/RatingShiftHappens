@@ -67,7 +67,7 @@
 #' knitr::kable(head(res$summary$shift),
 #'              align = 'c',row.names = FALSE)
 #' # Plot segmentation
-#' plotSegmentation(res$summary,
+#' PlotSegmentation(res$summary,
 #'                  res$plot)
 #' @export
 #' @import dplyr
@@ -440,7 +440,7 @@ segmentation.engine <- function(obs,
 #' knitr::kable(head(res$results[[nSopt]]$summary$shift),
 #'              align = 'c',row.names = FALSE)
 #' # Plot segmentation
-#' plotSegmentation(res$summary,
+#' PlotSegmentation(res$summary,
 #'                  res$plot)
 #' @export
 #' @importFrom rlang is_empty
@@ -549,9 +549,9 @@ segmentation <- function(obs,
 #' results$tree
 #'
 #' # Visualize tree structure
-#' plotTree(results$tree)
+#' PlotTree(results$tree)
 #' # Plot segmentation
-#' plotSegmentation(summary=results$summary,
+#' PlotSegmentation(summary=results$summary,
 #'                  plot_summary=results$plot)
 #' @export
 recursive.segmentation <- function(obs,
