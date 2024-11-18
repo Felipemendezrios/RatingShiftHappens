@@ -22,9 +22,9 @@
 #'
 #' @examples
 #'
-#' recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+#' recessions=Extraction_recession(H=ArdecheRiverStage$H,
 #'                                 uH=0.05,
-#'                                 time=ArdecheRiverMeyrasStage$Date,
+#'                                 time=ArdecheRiverStage$Date,
 #'                                 chi=0.5,
 #'                                 tgood=30)
 #'
@@ -283,9 +283,9 @@ Extraction_recession <- function(H,
 #' temp.folder.Recession= `file.path(tempdir(),'BaM','Recession')`
 #'
 #' @examples
-#' recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+#' recessions_extracted=Extraction_recession(H=ArdecheRiverStage$H,
 #'                                           uH=0.05,
-#'                                           time=ArdecheRiverMeyrasStage$Date,
+#'                                           time=ArdecheRiverStage$Date,
 #'                                           chi=0.5,
 #'                                           tgood=30)
 #'
@@ -315,8 +315,8 @@ Extraction_recession <- function(H,
 #' plot_segm_recession(model_rec=model_rec)
 #'
 #' # Plot using all data of stage record
-#' plot_H_segm_recession(time=ArdecheRiverMeyrasStage$Date,
-#'                       obs=ArdecheRiverMeyrasStage$H,
+#' plot_H_segm_recession(time=ArdecheRiverStage$Date,
+#'                       obs=ArdecheRiverStage$H,
 #'                       u=0.05,
 #'                       plot_summary = model_rec$plot)
 ModelAndSegmentation.recession.regression <- function(time_rec,

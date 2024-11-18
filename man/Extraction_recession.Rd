@@ -50,9 +50,9 @@ All recession from the stage record are extracted according to several criteria.
 }
 \examples{
 
-recessions=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+recessions=Extraction_recession(H=ArdecheRiverStage$H,
                                 uH=0.05,
-                                time=ArdecheRiverMeyrasStage$Date,
+                                time=ArdecheRiverStage$Date,
                                 chi=0.5,
                                 tgood=30)
 

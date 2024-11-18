@@ -52,10 +52,10 @@
 #'
 #' @examples
 #' # Run segmentation engine function at two segments
-#' # for data set : RhoneRiver (further details on ?RhoneRiver)
-#' res=segmentation.engine(obs=RhoneRiver$H,
-#'                         time=RhoneRiver$Year,
-#'                         u=RhoneRiver$uH,nS=2,
+#' # for data set : RhoneRiverGaugings (further details on ?RhoneRiverGaugings)
+#' res=segmentation.engine(obs=RhoneRiverGaugings$H,
+#'                         time=RhoneRiverGaugings$Year,
+#'                         u=RhoneRiverGaugings$uH,nS=2,
 #'                         mu_prior = list(RBaM::parameter(name=paste0('mu'),
 #'                                         init=c(0),
 #'                                         prior.dist = 'Gaussian',
@@ -421,7 +421,7 @@ segmentation.engine <- function(obs,
 #'
 #' @examples
 #' # Run segmentation engine function at two segments
-#' res=segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
+#' res=segmentation(obs=RhoneRiverGaugings$H,time=RhoneRiverGaugings$Year,u=RhoneRiverGaugings$uH,nSmax=3)
 #'
 #' # Get lower DIC value and optimal number of segments (to define optimal solution)
 #' DIC.df = data.frame(nS=c(1:3),DIC=c(res$results[[1]]$DIC,res$results[[2]]$DIC,res$results[[3]]$DIC))
@@ -537,7 +537,7 @@ segmentation <- function(obs,
 #'
 #' @examples
 #' # Apply recursive segmentation
-#' results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
+#' results=recursive.segmentation(obs=RhoneRiverGaugings$H,time=RhoneRiverGaugings$Year,u=RhoneRiverGaugings$uH,nSmax=3)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),

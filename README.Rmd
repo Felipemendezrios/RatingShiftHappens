@@ -47,15 +47,15 @@ Functions will be explained more precisely below along with an example.
 
 ##  Segmentation procedure for a *known* given number of segments
 
-This basic example demonstrates the segmentation of annual maximum stages (H, m) for the Rhone River at Beaucaire, France, along with the associated uncertainties expressed as standard deviations (uH), divided into two groups. More information about the data set, please refer to the documentation available in `?RhoneRiver`.
+This basic example demonstrates the segmentation of annual maximum stages (H, m) for the Rhone River at Beaucaire, France, along with the associated uncertainties expressed as standard deviations (uH), divided into two groups. More information about the data set, please refer to the documentation available in `?RhoneRiverGaugings`.
 
 In this package, all uncertainties are expressed as standard deviations rather than expanded uncertainties. Uncertainty in stage measurements will be in meters, while for discharge, it will be in cubic meters per second.
 
 ```{r segmentation.engine}
  # Run segmentation engine function at two segments
- res=segmentation.engine(obs=RhoneRiver$H,
-                         time=RhoneRiver$Year,
-                         u=RhoneRiver$uH,
+ res=segmentation.engine(obs=RhoneRiverGaugings$H,
+                         time=RhoneRiverGaugings$Year,
+                         u=RhoneRiverGaugings$uH,
                          nS=2)
  # Data information
  knitr::kable(head(res$summary$data),
@@ -119,9 +119,9 @@ This is a basic example, which shows you how to segment the same dataset with an
 
 ```{r segmentation}
  # Run segmentation engine function at two segments
- res=segmentation(obs=RhoneRiver$H,
-                  time=RhoneRiver$Year,
-                  u=RhoneRiver$uH,
+ res=segmentation(obs=RhoneRiverGaugings$H,
+                  time=RhoneRiverGaugings$Year,
+                  u=RhoneRiverGaugings$uH,
                   nSmax=3)
 
  # Get lower DIC value and optimal number of segments (to define optimal solution)
@@ -152,9 +152,9 @@ This is a basic example, which shows you how to segment the data set with an **u
 
 ```{r recursive.segmentation}
  # Apply recursive segmentation
- results=recursive.segmentation(obs=RhoneRiver$H,
-                                time=RhoneRiver$Year,
-                                u=RhoneRiver$uH,
+ results=recursive.segmentation(obs=RhoneRiverGaugings$H,
+                                time=RhoneRiverGaugings$Year,
+                                u=RhoneRiverGaugings$uH,
                                 nSmax=3)
  
  # Data information
@@ -182,14 +182,14 @@ First, the rating curve approach will be discussed; then, a method for detecting
 
 ### Model fitting for the rating curve
 
-Many models are available to describe the rating curve. All fitting models with their equations supported by the package are listed below. For more details, refer to `GetCatalog()` to determine which model could be used to estimate the rating curve. 
+Many models are available to describe the rating curve. All fitting models with their equations supported by the package are listed below. For more details, refer to `GetCatalog_RC()` to determine which model could be used to estimate the rating curve. 
 
 ```{r}
 # Get model available to estimate the rating curve
-GetCatalog()$models
+GetCatalog_RC()$models
 
 # Get equation of each model
-GetCatalog()$RC_Equations
+GetCatalog_RC()$RC_Equations
 ```
 All these equations Q(h) allow for the proper transformation of stage to discharge, following the specified assumption for each fitting model.
 
@@ -207,10 +207,10 @@ $Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \
 
 ### Dataset
 
-The Ardèche hydrometric station at Meyras is introduced as a new dataset, further information in `?ArdecheRiverMeyrasGaugings`. The dataset includes stages (H, in meters) and discharge ADCP measurements (Q, in cubic meters per second) all accompanied by uncertainties. 
+The Ardèche hydrometric station at Meyras is introduced as a new dataset, further information in `?ArdecheRiverGaugings`. The dataset includes stages (H, in meters) and discharge ADCP measurements (Q, in cubic meters per second) all accompanied by uncertainties. 
 
 ```{r}
-knitr::kable(head(ArdecheRiverMeyrasGaugings),
+knitr::kable(head(ArdecheRiverGaugings),
               align = 'c',row.names = F)
 ```
 
@@ -224,9 +224,9 @@ An exponential regression model is employed  to construct the rating curve using
 
 ```{r recursive.ModelAndSegmentation}
 # Apply recursive model and segmentation
-results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
-                                       time=ArdecheRiverMeyrasGaugings$Date,
-                                       uQ=ArdecheRiverMeyrasGaugings$uQ,
+results=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,Q=ArdecheRiverGaugings$Q,
+                                       time=ArdecheRiverGaugings$Date,
+                                       uQ=ArdecheRiverGaugings$uQ,
                                        nSmax=2,nMin=2,funk=fitRC_exponential)
 
 # Data information
@@ -367,10 +367,10 @@ The `prior_infor_param_builder` function was developed and available to help the
 
 ```{r}
 # Apply recursive model and segmentation with BaRatin multi-control method
-resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
-                                              Q=ArdecheRiverMeyrasGaugings$Q,
-                                              time=ArdecheRiverMeyrasGaugings$Date,
-                                              uQ=ArdecheRiverMeyrasGaugings$uQ,
+resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+                                              Q=ArdecheRiverGaugings$Q,
+                                              time=ArdecheRiverGaugings$Date,
+                                              uQ=ArdecheRiverGaugings$uQ,
                                               nSmax=3,
                                               nMin=2,
                                               funk=fitRC_BaRatinKAC,
@@ -420,11 +420,11 @@ Uncertainty associated to water level measurements during low flows could lead t
 
 ```{r}
 # Apply recursive model and segmentation with BaRatin multi-control method. Assumption, 0.05 m for uncertainty in th gauged height
-resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
-                                                    Q=ArdecheRiverMeyrasGaugings$Q,
-                                                    time=ArdecheRiverMeyrasGaugings$Date,
-                                                    uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                                    uH=rep(0.05,length(ArdecheRiverMeyrasGaugings$H)),
+resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+                                                    Q=ArdecheRiverGaugings$Q,
+                                                    time=ArdecheRiverGaugings$Date,
+                                                    uQ=ArdecheRiverGaugings$uQ,
+                                                    uH=rep(0.05,length(ArdecheRiverGaugings$H)),
                                                     nSmax=3,
                                                     nMin=2,
                                                     funk=fitRC_BaRatinKAC,
@@ -497,10 +497,10 @@ The total number of stage values across all recessions is therefore:$N_{tot} = \
 
 For more details, please refer to the documentation `?Extraction_recession`.
 
-Let's examine the stage record for the Ardèche at the Meyras hydrometric station (`?ArdecheRiverMeyrasStage`):
+Let's examine the stage record for the Ardèche at the Meyras hydrometric station (`?ArdecheRiverStage`):
 
 ```{r}
-ggplot2::ggplot(ArdecheRiverMeyrasStage,ggplot2::aes(x=Date,y=H))+
+ggplot2::ggplot(ArdecheRiverStage,ggplot2::aes(x=Date,y=H))+
   ggplot2::geom_line()+
   ggplot2::theme_bw()
 
@@ -509,9 +509,9 @@ The previously shown stage record does not have any associated uncertainty. Ther
 
 
 ```{r}
- recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
+ recessions_extracted=Extraction_recession(H=ArdecheRiverStage$H,
                                            uH=0.05,
-                                           time=ArdecheRiverMeyrasStage$Date,
+                                           time=ArdecheRiverStage$Date,
                                            chi=0.5,
                                            tgood=30,
                                            delta.t.min = 0,
@@ -589,8 +589,8 @@ The estimation and segmentation have been completed. Next, plot functions have b
                      )
 
  # Plot using all data of stage record
- plot_H_segm_recession(time=ArdecheRiverMeyrasStage$Date,
-                       obs=ArdecheRiverMeyrasStage$H,
+ plot_H_segm_recession(time=ArdecheRiverStage$Date,
+                       obs=ArdecheRiverStage$H,
                        u=0.05,
                        plot_summary = model_rec$plot)
 ```

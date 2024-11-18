@@ -7,8 +7,19 @@
 #' by Lucas et al. (2023) referenced below.
 #' Note that years 1968, 1969 and 1970 are missing and are not included in the data frame.
 #'
+#' @format
+#' \describe{
+#'  \item{Year}{Year}
+#'  \item{Date}{Date}
+#'  \item{Time}{Time}
+#'  \item{H}{Stage record}
+#'  \item{uH}{Uncertainty of the stage expressed as standard deviation}
+#'  \item{Q}{Discharge ADCP measurement}
+#'  \item{uQ}{Uncertainty of the discharge expressed as standard deviation}
+#' }
+#'
 #' @source \url{https://doi.org/10.1016/j.jhydrol.2023.129840}
-"RhoneRiver"
+"RhoneRiverGaugings"
 
 #' Stage record of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
 #'
@@ -22,7 +33,7 @@
 #' }
 #' More information about dataset available in :
 #' @source\url{https://www.theses.fr/2021GRALU006}
-"ArdecheRiverMeyrasStage"
+"ArdecheRiverStage"
 
 #' Gauging of the Ardèche River at Meyras, France, provided by UHPC Grand Delta
 #'
@@ -45,7 +56,7 @@
 #' }
 #' More information about dataset available in :
 #' @source\url{https://www.theses.fr/2021GRALU006}
-"ArdecheRiverMeyrasGaugings"
+"ArdecheRiverGaugings"
 
 #' MINAN of the discharge simulation obtained by BaRatinAGE for the Congo River at Brazzaville, Republic of the Congo.
 #'
@@ -60,7 +71,7 @@
 #'   \item{Q}{MINAN of the Discharge simulation }
 #'   \item{uQ}{Uncertainty expressed as standard deviation}
 #' }
-"CongoRiverBrazzavilleMINAN"
+"CongoRiverMINAN"
 
 #' Gauging of the Wairau River at Barnetts Bank, Tuamarina, New Zealand, Tideda software export.
 #'

@@ -69,7 +69,7 @@ This information must be provided using the parameter function in the RBaM packa
 }
 \examples{
 # Apply recursive segmentation
-results=recursive.segmentation(obs=RhoneRiver$H,time=RhoneRiver$Year,u=RhoneRiver$uH,nSmax=3)
+results=recursive.segmentation(obs=RhoneRiverGaugings$H,time=RhoneRiverGaugings$Year,u=RhoneRiverGaugings$uH,nSmax=3)
 
 # Data information
 knitr::kable(head(results$summary$data),

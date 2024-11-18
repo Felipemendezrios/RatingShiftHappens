@@ -87,10 +87,10 @@ fit=fitRC_exponential
 equation=Exponential_Equation
 
 # Apply recursive model and segmentation
-results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
-                                       Q=ArdecheRiverMeyrasGaugings$Q,
-                                       time=ArdecheRiverMeyrasGaugings$Date,
-                                       uQ=ArdecheRiverMeyrasGaugings$uQ,
+results=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+                                       Q=ArdecheRiverGaugings$Q,
+                                       time=ArdecheRiverGaugings$Date,
+                                       uQ=ArdecheRiverGaugings$uQ,
                                        nSmax=3,nMin=2,funk=fit)
 
 # Data information
@@ -197,10 +197,10 @@ a.object=list(a1,a2,a3)
 k.object=list(k1,k2,k3)
 c.object=list(c1,c2,c3)
 
-resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
-                                              Q=ArdecheRiverMeyrasGaugings$Q,
-                                              time=ArdecheRiverMeyrasGaugings$Date,
-                                              uQ=ArdecheRiverMeyrasGaugings$uQ,
+resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,
+                                              Q=ArdecheRiverGaugings$Q,
+                                              time=ArdecheRiverGaugings$Date,
+                                              uQ=ArdecheRiverGaugings$uQ,
                                               nSmax=3,
                                               nMin=2,
                                               funk=fit,

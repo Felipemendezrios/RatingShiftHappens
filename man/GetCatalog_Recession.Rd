@@ -2,12 +2,15 @@
 % Please edit documentation in R/catalog.R
 \name{GetCatalog_Recession}
 \alias{GetCatalog_Recession}
-\title{RatingShiftHappens catalog of recessions model}
+\title{Catalog of recession models}
 \usage{
-GetCatalog_Recession()
+GetCatalog_Recession(printOnlyEquations = FALSE)
+}
+\arguments{
+\item{printOnlyEquations}{Logical, should the catalog be returned or only printed?}
 }
 \value{
-list with the following fields depending on the model chosen:
+If \code{printOnlyEquations==FALSE}, a list with the following fields depending on the model chosen:
 \enumerate{
 \item Equation: recession equation
 \item funk: recession estimation
@@ -17,6 +20,11 @@ list with the following fields depending on the model chosen:
 Available recession equations and their estimation
 }
 \examples{
+# Print only equations
+GetCatalog_Recession(printOnlyEquations=TRUE)
+
+names(GetCatalog_Recession())
+
 catalog <- GetCatalog_Recession()
 # Example for the first model in the catalog
 catalog[[1]]$Equation

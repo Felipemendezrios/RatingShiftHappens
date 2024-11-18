@@ -2,7 +2,7 @@
 % Please edit documentation in R/catalog.R
 \name{GetCatalog_RC}
 \alias{GetCatalog_RC}
-\title{RatingShiftHappens catalog}
+\title{Catalog of rating curves}
 \usage{
 GetCatalog_RC(printOnly = FALSE)
 }

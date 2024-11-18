@@ -18,9 +18,9 @@ Plot the tree resulting from any recursive segmentation procedures
 \examples{
 
 # Apply recursive segmentation
-results=recursive.segmentation(obs=CongoRiverBrazzavilleMINAN$Q,
-                               time=CongoRiverBrazzavilleMINAN$year,
-                               u=CongoRiverBrazzavilleMINAN$uQ,
+results=recursive.segmentation(obs=CongoRiverMINAN$Q,
+                               time=CongoRiverMINAN$year,
+                               u=CongoRiverMINAN$uQ,
                                nSmax=2)
 
 # plot recursion tree

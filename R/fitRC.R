@@ -30,7 +30,7 @@
 #' @importFrom stats loess predict sd
 #' @examples
 #' # Dataset
-#' subset = RhoneRiver[1:20,]
+#' subset = RhoneRiverGaugings[1:20,]
 #'
 #' # LOESS regression to estimate a simple rating curve
 #' fit.funk=fitRC_loess(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
@@ -120,7 +120,7 @@ fitRC_loess<-function(time,H,Q,uQ,uH){
 #' @importFrom stats lm predict sd coef
 #' @examples
 #' # Dataset
-#' subset = RhoneRiver[1:20,]
+#' subset = RhoneRiverGaugings[1:20,]
 #'
 #' # Linear regression to estimate a simple rating curve
 #' fit.funk=fitRC_LinearRegression(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
@@ -219,7 +219,7 @@ fitRC_LinearRegression <- function(time,H,Q,uQ,uH){
 #' @importFrom stats lm nls sd coef predict
 #' @examples
 #' # Dataset
-#' subset = RhoneRiver[1:20,]
+#' subset = RhoneRiverGaugings[1:20,]
 #'
 #' # Exponential regression to estimate a simple rating curve
 #' fit.all=fitRC_exponential(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
