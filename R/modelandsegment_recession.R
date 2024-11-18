@@ -549,7 +549,7 @@ ModelAndSegmentation_Recessions <- function(time_rec,
   df.to.segm=list.rec.criticize$df.to.segm
 
   # Run recursive segmentation
-  results=recursive.segmentation(obs=df.to.segm$b_estimated,
+  results=Recursive_Segmentation(obs=df.to.segm$b_estimated,
                                  time=df.to.segm$date,
                                  u=df.to.segm$ub_estimated,
                                  nSmax=nSmax,

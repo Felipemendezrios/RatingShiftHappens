@@ -53,7 +53,7 @@
 #' @examples
 #' # Run segmentation engine function at two segments
 #' # for data set : RhoneRiverGaugings (further details on ?RhoneRiverGaugings)
-#' res=segmentation.engine(obs=RhoneRiverGaugings$H,
+#' res=Segmentation_Engine(obs=RhoneRiverGaugings$H,
 #'                         time=RhoneRiverGaugings$Year,
 #'                         u=RhoneRiverGaugings$uH,nS=2,
 #'                         mu_prior = list(RBaM::parameter(name=paste0('mu'),
@@ -75,7 +75,7 @@
 #' @importFrom stats quantile sd approx
 #' @importFrom utils read.table
 #' @importFrom tidyr gather
-segmentation.engine <- function(obs,
+Segmentation_Engine <- function(obs,
                                 time=1:length(obs),
                                 u=0*obs,
                                 nS=2,
@@ -416,7 +416,7 @@ segmentation.engine <- function(obs,
 #'   \item nS: integer, optimal number of segments following DIC criterion
 #' }
 #' @details
-#' User may enter prior knowledge about the mu parameter (see `?segmentation.engine`) instead of default values.
+#' User may enter prior knowledge about the mu parameter (see `?Segmentation_Engine`) instead of default values.
 #' This information must be provided using the parameter function in the RBaM package, as shown in the example.
 #'
 #' @examples
@@ -444,7 +444,7 @@ segmentation.engine <- function(obs,
 #'                  res$plot)
 #' @export
 #' @importFrom rlang is_empty
-segmentation <- function(obs,
+Segmentation <- function(obs,
                          time=1:length(obs),
                          u=0*obs,
                          nSmax=2,
@@ -480,7 +480,7 @@ segmentation <- function(obs,
         mu_args <- list(NULL)
       }
 
-      res[[i]] <- segmentation.engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,
+      res[[i]] <- Segmentation_Engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,
                                       mu_prior = mu_args)
       DICs [i] <- res[[i]]$DIC
     }
@@ -532,12 +532,12 @@ segmentation <- function(obs,
 #'    \item origin.date: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #'   }
 #' @details
-#' User may enter prior knowledge about the mu parameter (see `?segmentation.engine`) instead of default values.
+#' User may enter prior knowledge about the mu parameter (see `?Segmentation_Engine`) instead of default values.
 #' This information must be provided using the parameter function in the RBaM package, as shown in the example.
 #'
 #' @examples
 #' # Apply recursive segmentation
-#' results=recursive.segmentation(obs=RhoneRiverGaugings$H,time=RhoneRiverGaugings$Year,u=RhoneRiverGaugings$uH,nSmax=3)
+#' results=Recursive_Segmentation(obs=RhoneRiverGaugings$H,time=RhoneRiverGaugings$Year,u=RhoneRiverGaugings$uH,nSmax=3)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),
@@ -554,7 +554,7 @@ segmentation <- function(obs,
 #' PlotSegmentation(summary=results$summary,
 #'                  plot_summary=results$plot)
 #' @export
-recursive.segmentation <- function(obs,
+Recursive_Segmentation <- function(obs,
                                    time=1:length(obs),
                                    u=0*obs,
                                    nSmax=2,
@@ -585,7 +585,7 @@ recursive.segmentation <- function(obs,
     m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
-      partial.segmentation=segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
+      partial.segmentation=Segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
                                         nSmax,nMin,nCycles,burn,nSlim,temp.folder,
                                         mu_prior=mu_prior) # Apply segmentation to subseries stored in node X[[j]]
       # Save results for this node

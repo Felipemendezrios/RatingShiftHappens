@@ -77,7 +77,7 @@ Recursive procedure for an \strong{unknown} number of segments, updating the rat
 \details{
 Some functions for estimating the rating curve are available in this package.
 Use \code{GetCatalog()$models} to discover the supported models. More information in \code{?GetCatalog()}.
-User may enter prior knowledge about the mu parameter (see \code{?segmentation.engine}, ) instead of default values.
+User may enter prior knowledge about the mu parameter (see \code{?Segmentation_Engine}, ) instead of default values.
 This information must be provided using the parameter function in the RBaM package, as shown in the example of
 creating an prior knowledge on "a" for computing the rating curve
 }

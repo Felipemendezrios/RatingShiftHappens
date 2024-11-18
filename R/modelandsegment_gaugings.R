@@ -20,7 +20,7 @@
 #' @details
 #' Some functions for estimating the rating curve are available in this package.
 #' Use `GetCatalog()$models` to discover the supported models. More information in `?GetCatalog()`.
-#' User may enter prior knowledge about the mu parameter (see `?segmentation.engine`, ) instead of default values.
+#' User may enter prior knowledge about the mu parameter (see `?Segmentation_Engine`, ) instead of default values.
 #' This information must be provided using the parameter function in the RBaM package, as shown in the example of
 #' creating an prior knowledge on "a" for computing the rating curve
 #' @return List with the following components :
@@ -291,7 +291,7 @@ ModelAndSegmentation_Gaugings <- function(H,
         ##
       }else{
         # Apply segmentation to subseries stored in node residuals[[j]]
-        partial.segmentation=segmentation(obs=residuals[[j]],
+        partial.segmentation=Segmentation_Engine(obs=residuals[[j]],
                                           time=TIME[[j]],
                                           u=u_residuals[[j]],
                                           nSmax,nMin,nCycles,burn,nSlim,

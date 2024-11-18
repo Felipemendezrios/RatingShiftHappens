@@ -26,9 +26,9 @@ This documentation provides the description of several functions available to th
 
 Three fundamental functions are available to segment a random variable :
 
-1. segmentation.engine
-2. segmentation
-3. recursive.segmentation
+1. Segmentation_Engine
+2. Segmentation
+3. Recursive_Segmentation
 
 ## Installation
 
@@ -51,9 +51,9 @@ This basic example demonstrates the segmentation of annual maximum stages (H, m)
 
 In this package, all uncertainties are expressed as standard deviations rather than expanded uncertainties. Uncertainty in stage measurements will be in meters, while for discharge, it will be in cubic meters per second.
 
-```{r segmentation.engine}
+```{r Segmentation_Engine}
  # Run segmentation engine function at two segments
- res=segmentation.engine(obs=RhoneRiverGaugings$H,
+ res=Segmentation_Engine(obs=RhoneRiverGaugings$H,
                          time=RhoneRiverGaugings$Year,
                          u=RhoneRiverGaugings$uH,
                          nS=2)
@@ -117,9 +117,9 @@ In this example, the focus will be on exploring the uncertainty associated with 
 
 This is a basic example, which shows you how to segment the same dataset with an **unknown** number of segments :
 
-```{r segmentation}
+```{r Segmentation}
  # Run segmentation engine function at two segments
- res=segmentation(obs=RhoneRiverGaugings$H,
+ res=Segmentation(obs=RhoneRiverGaugings$H,
                   time=RhoneRiverGaugings$Year,
                   u=RhoneRiverGaugings$uH,
                   nSmax=3)
@@ -150,9 +150,9 @@ This is a basic example, which shows you how to segment the same dataset with an
 
 This is a basic example, which shows you how to segment the data set with an **unknown** number of segments using a recursive process:
 
-```{r recursive.segmentation}
+```{r Recursive_Segmentation}
  # Apply recursive segmentation
- results=recursive.segmentation(obs=RhoneRiverGaugings$H,
+ results=Recursive_Segmentation(obs=RhoneRiverGaugings$H,
                                 time=RhoneRiverGaugings$Year,
                                 u=RhoneRiverGaugings$uH,
                                 nSmax=3)
@@ -563,7 +563,7 @@ Once the recession model has been estimated, the third step of the method consis
 of the estimated recessions. In particular we analyse the temporal evolution of the asymptotic
 stage parameter $\beta_k$, which corresponds to the elevation b of the lowest control.
 
-This information may be interpreted as a random variable that needs to be segmented using a recursive segmentation procedure, specifically the `recursive.segmentation()`function. The time associated to each parameter $\beta_k$ is the time at which the corresponding recession begins.
+This information may be interpreted as a random variable that needs to be segmented using a recursive segmentation procedure, specifically the `Recursive_Segmentation()`function. The time associated to each parameter $\beta_k$ is the time at which the corresponding recession begins.
 
 Both Bayesian estimation of the stage-recession and the recession segmentation are groupped in the same function `ModelAndSegmentation.recession.regression` as shown here:
 

@@ -7,7 +7,7 @@
 PlotTree(tree)
 }
 \arguments{
-\item{tree}{data frame, tree resulting from the call of recursive.segmentation and ModelAndSegmentation_Gaugings}
+\item{tree}{data frame, tree resulting from the call of Recursive_Segmentation and ModelAndSegmentation_Gaugings}
 }
 \value{
 a ggplot
@@ -18,7 +18,7 @@ Plot the tree resulting from any recursive segmentation procedures
 \examples{
 
 # Apply recursive segmentation
-results=recursive.segmentation(obs=CongoRiverMINAN$Q,
+results=Recursive_Segmentation(obs=CongoRiverMINAN$Q,
                                time=CongoRiverMINAN$year,
                                u=CongoRiverMINAN$uQ,
                                nSmax=2)
