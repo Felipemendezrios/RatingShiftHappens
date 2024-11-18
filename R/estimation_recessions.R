@@ -24,7 +24,7 @@
 #' @export
 #' @importFrom RBaM parameter parameter_VAR xtraModelInfo mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom utils read.table
-Estimation_Recession_M3 <- function(data.object,
+Estimate_Rec_M3 <- function(data.object,
                                     equation_rec_model,
                                     temp.folder.Recession,
                                     nCyclesrec=100,
@@ -130,7 +130,7 @@ Estimation_Recession_M3 <- function(data.object,
 #' @export
 #' @importFrom RBaM parameter parameter_VAR xtraModelInfo mcmcOptions mcmcCooking remnantErrorModel BaM
 #' @importFrom utils read.table
-Estimation_Recession_BR1 <- function(data.object,
+Estimate_Rec_BR1 <- function(data.object,
                                      equation_rec_model,
                                      temp.folder.Recession,
                                      nCyclesrec=100,

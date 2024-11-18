@@ -64,9 +64,9 @@ GetCatalog_Recession<-function(printOnlyEquations=FALSE){
   if(printOnlyEquations!=TRUE){
     # available models: update manually!
     M3=list(Equation=Equation_Rec_M3,
-            funk=Estimation_Recession_M3)
+            funk=Estimate_Rec_M3)
     BR1=list(Equation=Equation_Rec_BR1,
-             funk=Estimation_Recession_BR1)
+             funk=Estimate_Rec_BR1)
     return(list(M3=M3,
                 BR1=BR1))
   }else{
