@@ -20,11 +20,11 @@ GetCatalog_RC<-function(printOnly=FALSE){
            'fitRC_exponential',
            'fitRC_LinearRegression')
 
-  equations=c('Equation_RC_LOESS',
-              'Equation_RC_BaRatinBAC',
-              'Equation_RC_BaRatinKAC',
-              'Equation_RC_Exponential',
-              'Equation_RC_LinearRegression')
+  equations=c('EquationRC_LOESS',
+              'EquationRC_BaRatinBAC',
+              'EquationRC_BaRatinKAC',
+              'EquationRC_Exponential',
+              'EquationRC_LinearRegression')
 
   if(printOnly){
     message('MODELS:')
@@ -63,15 +63,15 @@ GetCatalog_Recession<-function(printOnlyEquations=FALSE){
 
   if(printOnlyEquations!=TRUE){
     # available models: update manually!
-    M3=list(Equation=Equation_Rec_M3,
+    M3=list(Equation=EquationRec_M3,
             funk=Estimate_Rec_M3)
-    BR1=list(Equation=Equation_Rec_BR1,
+    BR1=list(Equation=EquationRec_BR1,
              funk=Estimate_Rec_BR1)
     return(list(M3=M3,
                 BR1=BR1))
   }else{
     message('Available recession equations:')
-    print(list(M3=Equation_Rec_M3(),
-               BR1=Equation_Rec_BR1()))
+    print(list(M3=EquationRec_M3(),
+               BR1=EquationRec_BR1()))
   }
 }

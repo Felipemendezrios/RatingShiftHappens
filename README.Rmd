@@ -257,13 +257,13 @@ b=results$summary$param.equation$b
 
 # Plot the rating curve after segmentation following a regression exponential
 plotRC_ModelAndSegmentation(summary=results$summary,
-                            equation = Equation_RC_Exponential,
+                            equation = EquationRC_Exponential,
                             a=a,
                             b=b)
 
 # Plot the rating curves after segmentation with zoom user-defined
 plotRC_ModelAndSegmentation(summary=results$summary,
-                            equation = Equation_RC_Exponential, 
+                            equation = EquationRC_Exponential, 
                             a=a,
                             b=b,
                             autoscale = FALSE, 
@@ -274,14 +274,14 @@ plotRC_ModelAndSegmentation(summary=results$summary,
 # Plot the rating curves after segmentation in log scale
 plotRC_ModelAndSegmentation(summary=results$summary,
                             logscale=TRUE,
-                            equation = Equation_RC_Exponential,
+                            equation = EquationRC_Exponential,
                             a=a,
                             b=b)
 
 # Plot the rating curves after segmentation in log scale with zoom
 plotRC_ModelAndSegmentation(summary=results$summary,
                             logscale=TRUE,
-                            equation = Equation_RC_Exponential,
+                            equation = EquationRC_Exponential,
                             a=a,
                             b=b,
                             autoscale = FALSE, 
@@ -548,7 +548,7 @@ names(GetCatalog_Recession())
 GetCatalog_Recession()$M3$Equation()
 
 ```
-For instance, the recession model with two exponential terms and asymptotic (`Equation_Rec_M3()`, proposed by @darienzoDetectionEstimationStagedischarge2021) will be considered for the calculation, and it is described below:
+For instance, the recession model with two exponential terms and asymptotic (`EquationRec_M3()`, proposed by @darienzoDetectionEstimationStagedischarge2021) will be considered for the calculation, and it is described below:
 
 \deqn{\alpha_{1_k} \cdot \exp(-\lambda_1 \cdot t) + \alpha_{2_k} \cdot \exp(-\lambda_2 \cdot t) + \beta_k}
 

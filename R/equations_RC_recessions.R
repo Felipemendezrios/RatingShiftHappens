@@ -2,7 +2,7 @@
 #'
 #' @return NULL
 #' @export
-Equation_RC_LOESS<-function(){
+EquationRC_LOESS<-function(){
   return(NULL)
 }
 
@@ -14,7 +14,7 @@ Equation_RC_LOESS<-function(){
 #'
 #' @return real value, discharge
 #' @export
-Equation_RC_LinearRegression <- function(H,a,b){
+EquationRC_LinearRegression <- function(H,a,b){
   a*H+b
 }
 
@@ -28,7 +28,7 @@ Equation_RC_LinearRegression <- function(H,a,b){
 #'
 #' @return real value, discharge
 #' @export
-Equation_RC_Exponential <- function(H,a,b){
+EquationRC_Exponential <- function(H,a,b){
   a*exp(b*H)
 }
 
@@ -43,7 +43,7 @@ Equation_RC_Exponential <- function(H,a,b){
 #'
 #' @return real value, discharge
 #' @export
-Equation_RC_BaRatinBAC <- function(H,a,b,c){
+EquationRC_BaRatinBAC <- function(H,a,b,c){
   a*(H-b)^c
 }
 
@@ -58,7 +58,7 @@ Equation_RC_BaRatinBAC <- function(H,a,b,c){
 #'
 #' @return real value, discharge
 #' @export
-Equation_RC_BaRatinKAC <- function(H,a,b,c){
+EquationRC_BaRatinKAC <- function(H,a,b,c){
   a*(H-b)^c
 }
 
@@ -79,7 +79,7 @@ Equation_RC_BaRatinKAC <- function(H,a,b,c){
 #'   \item{ beta_k real value, asymptotic stage in meters}
 #' }
 #' @export
-Equation_Rec_M3 <- function(){
+EquationRec_M3 <- function(){
   return('alpha_1_k*exp(-lambda_1*t)+alpha_2_k*exp(-lambda_2*t)+beta_k')
 }
 
@@ -98,7 +98,7 @@ Equation_Rec_M3 <- function(){
 #'   \item{c real value, recession exponent in meters}
 #' }
 #' @export
-Equation_Rec_BR1 <- function(){
+EquationRec_BR1 <- function(){
   return('alpha_k*exp(-lambda*t^c)+beta_k')
 }
 

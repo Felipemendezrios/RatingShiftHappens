@@ -46,7 +46,7 @@
 #' @examples
 #' # Define fit model for rating curve
 #' fit=fitRC_exponential
-#' equation=Equation_RC_Exponential
+#' equation=EquationRC_Exponential
 #'
 #' # Apply recursive model and segmentation
 #' results=recursive.ModelAndSegmentation(H=ArdecheRiverGaugings$H,

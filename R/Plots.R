@@ -644,7 +644,7 @@ plotSegmentation <- function(summary,
 #' @importFrom scales viridis_pal
 #' @importFrom stats qnorm
 plotRC_ModelAndSegmentation=function(summary,
-                                     equation=Equation_RC_Exponential,
+                                     equation=EquationRC_Exponential,
                                      ...,
                                      Hmin_user = 0,
                                      Hmax_user = 2,
@@ -654,7 +654,7 @@ plotRC_ModelAndSegmentation=function(summary,
   if(length(which(colnames(summary$data)=='H'))==0)stop('Be sure that segmentation has been computed with recursive.ModelAndSegmentation function.
                                            If not please use plotSegmentation() function')
 
-  if(identical(equation,Equation_RC_BaRatinKAC)||identical(equation,Equation_RC_BaRatinBAC))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
+  if(identical(equation,EquationRC_BaRatinKAC)||identical(equation,EquationRC_BaRatinBAC))stop('To plot the rating curve using Baratin method, you must to use the function plotRCPrediction')
 
   # Check discretization
   if(H_step_discretization<=0)stop('The discretization must be a positive non-zero value')
