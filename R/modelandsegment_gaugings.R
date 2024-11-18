@@ -291,7 +291,7 @@ ModelAndSegmentation_Gaugings <- function(H,
         ##
       }else{
         # Apply segmentation to subseries stored in node residuals[[j]]
-        partial.segmentation=Segmentation_Engine(obs=residuals[[j]],
+        partial.segmentation=Segmentation(obs=residuals[[j]],
                                           time=TIME[[j]],
                                           u=u_residuals[[j]],
                                           nSmax,nMin,nCycles,burn,nSlim,

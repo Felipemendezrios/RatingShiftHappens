@@ -43,7 +43,7 @@ Linear regression used to estimate a simple rating curve. Formula : \deqn{Q(h)= 
 }
 \examples{
 # Dataset
-subset = RhoneRiverGaugings[1:20,]
+subset = RhoneRiverAMAX[1:20,]
 
 # Linear regression to estimate a simple rating curve
 fit.funk=FitRC_LinearRegression(time=subset$Time,H=subset$H,Q=subset$Q,uQ=subset$uQ,uH=0)
