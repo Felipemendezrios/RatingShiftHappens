@@ -123,7 +123,7 @@
 #'   \item{\code{Class 10:}}{Three controls}
 #' }
 #' @source \url{https://doi.org/10.1029/2020WR028607}
-"synthetic_gauging_datasets"
+"SyntheticGaugingDataSets"
 
 #' Daily stage record of the Rhone River at Beaucaire, France
 #'

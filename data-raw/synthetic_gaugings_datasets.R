@@ -16,7 +16,7 @@ class_names <- gsub(" ", "_", class_names)
 
 class_names_f=paste0('Shift_time_',class_names)
 
-synthetic_gauging_datasets <- c()
+SyntheticGaugingDataSets <- c()
 j=1
 # Separate synthetic data from shift time information and store in a list
 for(i in 1:length(all_sheets)){
@@ -28,10 +28,10 @@ for(i in 1:length(all_sheets)){
   df_shift_time.na <- all_sheets[[i]][, "shift_time", drop = FALSE]
   df_shift_time <- df_shift_time.na[!is.na(df_shift_time.na$shift_time),,drop=FALSE]
 
-  synthetic_gauging_datasets[[j]]=list(dataset.p,df_shift_time)
-  names(synthetic_gauging_datasets[[j]]) <- c(sheet_names[i],class_names_f[i])
+  SyntheticGaugingDataSets[[j]]=list(dataset.p,df_shift_time)
+  names(SyntheticGaugingDataSets[[j]]) <- c(sheet_names[i],class_names_f[i])
   j=j+1
 }
 
-save(synthetic_gauging_datasets,
-     file='data/synthetic_gauging_datasets.RData')
+save(SyntheticGaugingDataSets,
+     file='data/SyntheticGaugingDataSets.RData')
