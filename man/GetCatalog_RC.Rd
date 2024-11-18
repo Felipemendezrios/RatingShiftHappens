@@ -13,7 +13,7 @@ GetCatalog_RC(printOnly = FALSE)
 If \code{printOnly==FALSE}, a list with the following fields:
 \enumerate{
 \item models: available models
-\item RC_Equations: available RC equations
+\item equations: available RC equations
 }
 }
 \description{

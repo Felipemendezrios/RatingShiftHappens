@@ -189,7 +189,7 @@ Many models are available to describe the rating curve. All fitting models with 
 GetCatalog_RC()$models
 
 # Get equation of each model
-GetCatalog_RC()$RC_Equations
+GetCatalog_RC()$equations
 ```
 All these equations Q(h) allow for the proper transformation of stage to discharge, following the specified assumption for each fitting model.
 

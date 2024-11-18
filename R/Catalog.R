@@ -6,7 +6,7 @@
 #' @return If \code{printOnly==FALSE}, a list with the following fields:
 #' \enumerate{
 #'   \item models: available models
-#'   \item RC_Equations: available RC equations
+#'   \item equations: available RC equations
 #' }
 #' @examples
 #' catalog <- GetCatalog_RC()
@@ -20,7 +20,7 @@ GetCatalog_RC<-function(printOnly=FALSE){
            'fitRC_exponential',
            'fitRC_LinearRegression')
 
-  RC_Equations=c('Loess_Equation',
+  equations=c('Equation_LOESS',
                  'BaRatinBAC_Equation',
                  'BaRatinKAC_Equation',
                  'Exponential_Equation',
@@ -30,10 +30,10 @@ GetCatalog_RC<-function(printOnly=FALSE){
     message('MODELS:')
     print(models)
     message('RC Equations:')
-    print(RC_Equations)
+    print(equations)
   } else{
     return(list(models=models,
-                RC_Equations=RC_Equations))
+                equations=equations))
   }
 }
 
