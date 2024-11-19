@@ -223,9 +223,11 @@ An exponential regression model is employed  to construct the rating curve using
 ```{r ModelAndSegmentation_Gaugings}
 # Apply recursive model and segmentation
 results=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,Q=ArdecheRiverGaugings$Q,
-                                       time=ArdecheRiverGaugings$Date,
-                                       uQ=ArdecheRiverGaugings$uQ,
-                                       nSmax=2,nMin=2,funk=FitRC_Exponential)
+                                      time=ArdecheRiverGaugings$Date,
+                                      uQ=ArdecheRiverGaugings$uQ,
+                                      nSmax=2,
+                                      nMin=2,
+                                      funk=FitRC_Exponential)
 
 # Data information
 knitr::kable(head(results$summary$data),
@@ -366,16 +368,16 @@ The `Builder_Prior_Knowledge` function was developed and available to help the u
 ```{r}
 # Apply recursive model and segmentation with BaRatin multi-control method
 resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
-                                              Q=ArdecheRiverGaugings$Q,
-                                              time=ArdecheRiverGaugings$Date,
-                                              uQ=ArdecheRiverGaugings$uQ,
-                                              nSmax=3,
-                                              nMin=2,
-                                              funk=FitRC_BaRatinKAC,
-                                              a.object=a.object,
-                                              k.object=k.object,
-                                              c.object=c.object,
-                                              controlMatrix=controlMatrix)
+                                             Q=ArdecheRiverGaugings$Q,
+                                             time=ArdecheRiverGaugings$Date,
+                                             uQ=ArdecheRiverGaugings$uQ,
+                                             nSmax=3,
+                                             nMin=2,
+                                             funk=FitRC_BaRatinKAC,
+                                             a.object=a.object,
+                                             k.object=k.object,
+                                             c.object=c.object,
+                                             controlMatrix=controlMatrix)
 
  # Visualize tree structure
  PlotTree(resultsBaRatin$tree)
@@ -418,17 +420,17 @@ Uncertainty associated to water level measurements during low flows could lead t
 ```{r}
 # Apply recursive model and segmentation with BaRatin multi-control method. Assumption, 0.05 m for uncertainty in th gauged height
 resultsBaRatinWithuH=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
-                                                    Q=ArdecheRiverGaugings$Q,
-                                                    time=ArdecheRiverGaugings$Date,
-                                                    uQ=ArdecheRiverGaugings$uQ,
-                                                    uH=rep(0.05,length(ArdecheRiverGaugings$H)),
-                                                    nSmax=3,
-                                                    nMin=2,
-                                                    funk=FitRC_BaRatinKAC,
-                                                    a.object=a.object,
-                                                    k.object=k.object,
-                                                    c.object=c.object,
-                                                    controlMatrix=controlMatrix)
+                                                   Q=ArdecheRiverGaugings$Q,
+                                                   time=ArdecheRiverGaugings$Date,
+                                                   uQ=ArdecheRiverGaugings$uQ,
+                                                   uH=rep(0.05,length(ArdecheRiverGaugings$H)),
+                                                   nSmax=3,
+                                                   nMin=2,
+                                                   funk=FitRC_BaRatinKAC,
+                                                   a.object=a.object,
+                                                   k.object=k.object,
+                                                   c.object=c.object,
+                                                   controlMatrix=controlMatrix)
 
  # Visualize tree structure
  PlotTree(resultsBaRatinWithuH$tree)
@@ -505,13 +507,13 @@ The previously shown stage record does not have any associated uncertainty. Ther
 
 ```{r}
  recessions_extracted=Extract_Recessions(H=ArdecheRiverStage$H,
-                                           uH=0.05,
-                                           time=ArdecheRiverStage$Date,
-                                           chi=0.5,
-                                           tgood=30,
-                                           delta.t.min = 0,
-                                           delta.t.max = 20,
-                                           Nmin.rec = 10)
+                                         uH=0.05,
+                                         time=ArdecheRiverStage$Date,
+                                         chi=0.5,
+                                         tgood=30,
+                                         delta.t.min = 0,
+                                         delta.t.max = 20,
+                                         Nmin.rec = 10)
 
  recessions = recessions_extracted$Rec_extracted
  
@@ -521,7 +523,6 @@ The previously shown stage record does not have any associated uncertainty. Ther
  # Check summary table of recession extracted
  knitr::kable(head(recessions_extracted$summary_rec),
              align = 'c',row.names = FALSE)
-
  
 ```
 
@@ -559,13 +560,13 @@ Both Bayesian estimation of the stage-recession and the recession segmentation a
 
 ```{r}
  model_rec=ModelAndSegmentation_Recessions(time_rec=recessions$time_rec,
-                                                     daterec=recessions$date,
-                                                     hrec=recessions$hrec,
-                                                     uHrec=recessions$uHrec,
-                                                     indx=recessions$indx,
-                                                     nSmax = 3,
-                                                     nMin = 1,
-                                                     funk='M3')
+                                           daterec=recessions$date,
+                                           hrec=recessions$hrec,
+                                           uHrec=recessions$uHrec,
+                                           indx=recessions$indx,
+                                           nSmax = 3,
+                                           nMin = 1,
+                                           funk='M3')
 ```
 
 The estimation and segmentation have been completed. Next, plot functions have been developed to generate figures for interpreting the obtained results.

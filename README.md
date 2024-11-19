@@ -16,9 +16,9 @@ available to the segmentation process.
 
 Three fundamental functions are available to segment a random variable :
 
-1.  segmentation.engine
-2.  segmentation
-3.  recursive.segmentation
+1.  Segmentation_Engine
+2.  Segmentation
+3.  Recursive_Segmentation
 
 ## Installation
 
@@ -30,7 +30,7 @@ from GitHub using the following command. Please note that the
 package.
 
 ``` r
-# Before first use, install Rating Shift Happens and RBaM packages ones and for all, following these commands: 
+# Before first use, install RatingShiftHappens and RBaM packages ones and for all, following these commands: 
 
 # devtools::install_github("Felipemendezrios/RatingShiftHappens")
 # devtools::install_github('BaM-tools/RBaM') 
@@ -46,13 +46,18 @@ This basic example demonstrates the segmentation of annual maximum
 stages (H, m) for the Rhone River at Beaucaire, France, along with the
 associated uncertainties expressed as standard deviations (uH), divided
 into two groups. More information about the data set, please refer to
-the documentation available in `?RhoneRiver`.
+the documentation available in `?RhoneRiverAMAX`.
+
+In this package, all uncertainties are expressed as standard deviations
+rather than expanded uncertainties. Uncertainty in stage measurements
+will be in meters, while for discharge, it will be in cubic meters per
+second.
 
 ``` r
  # Run segmentation engine function at two segments
- res=segmentation.engine(obs=RhoneRiver$H,
-                         time=RhoneRiver$Year,
-                         u=RhoneRiver$uH,
+ res=Segmentation_Engine(obs=RhoneRiverAMAX$H,
+                         time=RhoneRiverAMAX$Year,
+                         u=RhoneRiverAMAX$uH,
                          nS=2)
  # Data information
  knitr::kable(head(res$summary$data),
@@ -80,14 +85,14 @@ the documentation available in `?RhoneRiver`.
 
 ``` r
  # Plot segmentation
- Plots=plotSegmentation(summary=res$summary,
+ Plots=PlotSegmentation(summary=res$summary,
                         plot_summary=res$plot)
  
  # Observations of the random variable and shift time estimated 
  Plots$observation_and_shift
 ```
 
-<img src="man/readme/README-segmentation.engine-1.png" width="100%" />
+<img src="man/readme/README-Segmentation_Engine-1.png" width="100%" />
 
 ``` r
  
@@ -95,7 +100,7 @@ the documentation available in `?RhoneRiver`.
  Plots$shift_time_density
 ```
 
-<img src="man/readme/README-segmentation.engine-2.png" width="100%" />
+<img src="man/readme/README-Segmentation_Engine-2.png" width="100%" />
 
 ``` r
  
@@ -103,7 +108,7 @@ the documentation available in `?RhoneRiver`.
  Plots$final_plot
 ```
 
-<img src="man/readme/README-segmentation.engine-3.png" width="100%" />
+<img src="man/readme/README-Segmentation_Engine-3.png" width="100%" />
 
 ### For more advanced details:
 
@@ -162,9 +167,9 @@ with an **unknown** number of segments :
 
 ``` r
  # Run segmentation engine function at two segments
- res=segmentation(obs=RhoneRiver$H,
-                  time=RhoneRiver$Year,
-                  u=RhoneRiver$uH,
+ res=Segmentation(obs=RhoneRiverAMAX$H,
+                  time=RhoneRiverAMAX$Year,
+                  u=RhoneRiverAMAX$uH,
                   nSmax=3)
 
  # Get lower DIC value and optimal number of segments (to define optimal solution)
@@ -180,7 +185,7 @@ with an **unknown** number of segments :
    ggplot2::theme_bw()
 ```
 
-<img src="man/readme/README-segmentation-1.png" width="100%" />
+<img src="man/readme/README-Segmentation-1.png" width="100%" />
 
 ``` r
  # Data information
@@ -209,11 +214,11 @@ with an **unknown** number of segments :
 
 ``` r
  # Final plot segmentation
- plotSegmentation(summary=res$summary,
+ PlotSegmentation(summary=res$summary,
                   plot_summary = res$plot)$final_plot
 ```
 
-<img src="man/readme/README-segmentation-2.png" width="100%" />
+<img src="man/readme/README-Segmentation-2.png" width="100%" />
 
 ## Recursive segmentation procedure for an *unknown* number of segments
 
@@ -222,9 +227,9 @@ with an **unknown** number of segments using a recursive process:
 
 ``` r
  # Apply recursive segmentation
- results=recursive.segmentation(obs=RhoneRiver$H,
-                                time=RhoneRiver$Year,
-                                u=RhoneRiver$uH,
+ results=Recursive_Segmentation(obs=RhoneRiverAMAX$H,
+                                time=RhoneRiverAMAX$Year,
+                                u=RhoneRiverAMAX$uH,
                                 nSmax=3)
  
  # Data information
@@ -260,19 +265,19 @@ with an **unknown** number of segments using a recursive process:
 #> 3    3     2      1  1
 
  # Visualize tree structure
- plotTree(tree=results$tree)
+ PlotTree(tree=results$tree)
 ```
 
-<img src="man/readme/README-recursive.segmentation-1.png" width="100%" />
+<img src="man/readme/README-Recursive_Segmentation-1.png" width="100%" />
 
 ``` r
  
  # Final plot segmentation
- plotSegmentation(summary=results$summary,
+ PlotSegmentation(summary=results$summary,
                   plot_summary = results$plot)$final_plot
 ```
 
-<img src="man/readme/README-recursive.segmentation-2.png" width="100%" />
+<img src="man/readme/README-Recursive_Segmentation-2.png" width="100%" />
 
 ## Hydrometry field
 
@@ -290,33 +295,35 @@ flood recession will be explained.
 
 Many models are available to describe the rating curve. All fitting
 models with their equations supported by the package are listed below.
-For more details, refer to `GetCatalog()` to determine which model could
-be used to estimate the rating curve.
+For more details, refer to `GetCatalog_RC()` to determine which model
+could be used to estimate the rating curve.
 
 ``` r
 # Get model available to estimate the rating curve
-GetCatalog()$models
-#> [1] "fitRC_loess"            "fitRC_BaRatinBAC"       "fitRC_BaRatinKAC"      
-#> [4] "fitRC_exponential"      "fitRC_LinearRegression"
+GetCatalog_RC()$models
+#> [1] "FitRC_LOESS"                      "FitRC_Exponential"               
+#> [3] "FitRC_LinearRegression"           "FitRC_SimplifiedBaRatin"         
+#> [5] "FitRC_SimplifiedBaRatinWithPrior" "FitRC_BaRatinBAC"                
+#> [7] "FitRC_BaRatinKAC"
 
 # Get equation of each model
-GetCatalog()$RC_Equations
-#> [1] "Loess_Equation"            "BaRatinBAC_Equation"      
-#> [3] "BaRatinKAC_Equation"       "Exponential_Equation"     
-#> [5] "LinearRegression_Equation"
+GetCatalog_RC()$equations
+#> [1] "EquationRC_LOESS"            "EquationRC_BaRatinBAC"      
+#> [3] "EquationRC_BaRatinKAC"       "EquationRC_Exponential"     
+#> [5] "EquationRC_LinearRegression"
 ```
 
 All these equations Q(h) allow for the proper transformation of stage to
 discharge, following the specified assumption for each fitting model.
 
-Models can either be non-parametric, such as as `fitRC_loess`, which
+Models can either be non-parametric, such as as `FitRC_LOESS`, which
 relies solely on data for calculation, or parametric, like
-`fitRC_BaRatinKAC` with three parameters (a,b,c) per hydraulic control,
-integrating physics and geometry proprieties of the river in the
+`FitRC_BaRatinKAC` with three parameters (a,b,c) per hydraulic control,
+integrating physics and geometry properties of the river in the
 estimation process.
 
 Hereafter, the employed model will be an exponential regression
-(`fitRC_exponential`) and the BaRatin model for estimating discharge.
+(`FitRC_Exponential`) and the BaRatin model for estimating discharge.
 
 The exponential regression needs two parameters, denoted as *a* and *b*,
 following the equation :
@@ -331,12 +338,12 @@ $Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \
 ### Dataset
 
 The Ardèche hydrometric station at Meyras is introduced as a new
-dataset, further information in `?ArdecheRiverMeyrasGaugings`. The
-dataset includes stages (H, in meters) and discharge ADCP measurements
-(Q, in cubic meters per second) all accompanied by uncertainties.
+dataset, further information in `?ArdecheRiverGaugings`. The dataset
+includes stages (H, in meters) and discharge ADCP measurements (Q, in
+cubic meters per second) all accompanied by uncertainties.
 
 ``` r
-knitr::kable(head(ArdecheRiverMeyrasGaugings),
+knitr::kable(head(ArdecheRiverGaugings),
               align = 'c',row.names = F)
 ```
 
@@ -366,10 +373,12 @@ perspective.
 
 ``` r
 # Apply recursive model and segmentation
-results=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,Q=ArdecheRiverMeyrasGaugings$Q,
-                                       time=ArdecheRiverMeyrasGaugings$Date,
-                                       uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                       nSmax=2,nMin=2,funk=fitRC_exponential)
+results=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,Q=ArdecheRiverGaugings$Q,
+                                      time=ArdecheRiverGaugings$Date,
+                                      uQ=ArdecheRiverGaugings$uQ,
+                                      nSmax=2,
+                                      nMin=2,
+                                      funk=FitRC_Exponential)
 
 # Data information
 knitr::kable(head(results$summary$data),
@@ -418,7 +427,7 @@ integrated in the package:
 
 ``` r
 # Visualize tree structure
-plotTree(results$tree)
+PlotTree(results$tree)
 ```
 
 <img src="man/readme/README-unnamed-chunk-8-1.png" width="100%" />
@@ -430,8 +439,8 @@ a=results$summary$param.equation$a
 b=results$summary$param.equation$b
 
 # Plot the rating curve after segmentation following a regression exponential
-plotRC_ModelAndSegmentation(summary=results$summary,
-                            equation = Exponential_Equation,
+PlotRCSegmentation_Gaugings(summary=results$summary,
+                            equation = EquationRC_Exponential,
                             a=a,
                             b=b)
 ```
@@ -441,8 +450,8 @@ plotRC_ModelAndSegmentation(summary=results$summary,
 ``` r
 
 # Plot the rating curves after segmentation with zoom user-defined
-plotRC_ModelAndSegmentation(summary=results$summary,
-                            equation = Exponential_Equation, 
+PlotRCSegmentation_Gaugings(summary=results$summary,
+                            equation = EquationRC_Exponential, 
                             a=a,
                             b=b,
                             autoscale = FALSE, 
@@ -456,9 +465,9 @@ plotRC_ModelAndSegmentation(summary=results$summary,
 ``` r
 
 # Plot the rating curves after segmentation in log scale
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             logscale=TRUE,
-                            equation = Exponential_Equation,
+                            equation = EquationRC_Exponential,
                             a=a,
                             b=b)
 ```
@@ -468,9 +477,9 @@ plotRC_ModelAndSegmentation(summary=results$summary,
 ``` r
 
 # Plot the rating curves after segmentation in log scale with zoom
-plotRC_ModelAndSegmentation(summary=results$summary,
+PlotRCSegmentation_Gaugings(summary=results$summary,
                             logscale=TRUE,
-                            equation = Exponential_Equation,
+                            equation = EquationRC_Exponential,
                             a=a,
                             b=b,
                             autoscale = FALSE, 
@@ -484,8 +493,8 @@ plotRC_ModelAndSegmentation(summary=results$summary,
 ``` r
 
 # Plot shift times in stage record
-plot_H_ModelAndSegmentation(summary=results$summary,
-                            plot_summary=results$plot)$final_plot
+PlotSegmentation_Gaugings_Hdt(summary=results$summary,
+                              plot_summary=results$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-8-6.png" width="100%" />
@@ -493,8 +502,8 @@ plot_H_ModelAndSegmentation(summary=results$summary,
 ``` r
 
 # Plot shift times in discharge observations
-plot_Q_ModelAndSegmentation(summary=results$summary,
-                            plot_summary=results$plot)$final_plot
+PlotSegmentation_Gaugings_Qdt(summary=results$summary,
+                              plot_summary=results$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-8-7.png" width="100%" />
@@ -502,8 +511,8 @@ plot_Q_ModelAndSegmentation(summary=results$summary,
 ``` r
 
 # Plot residual
-plotResidual_ModelAndSegmentation(summary=results$summary,
-                                  plot_summary=results$plot)$final_plot
+PlotSegmentation_Gaugings_Residual(summary=results$summary,
+                                   plot_summary=results$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-8-8.png" width="100%" />
@@ -547,7 +556,7 @@ right and left banks. Since the two floodways get activated at roughly
 the same stage, they are combined into a single control.
 
 To assist the user in entering the hydraulic control matrix, the
-`control_matrix_builder` function was developed. This function interacts
+`Builder_ControlMatrix` function was developed. This function interacts
 with the user to facilitate the creation of the matrix.
 
 ``` r
@@ -564,10 +573,10 @@ $Q(h) = a*(h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{i
 
 - Parameter *a* is the coefficient representing the geometry and
   physical properties of the control. It will be estimated differently
-  in function of the type of control.
+  depending on the type of control.
 
 - Parameter *b* is the offset; when stage falls below the value *b*,
-  discharge id zero.
+  discharge is zero.
 
 - Parameter *c* is the exponent, which depends solely on the type of
   control.
@@ -597,26 +606,25 @@ k.object=list(k1,k2,k3)
 c.object=list(c1,c2,c3)
 ```
 
-The `prior_infor_param_builder` function was developed and available to
+The `Builder_Prior_Knowledge` function was developed and available to
 help the user to create these objects in a interactive way.
 
 ``` r
 # Apply recursive model and segmentation with BaRatin multi-control method
-resultsBaRatin=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
-                                              Q=ArdecheRiverMeyrasGaugings$Q,
-                                              time=ArdecheRiverMeyrasGaugings$Date,
-                                              uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                              nSmax=3,
-                                              nMin=2,
-                                              funk=fitRC_BaRatinKAC,
-                                              a.object=a.object,
-                                              k.object=k.object,
-                                              c.object=c.object,
-                                              controlMatrix=controlMatrix
-                                              )
+resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
+                                             Q=ArdecheRiverGaugings$Q,
+                                             time=ArdecheRiverGaugings$Date,
+                                             uQ=ArdecheRiverGaugings$uQ,
+                                             nSmax=3,
+                                             nMin=2,
+                                             funk=FitRC_BaRatinKAC,
+                                             a.object=a.object,
+                                             k.object=k.object,
+                                             c.object=c.object,
+                                             controlMatrix=controlMatrix)
 
  # Visualize tree structure
- plotTree(resultsBaRatin$tree)
+ PlotTree(resultsBaRatin$tree)
 ```
 
 <img src="man/readme/README-unnamed-chunk-11-1.png" width="100%" />
@@ -635,15 +643,15 @@ reduce calculation time, it is advisable to specify the vector of nodes
 for plotting the rating curve.
 
 ``` r
-  # Plot the rating curves after using BaRatin method  
-  plotsRC=plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                          autoscale=FALSE,
-                          temp.folder=file.path(tempdir(),'BaM'),
-                          CalibrationData='CalibrationData.txt',
-                          allnodes=FALSE,
-                          nodes=terminal)
+ # Plot the rating curves after using BaRatin method  
+ plotsRC=PlotRCSegmentation_Gaugings_Tree(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                                          autoscale=FALSE,
+                                          temp.folder=file.path(tempdir(),'BaM'),
+                                          CalibrationData='CalibrationData.txt',
+                                          allnodes=FALSE,
+                                          nodes=terminal)
   
-  plotsRC$PlotRCPred
+ plotsRC$PlotRCPred
 #> [[1]]
 ```
 
@@ -677,8 +685,8 @@ for plotting the rating curve.
 ``` r
 
  # Plot shift times in stage record
- plot_H_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                             plot_summary=resultsBaRatin$plot)$final_plot
+ PlotSegmentation_Gaugings_Hdt(summary=resultsBaRatin$summary,
+                               plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-12-7.png" width="100%" />
@@ -686,8 +694,8 @@ for plotting the rating curve.
 ``` r
 
  # Plot shift times in discharge observations
- plot_Q_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                             plot_summary=resultsBaRatin$plot)$final_plot
+ PlotSegmentation_Gaugings_Qdt(summary=resultsBaRatin$summary,
+                               plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-12-8.png" width="100%" />
@@ -695,8 +703,8 @@ for plotting the rating curve.
 ``` r
 
  # Plot residual
- plotResidual_ModelAndSegmentation(summary=resultsBaRatin$summary,
-                                   plot_summary=resultsBaRatin$plot)$final_plot
+ PlotSegmentation_Gaugings_Residual(summary=resultsBaRatin$summary,
+                                    plot_summary=resultsBaRatin$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-12-9.png" width="100%" />
@@ -714,22 +722,21 @@ compensate for the issue identified.
 
 ``` r
 # Apply recursive model and segmentation with BaRatin multi-control method. Assumption, 0.05 m for uncertainty in th gauged height
-resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings$H,
-                                                    Q=ArdecheRiverMeyrasGaugings$Q,
-                                                    time=ArdecheRiverMeyrasGaugings$Date,
-                                                    uQ=ArdecheRiverMeyrasGaugings$uQ,
-                                                    uH=rep(0.05,length(ArdecheRiverMeyrasGaugings$H)),
-                                                    nSmax=3,
-                                                    nMin=2,
-                                                    funk=fitRC_BaRatinKAC,
-                                                    a.object=a.object,
-                                                    k.object=k.object,
-                                                    c.object=c.object,
-                                                    controlMatrix=controlMatrix
-                                                    )
+resultsBaRatinWithuH=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
+                                                   Q=ArdecheRiverGaugings$Q,
+                                                   time=ArdecheRiverGaugings$Date,
+                                                   uQ=ArdecheRiverGaugings$uQ,
+                                                   uH=rep(0.05,length(ArdecheRiverGaugings$H)),
+                                                   nSmax=3,
+                                                   nMin=2,
+                                                   funk=FitRC_BaRatinKAC,
+                                                   a.object=a.object,
+                                                   k.object=k.object,
+                                                   c.object=c.object,
+                                                   controlMatrix=controlMatrix)
 
  # Visualize tree structure
- plotTree(resultsBaRatinWithuH$tree)
+ PlotTree(resultsBaRatinWithuH$tree)
 ```
 
 <img src="man/readme/README-unnamed-chunk-13-1.png" width="100%" />
@@ -741,12 +748,12 @@ resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings
  terminal
 #> [1] 2 3 5 6
 
- plotsRC= plotRCPrediction(Hgrid=data.frame(seq(-1,2,by=0.01)),
-                           autoscale=FALSE,
-                           temp.folder=file.path(tempdir(),'BaM'),
-                           CalibrationData='CalibrationData.txt',
-                           allnodes=FALSE,
-                           nodes=terminal)
+ plotsRC= PlotRCSegmentation_Gaugings_Tree(Hgrid=data.frame(seq(-1,2,by=0.01)),
+                                           autoscale=FALSE,
+                                           temp.folder=file.path(tempdir(),'BaM'),
+                                           CalibrationData='CalibrationData.txt',
+                                           allnodes=FALSE, 
+                                           nodes=terminal)
  
  plotsRC$PlotRCPred
 #> [[1]]
@@ -772,8 +779,8 @@ resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings
 ``` r
 
  # Plot shift times in stage record
- plot_H_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
-                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+ PlotSegmentation_Gaugings_Hdt(summary=resultsBaRatinWithuH$summary,
+                               plot_summary=resultsBaRatinWithuH$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-13-6.png" width="100%" />
@@ -781,8 +788,8 @@ resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings
 ``` r
 
  # Plot shift times in discharge observations
- plot_Q_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
-                             plot_summary=resultsBaRatinWithuH$plot)$final_plot
+ PlotSegmentation_Gaugings_Qdt(summary=resultsBaRatinWithuH$summary,
+                               plot_summary=resultsBaRatinWithuH$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-13-7.png" width="100%" />
@@ -790,8 +797,8 @@ resultsBaRatinWithuH=recursive.ModelAndSegmentation(H=ArdecheRiverMeyrasGaugings
 ``` r
 
  # Plot residual
- plotResidual_ModelAndSegmentation(summary=resultsBaRatinWithuH$summary,
-                                   plot_summary=resultsBaRatinWithuH$plot)$final_plot
+ PlotSegmentation_Gaugings_Residual(summary=resultsBaRatinWithuH$summary,
+                                    plot_summary=resultsBaRatinWithuH$plot)$final_plot
 ```
 
 <img src="man/readme/README-unnamed-chunk-13-8.png" width="100%" />
@@ -819,7 +826,7 @@ To accomplish this, the method is divided into three steps:
 
 1.  Extraction of the stage-recessions
 2.  Bayesian estimation of the stage-recessions
-3.  recessions segmentation
+3.  Recessions segmentation
 
 #### Extraction of the stage-recessions
 
@@ -853,13 +860,13 @@ The total number of stage values across all recessions is
 therefore:$N_{tot} = \sum_{k=1}^{N_{rec}} N_k$
 
 For more details, please refer to the documentation
-`?Extraction_recession`.
+`?Extract_Recessions`.
 
 Let’s examine the stage record for the Ardèche at the Meyras hydrometric
-station (`?ArdecheRiverMeyrasStage`):
+station (`?ArdecheRiverStage`):
 
 ``` r
-ggplot2::ggplot(ArdecheRiverMeyrasStage,ggplot2::aes(x=Date,y=H))+
+ggplot2::ggplot(ArdecheRiverStage,ggplot2::aes(x=Date,y=H))+
   ggplot2::geom_line()+
   ggplot2::theme_bw()
 ```
@@ -871,19 +878,19 @@ stage record. This will then be used to extract all stage-recession
 periods based on user-defined criteria, as follows:
 
 ``` r
- recessions_extracted=Extraction_recession(H=ArdecheRiverMeyrasStage$H,
-                                           uH=0.05,
-                                           time=ArdecheRiverMeyrasStage$Date,
-                                           chi=0.5,
-                                           tgood=30,
-                                           delta.t.min = 0,
-                                           delta.t.max = 20,
-                                           Nmin.rec = 10)
+ recessions_extracted=Extract_Recessions(H=ArdecheRiverStage$H,
+                                         uH=0.05,
+                                         time=ArdecheRiverStage$Date,
+                                         chi=0.5,
+                                         tgood=30,
+                                         delta.t.min = 0,
+                                         delta.t.max = 20,
+                                         Nmin.rec = 10)
 
  recessions = recessions_extracted$Rec_extracted
  
  # Plot information of recession extracted
- plot_rec_extracted(Rec_extracted = recessions)
+ PlotExtract_Recessions(Rec_extracted = recessions)
 #> [[1]]
 ```
 
@@ -931,14 +938,16 @@ Models fitting available in the package may be consulted here:
 
 ``` r
 # Get model available to estimate the recession curve
-GetCatalog()$Recession_Equations
-#> [1] "Recession_M3_Equation" "Recession_B2_Equation"
+names(GetCatalog_Recession())
+#> [1] "M3"  "BR1"
+
+GetCatalog_Recession()$M3$Equation()
+#> [1] "alpha_1_k*exp(-lambda_1*t)+alpha_2_k*exp(-lambda_2*t)+beta_k"
 ```
 
 For instance, the recession model with two exponential terms and
-asymptotic (`Recession_M3_Equation()`, proposed by Matteo Darienzo
-(2021)) will be considered for the calculation, and it is described
-below:
+asymptotic (`EquationRec_M3()`, proposed by Matteo Darienzo (2021)) will
+be considered for the calculation, and it is described below:
 
 - Stable parameters:$\lambda_1$ , $\lambda_2$
 - Recession-specific parameters: $\alpha_{1_k}$, $\alpha_{2_k}$,
@@ -958,23 +967,23 @@ control.
 
 This information may be interpreted as a random variable that needs to
 be segmented using a recursive segmentation procedure, specifically the
-`recursive.segmentation()`function. The time associated to each
+`Recursive_Segmentation()`function. The time associated to each
 parameter $\beta_k$ is the time at which the corresponding recession
 begins.
 
 Both Bayesian estimation of the stage-recession and the recession
-segmentation are groupped in the same function
-`ModelAndSegmentation.recession.regression` as shown here:
+segmentation are grouped in the same function
+`ModelAndSegmentation_Recessions` as shown here:
 
 ``` r
- model_rec=ModelAndSegmentation.recession.regression(time_rec=recessions$time_rec,
-                                                     daterec=recessions$date,
-                                                     hrec=recessions$hrec,
-                                                     uHrec=recessions$uHrec,
-                                                     indx=recessions$indx,
-                                                     nSmax = 3,
-                                                     nMin = 1,
-                                                     funk=Recession_M3_Equation)
+ model_rec=ModelAndSegmentation_Recessions(time_rec=recessions$time_rec,
+                                           daterec=recessions$date,
+                                           hrec=recessions$hrec,
+                                           uHrec=recessions$uHrec,
+                                           indx=recessions$indx,
+                                           nSmax = 3,
+                                           nMin = 1,
+                                           funk='M3')
 ```
 
 The estimation and segmentation have been completed. Next, plot
@@ -983,10 +992,7 @@ obtained results.
 
 ``` r
 # Plot recession segmentation
- plot_segm_recession(model_rec=model_rec,
-                     spec_recession=c(2,16,28,48),
-                     recession_rejected=TRUE,
-                     )
+ PlotSegmentation_Recessions(model_rec=model_rec)
 #> $plot.rec.segmented
 ```
 
@@ -997,42 +1003,16 @@ obtained results.
 
 <img src="man/readme/README-unnamed-chunk-18-2.png" width="100%" />
 
-    #> 
-    #> $plot.obs.vs.sim
-    #> $plot.obs.vs.sim[[1]]
-
-<img src="man/readme/README-unnamed-chunk-18-3.png" width="100%" />
-
-    #> 
-    #> $plot.obs.vs.sim[[2]]
-
-<img src="man/readme/README-unnamed-chunk-18-4.png" width="100%" />
-
-    #> 
-    #> $plot.obs.vs.sim[[3]]
-
-<img src="man/readme/README-unnamed-chunk-18-5.png" width="100%" />
-
-    #> 
-    #> $plot.obs.vs.sim[[4]]
-
-<img src="man/readme/README-unnamed-chunk-18-6.png" width="100%" />
-
-    #> 
-    #> $plot.obs.vs.sim[[5]]
-
-<img src="man/readme/README-unnamed-chunk-18-7.png" width="100%" />
-
 ``` r
 
  # Plot using all data of stage record
- plot_H_segm_recession(time=ArdecheRiverMeyrasStage$Date,
-                       obs=ArdecheRiverMeyrasStage$H,
-                       u=0.05,
-                       plot_summary = model_rec$plot)
+ PlotSegmentation_Recessions_Hdt(time=ArdecheRiverStage$Date,
+                                 obs=ArdecheRiverStage$H,
+                                 u=0.05,
+                                 plot_summary = model_rec$plot)
 ```
 
-<img src="man/readme/README-unnamed-chunk-18-8.png" width="100%" />
+<img src="man/readme/README-unnamed-chunk-18-3.png" width="100%" />
 
 ## Références
 
@@ -1044,6 +1024,7 @@ class="csl-entry">
 Darienzo, Matteo. 2021. “Detection and Estimation of Stage-Discharge
 Rating Shifts for Retrospective and Real-Time Streamflow
 Quantification.” PhD thesis.
+<https://theses.hal.science/tel-03211343v1>.
 
 </div>
 
@@ -1098,7 +1079,7 @@ Changes at Known Times.” *Water Resources Research* 55 (4): 2876–99.
 
 Renard, Benjamin. 2017. “BaM ! (Bayesian Modeling): Un code de calcul
 pour l’estimation d’un modèle quelconque et son utilisation en
-prédiction.” {Report}. irstea.
+prédiction.” {Report}. irstea. <https://hal.inrae.fr/hal-02606929>.
 
 </div>
 
