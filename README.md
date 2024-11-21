@@ -328,12 +328,12 @@ Hereafter, the employed model will be an exponential regression
 The exponential regression needs two parameters, denoted as *a* and *b*,
 following the equation :
 
-$Q(h) = a \cdot e^{(b \cdot h)}$
+$$Q(h) = a \cdot e^{(b \cdot h)}$$
 
 The BaRatin model needs the parameters *a*, *b* and *c* per hydraulic
 control, following the equation:
 
-$Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)$
+$$Q(h) = a \cdot (h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)$$
 
 ### Dataset
 
@@ -569,7 +569,7 @@ controlMatrix=matrix(c(1,0,0,0,1,1,0,0,1),ncol=3,nrow=3)
 The method required prior information on the parameters *a*, *k* and *c*
 per hydraulic control following this equation:
 
-$Q(h) = a*(h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)$
+$$Q(h) = a*(h-b)^{c} \quad \text{for } (h>k) \quad (\text{and } Q=0 \quad \text{if } h \leq b)$$
 
 - Parameter *a* is the coefficient representing the geometry and
   physical properties of the control. It will be estimated differently
@@ -839,7 +839,7 @@ by only decreasing stage values. A parameter is used to separate the
 recessions: $\chi$ \[m\]. According to this parameter a recession period
 $k$ is ended when the rise or fall of stage (e.g. due to incoming
 rainfall event) between two consequent data exceeds $\chi$ (hence, when
-\[$h_{rec}(t_i)$ - $h_{rec}(t_{i-1})$\] \> $\chi$).
+\[ $h_{rec}(t_i)$ - $h_{rec}(t_{i-1})$\] \> $\chi$).
 
 Then, stage-recessions are selected based on the following user-defined
 conditions:
@@ -856,8 +856,8 @@ conditions:
 Let $N_{rec}$ denote the number of extracted recessions, and $N_k$ the
 number of stage values in the $k$-th recession.
 
-The total number of stage values across all recessions is
-therefore:$N_{tot} = \sum_{k=1}^{N_{rec}} N_k$
+The total number of stage values across all recessions is therefore:
+$N_{tot} = \sum_{k=1}^{N_{rec}} N_k$
 
 For more details, please refer to the documentation
 `?Extract_Recessions`.
@@ -949,7 +949,9 @@ For instance, the recession model with two exponential terms and
 asymptotic (`EquationRec_M3()`, proposed by Matteo Darienzo (2021)) will
 be considered for the calculation, and it is described below:
 
-- Stable parameters:$\lambda_1$ , $\lambda_2$
+$$\alpha_{1_k} \cdot \exp(-\lambda_1 \cdot t) + \alpha_{2_k} \cdot \exp(-\lambda_2 \cdot t) + \beta_k$$
+
+- Stable parameters: $\lambda_1$ , $\lambda_2$
 - Recession-specific parameters: $\alpha_{1_k}$, $\alpha_{2_k}$,
   $\beta_k$
 
