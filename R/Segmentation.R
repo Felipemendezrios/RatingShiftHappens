@@ -12,6 +12,7 @@
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @return list with the following components:
 #' \enumerate{
@@ -84,7 +85,7 @@ Segmentation_Engine <- function(obs,
                                 burn=0.5,
                                 nSlim=max(nCycles/10,1),
                                 temp.folder=file.path(tempdir(),'BaM'),
-                                mu_prior=list(NULL)){
+                                mu_prior=list(NULL),...){
 
   if(length(obs)<nS)stop('Number of observations is lower than the number of segments',call.=FALSE)
   if(any(is.na(obs)) | any(is.na(time)) | any(is.na(u)))stop('Missing values not allowed in observation, time and uncertainty')
@@ -198,9 +199,7 @@ Segmentation_Engine <- function(obs,
             workspace=temp.folder,
             mcmc=mcmc_temp,
             cook = cook_temp,
-            dir.exe = file.path(find.package("RBaM"), "bin"),
-            remnant = remnant_prior
-  )
+            remnant = remnant_prior,...)
 
   mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
   mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
@@ -395,6 +394,7 @@ Segmentation_Engine <- function(obs,
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @return list with the following components:
 #' \enumerate{
@@ -453,7 +453,7 @@ Segmentation <- function(obs,
                          burn=0.5,
                          nSlim=max(nCycles/10,1),
                          temp.folder=file.path(tempdir(),'BaM'),
-                         mu_prior = list()){
+                         mu_prior = list(),...){
 
   if(nSmax<=0){
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
@@ -481,7 +481,7 @@ Segmentation <- function(obs,
       }
 
       res[[i]] <- Segmentation_Engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,
-                                      mu_prior = mu_args)
+                                      mu_prior = mu_args,...)
       DICs [i] <- res[[i]]$DIC
     }
   }
@@ -510,6 +510,7 @@ Segmentation <- function(obs,
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @return list with the following components:
 #' \enumerate{
@@ -566,7 +567,7 @@ Recursive_Segmentation <- function(obs,
                                    burn=0.5,
                                    nSlim=max(nCycles/10,1),
                                    temp.folder=file.path(tempdir(),'BaM'),
-                                   mu_prior = list()){
+                                   mu_prior = list(),...){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
@@ -590,7 +591,7 @@ Recursive_Segmentation <- function(obs,
       k=k+1 # Increment main counter
       partial.segmentation=Segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
                                         nSmax,nMin,nCycles,burn,nSlim,temp.folder,
-                                        mu_prior=mu_prior) # Apply segmentation to subseries stored in node X[[j]]
+                                        mu_prior=mu_prior,...) # Apply segmentation to subseries stored in node X[[j]]
       # Save results for this node
       allRes[[k]]=partial.segmentation
       # Save optimal number of segments

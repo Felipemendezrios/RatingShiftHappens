@@ -94,7 +94,6 @@ Estimate_Rec_M3 <- function(data.object,
             workspace=temp.folder.Recession,
             mcmc=mcmc_temp,
             cook = cook_temp,
-            dir.exe = file.path(find.package("RBaM"), "bin"),
             remnant = remnant_prior)
 
   residuals   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)
@@ -191,7 +190,6 @@ Estimate_Rec_BR1 <- function(data.object,
             workspace=temp.folder.Recession,
             mcmc=mcmc_temp,
             cook = cook_temp,
-            dir.exe = file.path(find.package("RBaM"), "bin"),
             remnant = remnant_prior)
 
   residuals   <- utils::read.table(file=file.path(temp.folder.Recession,"Results_Residuals.txt"),header=TRUE)

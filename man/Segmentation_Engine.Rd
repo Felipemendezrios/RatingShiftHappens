@@ -19,7 +19,8 @@ Segmentation_Engine(
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
-  mu_prior = list(NULL)
+  mu_prior = list(NULL),
+  ...
 )
 }
 \arguments{
@@ -42,6 +43,8 @@ Segmentation_Engine(
 \item{temp.folder}{directory, temporary directory to write computations}
 
 \item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
+
+\item{...}{other arguments passed to RBaM::BaM.}
 }
 \value{
 list with the following components:
