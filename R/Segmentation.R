@@ -722,3 +722,278 @@ Recursive_Segmentation <- function(obs,
               tree=tree,
               origin.date=DF.origin.date))
 }
+
+
+#' Segmentation engine - quick approximation algorithm
+#'
+#' A quick approximation to the segmentation procedure for either one or two segments, and
+#' no prior information. The approximation is based on ignoring the uncertainty in mu1, mu2 and sigma,
+#' and focusing on the uncertainty in tau. To achieve this, point-estimates of mu1, mu2 and sigma are
+#' plugged in for each possible value of tau. The resulting algorithm is MCMC-free and independent of RBaM.
+#'
+#' @param obs real vector, observations
+#' @param time vector, time in POSIXct, string or numeric format
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @param varShift logical, allow for a shifting variance?
+#' @param nS integer, number of segments, either 1 or 2
+#' @param nMin integer, minimum number of observations by segment
+#' @param nSim integer, number of simulated tau values
+#' @return list with the following components:
+#' \enumerate{
+#'   \item summary: list, summarize the information to present to the user
+#'   \itemize{
+#'        \item data: data frame, data augmented with a column denoting the period after segmentation
+#'        \item shift: data frame, detected shift time in numeric or POSIXct format in UTC
+#'   }
+#'   \item plot : list, data formatted to use as input for some plot functions
+#'   \itemize{
+#'        \item density.tau: data frame, a table with three columns. The first column indicates the specific shift being analyzed.
+#'        The second column contains the value of the shift time tau. The last columns shows the probability density associated
+#'        with each tau value
+#'        \item density.inc.tau: data frame, all information about the 95% credibility interval and the Maximum a posterior (MAP) estimation
+#'        for shift times with their associated probability densities
+#'   }
+#'   \item tau: real, estimated shift time in numeric or POSIXct format in UTC
+#'   \item segments: list, segment mean value indexed by the list number
+#'   \item mcmc: data frame, MCMC simulation. Note that values for mu's and sigma's are fixed to the values corresponding
+#'       to the maxpost tau.
+#'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
+#'   \item DIC: real, DIC estimation
+#'   \item origin.date.p: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
+#' }
+#' @examples
+#' # Run segmentation engine function at two segments
+#' # for data set : RhoneRiverAMAX (further details on ?RhoneRiverAMAX)
+#' res=Segmentation_quickApprox(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
+#'                              u=RhoneRiverAMAX$uH,nS=2)
+#' res$summary$shift
+#' PlotSegmentation(res$summary,res$plot)
+#' @export
+#' @importFrom stats quantile sd approx
+Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,varShift=FALSE,
+                                     nS=2,nMin=ifelse(varShift,2,1),nSim=500){
+  n=NROW(obs)
+  cll=rep(-Inf,n) # conditional log-likelihoods (for each tau)
+  foo=sort.int(time,index.return=TRUE) # make sure everything is sorted chronologically
+  obs=obs[foo$ix];time=time[foo$ix];u=u[foo$ix]
+  ix=nMin:(n-nMin) # indices of candidate taus
+  if(any(diff(ix)<0)){
+    mess=paste0('Not enough data (n=',n,') to detect a shift with nMin=',nMin,
+                ' values on each side of the shift')
+    stop(mess)
+  }
+  if(nMin<1){stop('nMin cannot be smaller than one')}
+  if(varShift & nMin<2){stop('nMin cannot be smaller than 2 when shifting variance is allowed.')}
+  if(nS>2){stop('Quick-approximation algorithm is only available for nS<3 (i.e. single-shift model at most)')}
+
+  # Start preparing output list
+  out=list()
+  out$summary=list(data=data.frame(time=time,obs=obs,u=u,
+                                   I95_lower=obs-1.96*u,
+                                   I95_upper=obs+1.96*u,
+                                   period=1),
+                   shift=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0)))
+  out$plot=list(density.tau=NULL,density.inc.tau=NULL)
+  out$tau=numeric(0)
+  out$segments=numeric(0)
+  out$mcmc=data.frame()
+  out$data.p=list()
+  out$DIC=numeric(0)
+  out$origin.date.p=min(time)
+  # no-change model
+  start=c(mean(obs),sd(obs))
+  if(all(u==0)){ # no need to optimize, estimate is explicit
+    theta0=start
+    f0=quickApprox_llfunk0(start,obs,u)
+  } else { # maximize log-lkh
+    opt=optim(start,quickApprox_llfunk0,obs=obs,u=u,control=list(fnscale=-1))
+    theta0=opt$par
+    f0=opt$value
+  }
+  if(nS==1){ # stop here and return
+    out$segments=rep(theta0[1],n)
+    out$mcmc=data.frame(mu1=rep(theta0[1],nSim),
+                        structural_sd=rep(theta0[2],nSim),
+                        LogPost=rep(f0,nSim))
+    out$data.p=list(obs.p=obs,time.p=time,u.p=u)
+    out$DIC=-2*f0
+    return(out)
+  }
+
+  # Single-shift model
+  if(varShift){ # mu1,mu2,sig1,sig2
+    start=c(theta0[1],theta0[1],theta0[2],theta0[2])
+  } else {  # mu1,mu2,sig
+    start=c(theta0[1],theta0[1],theta0[2])
+  }
+  taus=time[ix]
+  pars=vector('list',length(time))
+  for (i in 1:length(taus)){ # for each tau, find mus/sds by max. likelihood
+    foo=quickApprox_getTheta(tau=taus[i],time=time,obs=obs,u=u,varShift=varShift)
+    pars[[ix[i]]]=foo$par
+    cll[ix[i]]=foo$value
+  }
+  # Approximate cdf by rectangle integration
+  post=exp(cll-max(cll)) # avoid numerical zeros, remains proportional to pdf
+  w=c(diff(time),0) # basis of each rectangle
+  cdf0=c(0,cumsum(w*post))[1:n] # unnormalized cdf
+  cdf=cdf0/max(cdf0) # normalized cdf
+  post=post/max(cdf0) # normalized pdf
+  # compute DIC
+  dev=-2*cll # deviance (where finite)
+  mask=is.finite(dev)
+  ED0=sum(w[mask]*post[mask]*dev[mask]) # E[deviance] by rectangle integration
+  VD0=sum(w[mask]*post[mask]*(dev[mask]-ED0)^2) # VAR[deviance] by rectangle integration
+  DIC1=ED0+0.5*VD0
+  # simulate taus from posterior
+  unif=runif(nSim)
+  foo=approxfun(x=cdf,y=time,ties='ordered')
+  sim=sapply(unif,foo)
+  # thetas=t(sapply(sim,quickApprox_getThetaOnly,time=time,obs=obs,u=u,varShift=varShift))
+  # ready to return
+  imax=which.max(post)
+  tau=time[imax]
+  out$summary$data$period[time>tau]=2
+  n1=sum(out$summary$data$period==1)
+  n2=sum(out$summary$data$period==2)
+  out$summary$shift[1,]=c(tau,quantile(sim,probs=c(0.025,0.975)))
+  out$plot$density.tau=data.frame(Shift='tau1',Value=time,Density=post)
+  foo=approxfun(x=time,y=post)
+  out$plot$density.inc.tau=data.frame(Shift='tau1',
+                                      tau_lower_inc=out$summary$shift$I95_lower,
+                                      density_tau_lower_inc=foo(out$summary$shift$I95_lower),
+                                      tau_upper_inc=out$summary$shift$I95_upper,
+                                      density_tau_upper_inc=foo(out$summary$shift$I95_upper),
+                                      taU_MAP=tau,
+                                      density_taU_MAP=foo(tau))
+  out$tau=tau
+  out$segments=list(rep(pars[[imax]][1],n1),rep(pars[[imax]][2],n2))
+  out$mcmc=data.frame(mu1=pars[[imax]][1],mu2=pars[[imax]][2],tau1=sim)
+  if(varShift){
+    out$mcmc$sig1=pars[[imax]][3]
+    out$mcmc$sig2=pars[[imax]][4]
+  } else {
+    out$mcmc$structural_sd=pars[[imax]][3]
+  }
+  foo=approxfun(x=time,y=post)
+  out$mcmc$LogPost=foo(sim)
+  mask=(time<=tau)
+  out$data.p$obs.p=list(obs[mask],obs[!mask])
+  out$data.p$time.p=list(time[mask],time[!mask])
+  out$data.p$u.p=list(u[mask],u[!mask])
+  out$DIC=DIC1
+  return(out)
+}
+
+#' No-shift likelihood
+#'
+#' No-shift likelihood function for the quick approximation algorithm.
+#'
+#' @param theta real vector, parameter vector (mu,sigma)
+#' @param obs real vector, observations
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @return a numeric value equal to the log-likelihood of the no-shift model
+#' @examples
+#' quickApprox_llfunk0(theta=c(0,1),obs=rnorm(100),u=rep(0,100))
+#' @keywords internal
+#' @importFrom stats dnorm
+quickApprox_llfunk0 <- function(theta,obs,u){
+  out=sum(dnorm(obs,mean=theta[1],sd=sqrt(theta[2]^2+u^2),log=TRUE))
+  return(out)
+}
+
+#' Single-shift likelihood
+#'
+#' Single-shift likelihood function used in the quick approximation algorithm.
+#'
+#' @param theta real vector, parameter vector: either (mu1,mu2,sigma) (treated as a fixed-var model) or
+#'     (mu1,mu2,sigma1,sigma2) (treated as a shifting-var model)
+#' @param tau real, shift time
+#' @param time real vector, time
+#' @param obs real vector, observations
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @return a numeric value equal to the log-likelihood of the single-shift model
+#' @examples
+#' quickApprox_llfunk1(theta=c(0,1,2),tau=40,time=1:100,obs=c(rnorm(40),rnorm(60)+1),u=rep(0,100))
+#' @keywords internal
+#' @importFrom stats dnorm
+quickApprox_llfunk1 <- function(theta,tau,time,obs,u){
+  mask=(time<=tau)
+  if(length(theta)==4){ # shifting var
+    s1=theta[3];s2=theta[4]
+  } else {
+    s1=s2=theta[3]
+  }
+  l1=sum(dnorm(obs[mask],mean=theta[1],sd=sqrt(s1^2+u[mask]^2),log=TRUE))
+  l2=sum(dnorm(obs[!mask],mean=theta[2],sd=sqrt(s2^2+u[!mask]^2),log=TRUE))
+  out=l1+l2
+  return(out)
+}
+
+#' Compute theta given tau
+#'
+#' Compute theta (mu's and sigma's) given tau (shift time) by maximizing the log-likelihood,
+#' or using explicit estimates if available (which is the case when u==0). Also returns the
+#' associated log-likelihood.
+#'
+#' @param tau real, shift time
+#' @param time real vector, time
+#' @param obs real vector, observations
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @param varShift logical, allow for a shifting variance?
+#' @return A list with the following components:
+#' \enumerate{
+#'   \item par: numeric vector, parameter vector: either (mu1,mu2,sigma) (if varShift is FALSE) or
+#'     (mu1,mu2,sigma1,sigma2) (if varShift is TRUE)
+#'   \item value: real, corresponding log-likelihood
+#'  }
+#' @examples
+#' obs=c(rnorm(40),rnorm(60)+1)
+#' quickApprox_getTheta(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=FALSE)
+#' quickApprox_getTheta(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=TRUE)
+#' @keywords internal
+#' @importFrom stats dnorm
+quickApprox_getTheta <- function(tau,time,obs,u,varShift){
+  mask=(time<=tau)
+  start=c()
+  start[1]=mean(obs[mask])
+  start[2]=mean(obs[!mask])
+  if(varShift){
+    start[3]=sd(obs[mask])
+    start[4]=sd(obs[!mask])
+  } else {
+    z=obs
+    z[mask]=obs[mask]-start[1]
+    z[!mask]=obs[!mask]-start[2]
+    start[3]=sd(z)
+  }
+  if(all(u==0)){ # no need to optimize, explicit estimates
+    pars=start
+    val=quickApprox_llfunk1(theta=start,tau=tau,time=time,obs=obs,u=u)
+  } else { # maximize log-lkh
+    opt=optim(start,quickApprox_llfunk1,tau=tau,time=time,obs=obs,u=u,control=list(fnscale=-1))
+    pars=opt$par
+    val=opt$value
+  }
+  out=list(par=pars,value=val)
+  return(out)
+}
+
+
+#' Compute theta given tau
+#'
+#' Compute theta (mu's and sigma's) given tau (shift time) by maximizing the log-likelihood,
+#' or using explicit estimates if available (which is the case when u==0).
+#'
+#' @inheritParams quickApprox_getTheta
+#' @return A numeric vector: either (mu1,mu2,sigma) (if varShift is FALSE) or
+#'     (mu1,mu2,sigma1,sigma2) (if varShift is TRUE)
+#' @examples
+#' obs=c(rnorm(40),rnorm(60)+1)
+#' quickApprox_getThetaOnly(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=FALSE)
+#' quickApprox_getThetaOnly(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=TRUE)
+#' @keywords internal
+quickApprox_getThetaOnly <- function(tau,time,obs,u,varShift){
+  out=quickApprox_getTheta(tau,time,obs,u,varShift)
+  return(out$par)
+}
