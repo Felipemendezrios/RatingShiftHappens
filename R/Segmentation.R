@@ -12,6 +12,9 @@
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
 #' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @return list with the following components:
@@ -80,13 +83,15 @@ Segmentation_Engine <- function(obs,
                                 time=1:length(obs),
                                 u=0*obs,
                                 nS=2,
-                                nMin= 1,
+                                nMin=ifelse(doQuickApprox,3,1),
                                 nCycles=100,
                                 burn=0.5,
                                 nSlim=max(nCycles/10,1),
                                 temp.folder=file.path(tempdir(),'BaM'),
-                                mu_prior=list(NULL),...){
+                                mu_prior=list(NULL),doQuickApprox=TRUE,
+                                varShift=FALSE,alpha=0.1,...){
 
+  if(length(obs)<2)stop('At least 2 observations are required',call.=FALSE)
   if(length(obs)<nS)stop('Number of observations is lower than the number of segments',call.=FALSE)
   if(any(is.na(obs)) | any(is.na(time)) | any(is.na(u)))stop('Missing values not allowed in observation, time and uncertainty')
 
@@ -124,261 +129,273 @@ Segmentation_Engine <- function(obs,
   obs <- DF.order.f$obs
   time <- DF.order.f$time
   u <- DF.order.f$u
-  npar = nS + nS - 1
 
-  priors <- vector(mode = 'list',length = npar)
-  # Extract mu parameter from if user-defined
-
-  if(is.null(mu_prior[[1]])){
-    # Set default for mu_prior if no mu_prior are provided
-    for(i in 1:nS){
-      priors [[i]] <- RBaM::parameter(name=paste0('mu',i),
-                                      init=mean(obs),
-                                      prior.dist = 'FlatPrior' ,
-                                      prior.par = NULL)
+  if(doQuickApprox){
+    hasPrior=!sapply(mu_prior,is.null)
+    if(hasPrior){
+      warning('Quick approximation does not handle prior information. The provided priors will be ignored.')
     }
-  }else{
-    # Use the provided mu parameter from mu_prior
-    for(i in 1:nS){
-      mu_list <- mu_prior[[1]]
-      mu_list$name <- paste0(mu_list$name,i)
-      priors [[i]] <- mu_list
-    }
-  }
-
-  if(i>1){
-      # Set default for tau_prior
-      prior_tau_init <- as.numeric(stats::quantile(time,probs = seq(1,nS-1)/nS))
-
-      for(i in 1:(nS-1)){
-        priors [[nS+i]] <- RBaM::parameter(name=paste0('tau',i),
-                                           init= prior_tau_init[i],
-                                           prior.dist = 'FlatPrior' ,
-                                           prior.par = NULL)
-      }
-  }
-  # Config_Xtra
-  xtra=RBaM::xtraModelInfo(object=c(nS=nS,
-                                    tmin_xtra=0,
-                                    nmin_xtra=nMin,
-                                    option_xtra=1)
-  )
-  # Model
-  mod=RBaM::model(
-    ID='Segmentation',
-    nX=1,
-    nY=1,
-    par=priors,
-    xtra=xtra)
-
-  # dataset object
-  data=RBaM::dataset(X=data.frame(time),
-                     Y=data.frame(obs),
-                     Yu=data.frame(u),
-                     data.dir=temp.folder)
-
-
-  mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
-
-  cook_temp=RBaM::mcmcCooking(burn=burn,
-                              nSlim=nSlim)
-
-  remnantInit=stats::sd(obs)
-  if(is.na(remnantInit)){ # happens when nObs=1
-    remnantInit=abs(mean(obs))
-  }
-  if(remnantInit==0){remnantInit=1}
-  remnant_prior <- list(RBaM::remnantErrorModel(funk = "Constant",
-                                                par = list(RBaM::parameter(name="gamma1",
-                                                                           init=remnantInit,
-                                                                           prior.dist = "FlatPrior+"))))
-
-  # Run BaM executable
-  RBaM::BaM(mod=mod,
-            data=data,
-            workspace=temp.folder,
-            mcmc=mcmc_temp,
-            cook = cook_temp,
-            remnant = remnant_prior,...)
-
-  mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
-  mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
-  resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
-
-  colnames(mcmc.segm)[ncol(mcmc.segm)-1] <- "structural_sd"
-
-  simulation.MAP <- resid.segm$Y1_sim
-
-  data = data.frame(time=time,
-                    obs=obs,
-                    u=u,
-                    I95_lower=obs+stats::qnorm(0.025)*u,
-                    I95_upper=obs+stats::qnorm(0.975)*u,
-                    period = 1)
-
-
-  if(nS==1){
-    obss=obs # Subseries = whole series
-    segments.MAP=simulation.MAP # Sub series = whole series
-    times=time
-    us=u
-
-    shift=data.frame(tau=numeric(0), # no shift time
-                     I95_lower=numeric(0),
-                     I95_upper=numeric(0))
-    tau.MAP=shift$tau
+    nSim=as.integer(100*nCycles*burn/nSlim)
+    out=Segmentation_quickApprox(obs=obs,time=time,u=u,nS=nS,nMin=nMin,
+                                 nSim=nSim,varShift=varShift,alpha=alpha)
+    return(out)
   } else {
+    npar = nS + nS - 1
 
-    shift <- c()
-    for(j in 1:(nS-1)){
+    priors <- vector(mode = 'list',length = npar)
+    # Extract mu parameter from if user-defined
 
-      shift.time.p.unc=data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
-                                                (nS+j)],
-                                  I95_lower=stats::quantile(mcmc.segm[,(nS+j)],
-                                                            probs=c(0.025)),
-                                  I95_upper=stats::quantile(mcmc.segm[,(nS+j)],
-                                                            probs=c(0.975)))
-      shift <- rbind(shift,
-                     shift.time.p.unc)
-    }
-    rownames(shift) <- NULL
-    shift <- shift[order(shift$tau),]
-
-    tau.MAP <- shift$tau
-
-    # Store sub series into a list
-    obss=segments.MAP=times=us=periods=vector(mode='list',length=nS)
-    intervals.time.shift=c(-Inf,tau.MAP,Inf) # intervals defined by time shifts
-
-    for(i in 1:nS){
-      position.ti.p <- which((time-intervals.time.shift[[i]])>=0)[1]
-      position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<0))[1]
-
-      obss[[i]]=obs[position.ti.p:position.tf.p]
-      segments.MAP[[i]]=simulation.MAP[position.ti.p:position.tf.p]
-      times[[i]]=time[position.ti.p:position.tf.p]
-      us[[i]]=u[position.ti.p:position.tf.p]
-      periods[[i]]=rep(i,length(obss[[i]]))
-    }
-    data$period = unlist(periods)
-  }
-
-  # Save only MCMC related to shift
-  if(nS!=1){
-
-    if(nS==2){
-      MCMC.shift.time = data.frame(tau1=mcmc.segm[,c((nS+1):(nS*2-1))])
-    }else{
-      MCMC.shift.time = mcmc.segm[,c((nS+1):(nS*2-1))]
-    }
-
-    MCMC.shift.time.plot <- MCMC.shift.time %>%
-      tidyr::gather(key = "Shift", value = "Value")
-
-    # Credibility interval at 95% by shift
-    IC_merge=merge(data.frame(MCMC.shift.time.plot%>%
-                                group_by(Shift)%>%
-                                summarize(
-                                  Lower_inc = stats::quantile(Value, probs=0.025)
-                                )),
-                   data.frame(MCMC.shift.time.plot%>%
-                                group_by(Shift)%>%
-                                summarize(
-                                  Upper_inc = stats::quantile(Value,probs= 0.975)
-                                )
-                   ))
-
-    # Get density values for each shift time
-    density_data<-c()
-    density_data.p <- list()
-    for(i in 1:(nS-1)){
-      density.MCMC.shift.time.p=density(MCMC.shift.time[,i])
-      density_data.p[[i]]=data.frame(Shift=IC_merge$Shift[i],
-                                     Value=density.MCMC.shift.time.p$x,
-                                     Density=density.MCMC.shift.time.p$y)
-
-      density_data=rbind(density_data,density_data.p[[i]])
-    }
-
-    density_inc_95 <- c()
-    for (i in 1:nrow(IC_merge)) {
-      linear.interpolation=stats::approx(x=density_data.p[[i]]$Value,
-                                         y=density_data.p[[i]]$Density,
-                                         xout=c(as.double(IC_merge[i,-1]),tau.MAP[i]))
-
-      local.res.interpolation <- data.frame(Shift=IC_merge$Shift[i],
-                                            tau_lower_inc=linear.interpolation$x[1],
-                                            density_tau_lower_inc=linear.interpolation$y[1],
-                                            tau_upper_inc=linear.interpolation$x[2],
-                                            density_tau_upper_inc=linear.interpolation$y[2],
-                                            taU_MAP=linear.interpolation$x[3],
-                                            density_taU_MAP=linear.interpolation$y[3])
-
-      density_inc_95 = rbind(density_inc_95,local.res.interpolation)
-    }
-  }else{
-    density_data=NULL
-    density_inc_95=NULL
-  }
-
-  # Transform all time units to the respective format
-  if(numeric.check!=TRUE){
-
-    # Data time (summary)
-    data$time = NumericFormatTransform(numeric.date = data$time,
-                                       origin.date = origin.date)
-
-    # time series indexed by number of segments identified
-    if(is.list(times)==T){
-      for(i in 1:length(times)){
-        times[[i]] =  NumericFormatTransform(numeric.date = times[[i]],
-                                             origin.date = origin.date)
+    if(is.null(mu_prior[[1]])){
+      # Set default for mu_prior if no mu_prior are provided
+      for(i in 1:nS){
+        priors [[i]] <- RBaM::parameter(name=paste0('mu',i),
+                                        init=mean(obs),
+                                        prior.dist = 'FlatPrior' ,
+                                        prior.par = NULL)
       }
     }else{
-      times = NumericFormatTransform(numeric.date = times,
-                                     origin.date = origin.date)
+      # Use the provided mu parameter from mu_prior
+      for(i in 1:nS){
+        mu_list <- mu_prior[[1]]
+        mu_list$name <- paste0(mu_list$name,i)
+        priors [[i]] <- mu_list
+      }
     }
 
-    # Rating shift time summary
-    if(all(shift$tau!= 0)){
-      # Transform all time in POSIXct format
-      shift <- data.frame(lapply(shift, function(column) {
-        NumericFormatTransform(numeric.date = column,
-                               origin.date = origin.date)
-      }))
+    if(i>1){
+        # Set default for tau_prior
+        prior_tau_init <- as.numeric(stats::quantile(time,probs = seq(1,nS-1)/nS))
+
+        for(i in 1:(nS-1)){
+          priors [[nS+i]] <- RBaM::parameter(name=paste0('tau',i),
+                                             init= prior_tau_init[i],
+                                             prior.dist = 'FlatPrior' ,
+                                             prior.par = NULL)
+        }
+    }
+    # Config_Xtra
+    xtra=RBaM::xtraModelInfo(object=c(nS=nS,
+                                      tmin_xtra=0,
+                                      nmin_xtra=nMin,
+                                      option_xtra=1)
+    )
+    # Model
+    mod=RBaM::model(
+      ID='Segmentation',
+      nX=1,
+      nY=1,
+      par=priors,
+      xtra=xtra)
+
+    # dataset object
+    data=RBaM::dataset(X=data.frame(time),
+                       Y=data.frame(obs),
+                       Yu=data.frame(u),
+                       data.dir=temp.folder)
+
+
+    mcmc_temp=RBaM::mcmcOptions(nCycles=nCycles)
+
+    cook_temp=RBaM::mcmcCooking(burn=burn,
+                                nSlim=nSlim)
+
+    remnantInit=stats::sd(obs)
+    if(is.na(remnantInit)){ # happens when nObs=1
+      remnantInit=abs(mean(obs))
+    }
+    if(remnantInit==0){remnantInit=1}
+    remnant_prior <- list(RBaM::remnantErrorModel(funk = "Constant",
+                                                  par = list(RBaM::parameter(name="gamma1",
+                                                                             init=remnantInit,
+                                                                             prior.dist = "FlatPrior+"))))
+
+    # Run BaM executable
+    RBaM::BaM(mod=mod,
+              data=data,
+              workspace=temp.folder,
+              mcmc=mcmc_temp,
+              cook = cook_temp,
+              remnant = remnant_prior,...)
+
+    mcmc.segm    <- utils::read.table(file=file.path(temp.folder,"Results_Cooking.txt"),header=TRUE)
+    mcmc.DIC     <- utils::read.table(file=file.path(temp.folder,"Results_DIC.txt"),header=FALSE)
+    resid.segm   <- utils::read.table(file=file.path(temp.folder,"Results_Residuals.txt"),header=TRUE)
+
+    colnames(mcmc.segm)[ncol(mcmc.segm)-1] <- "structural_sd"
+
+    simulation.MAP <- resid.segm$Y1_sim
+
+    data = data.frame(time=time,
+                      obs=obs,
+                      u=u,
+                      I95_lower=obs+stats::qnorm(0.025)*u,
+                      I95_upper=obs+stats::qnorm(0.975)*u,
+                      period = 1)
+
+
+    if(nS==1){
+      obss=obs # Subseries = whole series
+      segments.MAP=simulation.MAP # Sub series = whole series
+      times=time
+      us=u
+
+      shift=data.frame(tau=numeric(0), # no shift time
+                       I95_lower=numeric(0),
+                       I95_upper=numeric(0))
+      tau.MAP=shift$tau
+    } else {
+
+      shift <- c()
+      for(j in 1:(nS-1)){
+
+        shift.time.p.unc=data.frame(tau=mcmc.segm[which.max(mcmc.segm$LogPost),
+                                                  (nS+j)],
+                                    I95_lower=stats::quantile(mcmc.segm[,(nS+j)],
+                                                              probs=c(0.025)),
+                                    I95_upper=stats::quantile(mcmc.segm[,(nS+j)],
+                                                              probs=c(0.975)))
+        shift <- rbind(shift,
+                       shift.time.p.unc)
+      }
+      rownames(shift) <- NULL
+      shift <- shift[order(shift$tau),]
+
+      tau.MAP <- shift$tau
+
+      # Store sub series into a list
+      obss=segments.MAP=times=us=periods=vector(mode='list',length=nS)
+      intervals.time.shift=c(-Inf,tau.MAP,Inf) # intervals defined by time shifts
+
+      for(i in 1:nS){
+        position.ti.p <- which((time-intervals.time.shift[[i]])>=0)[1]
+        position.tf.p <- rev(which((time-intervals.time.shift[[i+1]])<0))[1]
+
+        obss[[i]]=obs[position.ti.p:position.tf.p]
+        segments.MAP[[i]]=simulation.MAP[position.ti.p:position.tf.p]
+        times[[i]]=time[position.ti.p:position.tf.p]
+        us[[i]]=u[position.ti.p:position.tf.p]
+        periods[[i]]=rep(i,length(obss[[i]]))
+      }
+      data$period = unlist(periods)
     }
 
-    # Tau in input date format
-    tau.MAP=shift$tau
-
-    # Transform density data in POSIXct format if necessary
+    # Save only MCMC related to shift
     if(nS!=1){
-      density_data$Value <- NumericFormatTransform(numeric.date = density_data$Value,
-                                                   origin.date = origin.date)
 
-      density_inc_95$tau_lower_inc <- NumericFormatTransform(numeric.date = density_inc_95$tau_lower_inc,
-                                                             origin.date = origin.date)
+      if(nS==2){
+        MCMC.shift.time = data.frame(tau1=mcmc.segm[,c((nS+1):(nS*2-1))])
+      }else{
+        MCMC.shift.time = mcmc.segm[,c((nS+1):(nS*2-1))]
+      }
 
-      density_inc_95$tau_upper_inc <- NumericFormatTransform(numeric.date = density_inc_95$tau_upper_inc,
-                                                             origin.date = origin.date)
+      MCMC.shift.time.plot <- MCMC.shift.time %>%
+        tidyr::gather(key = "Shift", value = "Value")
 
-      density_inc_95$taU_MAP <- NumericFormatTransform(numeric.date = density_inc_95$taU_MAP,
-                                                       origin.date = origin.date)
+      # Credibility interval at 95% by shift
+      IC_merge=merge(data.frame(MCMC.shift.time.plot%>%
+                                  group_by(Shift)%>%
+                                  summarize(
+                                    Lower_inc = stats::quantile(Value, probs=0.025)
+                                  )),
+                     data.frame(MCMC.shift.time.plot%>%
+                                  group_by(Shift)%>%
+                                  summarize(
+                                    Upper_inc = stats::quantile(Value,probs= 0.975)
+                                  )
+                     ))
+
+      # Get density values for each shift time
+      density_data<-c()
+      density_data.p <- list()
+      for(i in 1:(nS-1)){
+        density.MCMC.shift.time.p=density(MCMC.shift.time[,i])
+        density_data.p[[i]]=data.frame(Shift=IC_merge$Shift[i],
+                                       Value=density.MCMC.shift.time.p$x,
+                                       Density=density.MCMC.shift.time.p$y)
+
+        density_data=rbind(density_data,density_data.p[[i]])
+      }
+
+      density_inc_95 <- c()
+      for (i in 1:nrow(IC_merge)) {
+        linear.interpolation=stats::approx(x=density_data.p[[i]]$Value,
+                                           y=density_data.p[[i]]$Density,
+                                           xout=c(as.double(IC_merge[i,-1]),tau.MAP[i]))
+
+        local.res.interpolation <- data.frame(Shift=IC_merge$Shift[i],
+                                              tau_lower_inc=linear.interpolation$x[1],
+                                              density_tau_lower_inc=linear.interpolation$y[1],
+                                              tau_upper_inc=linear.interpolation$x[2],
+                                              density_tau_upper_inc=linear.interpolation$y[2],
+                                              taU_MAP=linear.interpolation$x[3],
+                                              density_taU_MAP=linear.interpolation$y[3])
+
+        density_inc_95 = rbind(density_inc_95,local.res.interpolation)
+      }
+    }else{
+      density_data=NULL
+      density_inc_95=NULL
     }
 
-  }
+    # Transform all time units to the respective format
+    if(numeric.check!=TRUE){
 
-  return(list(summary = list(data=data,
-                             shift=shift),
-              plot = list(density.tau = density_data,
-                          density.inc.tau = density_inc_95),
-              tau=tau.MAP,
-              segments=segments.MAP,
-              mcmc=mcmc.segm,
-              data.p = list(obs.p=obss,time.p=times,u.p=us),
-              DIC=mcmc.DIC[1,2],
-              origin.date.p=origin.date
-  ))
+      # Data time (summary)
+      data$time = NumericFormatTransform(numeric.date = data$time,
+                                         origin.date = origin.date)
+
+      # time series indexed by number of segments identified
+      if(is.list(times)==T){
+        for(i in 1:length(times)){
+          times[[i]] =  NumericFormatTransform(numeric.date = times[[i]],
+                                               origin.date = origin.date)
+        }
+      }else{
+        times = NumericFormatTransform(numeric.date = times,
+                                       origin.date = origin.date)
+      }
+
+      # Rating shift time summary
+      if(all(shift$tau!= 0)){
+        # Transform all time in POSIXct format
+        shift <- data.frame(lapply(shift, function(column) {
+          NumericFormatTransform(numeric.date = column,
+                                 origin.date = origin.date)
+        }))
+      }
+
+      # Tau in input date format
+      tau.MAP=shift$tau
+
+      # Transform density data in POSIXct format if necessary
+      if(nS!=1){
+        density_data$Value <- NumericFormatTransform(numeric.date = density_data$Value,
+                                                     origin.date = origin.date)
+
+        density_inc_95$tau_lower_inc <- NumericFormatTransform(numeric.date = density_inc_95$tau_lower_inc,
+                                                               origin.date = origin.date)
+
+        density_inc_95$tau_upper_inc <- NumericFormatTransform(numeric.date = density_inc_95$tau_upper_inc,
+                                                               origin.date = origin.date)
+
+        density_inc_95$taU_MAP <- NumericFormatTransform(numeric.date = density_inc_95$taU_MAP,
+                                                         origin.date = origin.date)
+      }
+
+    }
+
+    return(list(summary = list(data=data,
+                               shift=shift),
+                plot = list(density.tau = density_data,
+                            density.inc.tau = density_inc_95),
+                tau=tau.MAP,
+                segments=segments.MAP,
+                mcmc=mcmc.segm,
+                data.p = list(obs.p=obss,time.p=times,u.p=us),
+                DIC=mcmc.DIC[1,2],
+                origin.date.p=origin.date
+    ))
+  }
 }
 #' Segmentation
 #'
@@ -394,6 +411,9 @@ Segmentation_Engine <- function(obs,
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
 #' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @return list with the following components:
@@ -421,48 +441,47 @@ Segmentation_Engine <- function(obs,
 #'
 #' @examples
 #' # Run segmentation engine function at two segments
-#' res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,nSmax=3)
+#' res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
 #'
-#' # Get lower DIC value and optimal number of segments (to define optimal solution)
-#' DIC.df = data.frame(nS=c(1:3),DIC=c(res$results[[1]]$DIC,res$results[[2]]$DIC,res$results[[3]]$DIC))
-#' nSopt=res$nS
+#' # Verify optimal nS corresponds to lowest DIC value
+#' res$nS
+#' res$results[[1]]$DIC
+#' res$results[[2]]$DIC
 #'
-#' ggplot2::ggplot(DIC.df,ggplot2::aes(x=nS,y=DIC,col=factor(nS)))+
-#'   ggplot2::geom_point(size=3,show.legend = FALSE)+
-#'   ggplot2::geom_segment(ggplot2::aes(x=nSopt,y=min(DIC)*1.03,xend=nSopt,yend=min(DIC)*1.005),
-#'                         arrow=ggplot2::arrow(length=ggplot2::unit(0.5,'cm')),
-#'                         color='BLACK',lwd=1, show.legend = FALSE)+
-#'   ggplot2::theme_bw()
 #' # Data information
-#' knitr::kable(head(res$results[[nSopt]]$summary$data),
+#' knitr::kable(head(res$results[[res$nS]]$summary$data),
 #'              align = 'c',row.names = FALSE)
 #' # Shift information
-#' knitr::kable(head(res$results[[nSopt]]$summary$shift),
+#' knitr::kable(head(res$results[[res$nS]]$summary$shift),
 #'              align = 'c',row.names = FALSE)
 #' # Plot segmentation
-#' PlotSegmentation(res$summary,
-#'                  res$plot)
+#' PlotSegmentation(res$summary,res$plot)
 #' @export
 #' @importFrom rlang is_empty
 Segmentation <- function(obs,
                          time=1:length(obs),
                          u=0*obs,
                          nSmax=2,
-                         nMin= 1,
+                         nMin=ifelse(doQuickApprox,3,1),
                          nCycles=100,
                          burn=0.5,
                          nSlim=max(nCycles/10,1),
                          temp.folder=file.path(tempdir(),'BaM'),
-                         mu_prior = list(),...){
+                         mu_prior = list(),doQuickApprox=TRUE,
+                         varShift=FALSE,alpha=0.1,...){
 
   if(nSmax<=0){
     stop('Maximum number of segments should be larger than 0',call.=FALSE)
+  }
+  if(length(obs)<2){
+    stop('At least 2 observations are required',call.=FALSE)
   }
 
   res=vector(mode = 'list',length = nSmax)
   DICs <- rep(NA,nSmax)
   for(i in (1:nSmax)){
     nS <- i
+    quick=ifelse(nS<3,doQuickApprox,FALSE)
     if(length(obs)<nS){
       warning(paste0('NA was returned because the number of observations (',length(obs),
                      ') is lower than the number of segments (',nS,')'))
@@ -472,16 +491,14 @@ Segmentation <- function(obs,
                      ') and the number of segments (',nS,')'))
       DICs [i] <- NA
     }else{
-
       # Check if prior knowledge has been provided:
       if(!rlang::is_empty(mu_prior)){
         mu_args <- mu_prior
       }else{
         mu_args <- list(NULL)
       }
-
-      res[[i]] <- Segmentation_Engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,
-                                      mu_prior = mu_args,...)
+      res[[i]] <- Segmentation_Engine(obs,time,u,nS,nMin,nCycles,burn,nSlim,temp.folder,mu_prior=mu_args,
+                                      doQuickApprox=quick,varShift=varShift,alpha=alpha,...)
       DICs [i] <- res[[i]]$DIC
     }
   }
@@ -510,6 +527,9 @@ Segmentation <- function(obs,
 #' @param nSlim integer, MCMC slim step
 #' @param temp.folder directory, temporary directory to write computations
 #' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
 #' @param ... other arguments passed to RBaM::BaM.
 #'
 #' @return list with the following components:
@@ -540,8 +560,7 @@ Segmentation <- function(obs,
 #' # Apply recursive segmentation
 #' results=Recursive_Segmentation(obs=RhoneRiverAMAX$H,
 #'                                time=RhoneRiverAMAX$Year,
-#'                                u=RhoneRiverAMAX$uH,
-#'                                nSmax=3)
+#'                                u=RhoneRiverAMAX$uH)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),
@@ -562,12 +581,16 @@ Recursive_Segmentation <- function(obs,
                                    time=1:length(obs),
                                    u=0*obs,
                                    nSmax=2,
-                                   nMin= 1,
+                                   nMin=ifelse(doQuickApprox,3,1),
                                    nCycles=100,
                                    burn=0.5,
                                    nSlim=max(nCycles/10,1),
                                    temp.folder=file.path(tempdir(),'BaM'),
-                                   mu_prior = list(),...){
+                                   mu_prior = list(),doQuickApprox=TRUE,
+                                   varShift=FALSE,alpha=0.1,...){
+  if(length(obs)<2){
+    stop('At least 2 observations are required',call.=FALSE)
+  }
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
   k=0 # Main counter used to control indices in allRes
@@ -589,9 +612,14 @@ Recursive_Segmentation <- function(obs,
     m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
-      partial.segmentation=Segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
-                                        nSmax,nMin,nCycles,burn,nSlim,temp.folder,
-                                        mu_prior=mu_prior,...) # Apply segmentation to subseries stored in node X[[j]]
+      if(NROW(X[[j]])<2){ # Can't segment with only 1 obs, return default result
+        partial.segmentation=getOutputList(time=TIME[[j]],obs=X[[j]],u=U[[j]])
+      } else {
+        partial.segmentation=Segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
+                                          nSmax,nMin,nCycles,burn,nSlim,temp.folder,
+                                          mu_prior=mu_prior,doQuickApprox=doQuickApprox,
+                                          varShift=varShift,alpha=alpha,...) # Apply segmentation to subseries stored in node X[[j]]
+      }
       # Save results for this node
       allRes[[k]]=partial.segmentation
       # Save optimal number of segments
@@ -723,21 +751,32 @@ Recursive_Segmentation <- function(obs,
               origin.date=DF.origin.date))
 }
 
-
 #' Segmentation engine - quick approximation algorithm
 #'
 #' A quick approximation to the segmentation procedure for either one or two segments, and
-#' no prior information. The approximation is based on ignoring the uncertainty in mu1, mu2 and sigma,
-#' and focusing on the uncertainty in tau. To achieve this, point-estimates of mu1, mu2 and sigma are
-#' plugged in for each possible value of tau. The resulting algorithm is MCMC-free and independent of RBaM.
+#' no prior information. The approximation is based on a likelihood-ratio test for a single step change
+#' at an unknown position. DIC0 is hence replaced with the deviance of a no-shift model M0,
+#' while DIC1 is replaced by the maximum deviance of a single-shift model M1 + the critical value of the test.
+#' This way, a change will be detected when DIC1<DIC0, i.e. when deviance1+critical value<deviance0,
+#' i.e. when deviance0-deviance1>critical value, which precisely corresponds to the outcome of the likelihood ratio test.
+#' \cr
+#' Critical values are computed using the approximations suggested by Gombay and Horvath (1994, 1996a, 1996b, 1997),
+#' as detailled in (Renard)[https://hal.science/tel-02588353] (2006, chapter 3, section I.1.5, p. 101).
+#' \cr
+#' The uncertainty in tau is still estimated by plugging-in point-estimates of mu1, mu2 and sigma
+#' for each possible value of tau, and computing the associated likelihood. This likelihood can then be normalized to
+#' estimate the posterior pdf of tau, which can then be numerically integrated to give the posterior cdf of tau.
+#' Samples of tau values can then be simulated from this cdf using uniform sampling then inverse-cdf transformation.
+#' The resulting algorithm is MCMC-free and independent of RBaM.
 #'
 #' @param obs real vector, observations
 #' @param time vector, time in POSIXct, string or numeric format
 #' @param u real vector, uncertainty in observations (as a standard deviation)
-#' @param varShift logical, allow for a shifting variance?
 #' @param nS integer, number of segments, either 1 or 2
 #' @param nMin integer, minimum number of observations by segment
 #' @param nSim integer, number of simulated tau values
+#' @param varShift logical, allow for a shifting variance?
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test.
 #' @return list with the following components:
 #' \enumerate{
 #'   \item summary: list, summarize the information to present to the user
@@ -755,23 +794,21 @@ Recursive_Segmentation <- function(obs,
 #'   }
 #'   \item tau: real, estimated shift time in numeric or POSIXct format in UTC
 #'   \item segments: list, segment mean value indexed by the list number
-#'   \item mcmc: data frame, MCMC simulation. Note that values for mu's and sigma's are fixed to the values corresponding
+#'   \item mcmc: data frame, Monte-Carlo simulations. Note that values for mu's and sigma's are fixed to the values corresponding
 #'       to the maxpost tau.
 #'   \item data.p: list, separate and assign information by identified stable period indexed by the list number
-#'   \item DIC: real, DIC estimation
+#'   \item DIC: real, pseudo-DIC (see description)
 #'   \item origin.date.p: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 #' }
 #' @examples
-#' # Run segmentation engine function at two segments
-#' # for data set : RhoneRiverAMAX (further details on ?RhoneRiverAMAX)
-#' res=Segmentation_quickApprox(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
-#'                              u=RhoneRiverAMAX$uH,nS=2)
+#' # Segmentation into two segments for the RhoneRiverAMAX data set (details in ?RhoneRiverAMAX)
+#' res=Segmentation_quickApprox(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,nS=2)
 #' res$summary$shift
 #' PlotSegmentation(res$summary,res$plot)
 #' @export
-#' @importFrom stats quantile sd approx
-Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,varShift=FALSE,
-                                     nS=2,nMin=ifelse(varShift,2,1),nSim=500){
+#' @importFrom stats quantile sd approxfun runif optim
+Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,nS=2,
+                                     nMin=3,nSim=500,varShift=FALSE,alpha=0.1){
   n=NROW(obs)
   cll=rep(-Inf,n) # conditional log-likelihoods (for each tau)
   foo=sort.int(time,index.return=TRUE) # make sure everything is sorted chronologically
@@ -782,24 +819,11 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,varShift=FAL
                 ' values on each side of the shift')
     stop(mess)
   }
-  if(nMin<1){stop('nMin cannot be smaller than one')}
-  if(varShift & nMin<2){stop('nMin cannot be smaller than 2 when shifting variance is allowed.')}
+  if(nMin<3){stop('nMin cannot be smaller than 3')}
   if(nS>2){stop('Quick-approximation algorithm is only available for nS<3 (i.e. single-shift model at most)')}
 
   # Start preparing output list
-  out=list()
-  out$summary=list(data=data.frame(time=time,obs=obs,u=u,
-                                   I95_lower=obs-1.96*u,
-                                   I95_upper=obs+1.96*u,
-                                   period=1),
-                   shift=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0)))
-  out$plot=list(density.tau=NULL,density.inc.tau=NULL)
-  out$tau=numeric(0)
-  out$segments=numeric(0)
-  out$mcmc=data.frame()
-  out$data.p=list()
-  out$DIC=numeric(0)
-  out$origin.date.p=min(time)
+  out=getOutputList_Engine(time,obs,u)
   # no-change model
   start=c(mean(obs),sd(obs))
   if(all(u==0)){ # no need to optimize, estimate is explicit
@@ -839,17 +863,14 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,varShift=FAL
   cdf0=c(0,cumsum(w*post))[1:n] # unnormalized cdf
   cdf=cdf0/max(cdf0) # normalized cdf
   post=post/max(cdf0) # normalized pdf
-  # compute DIC
-  dev=-2*cll # deviance (where finite)
-  mask=is.finite(dev)
-  ED0=sum(w[mask]*post[mask]*dev[mask]) # E[deviance] by rectangle integration
-  VD0=sum(w[mask]*post[mask]*(dev[mask]-ED0)^2) # VAR[deviance] by rectangle integration
-  DIC1=ED0+0.5*VD0
+  # compute pseudo-DIC (see Description)
+  d=ifelse(varShift,2,1)
+  crit=getCriticalValue(d=d,alpha=alpha,n=n)
+  DIC1=-2*max(cll)+crit
   # simulate taus from posterior
   unif=runif(nSim)
   foo=approxfun(x=cdf,y=time,ties='ordered')
   sim=sapply(unif,foo)
-  # thetas=t(sapply(sim,quickApprox_getThetaOnly,time=time,obs=obs,u=u,varShift=varShift))
   # ready to return
   imax=which.max(post)
   tau=time[imax]
@@ -893,8 +914,6 @@ Segmentation_quickApprox <- function(obs,time=1:length(obs),u=0*obs,varShift=FAL
 #' @param obs real vector, observations
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @return a numeric value equal to the log-likelihood of the no-shift model
-#' @examples
-#' quickApprox_llfunk0(theta=c(0,1),obs=rnorm(100),u=rep(0,100))
 #' @keywords internal
 #' @importFrom stats dnorm
 quickApprox_llfunk0 <- function(theta,obs,u){
@@ -913,8 +932,6 @@ quickApprox_llfunk0 <- function(theta,obs,u){
 #' @param obs real vector, observations
 #' @param u real vector, uncertainty in observations (as a standard deviation)
 #' @return a numeric value equal to the log-likelihood of the single-shift model
-#' @examples
-#' quickApprox_llfunk1(theta=c(0,1,2),tau=40,time=1:100,obs=c(rnorm(40),rnorm(60)+1),u=rep(0,100))
 #' @keywords internal
 #' @importFrom stats dnorm
 quickApprox_llfunk1 <- function(theta,tau,time,obs,u){
@@ -947,12 +964,8 @@ quickApprox_llfunk1 <- function(theta,tau,time,obs,u){
 #'     (mu1,mu2,sigma1,sigma2) (if varShift is TRUE)
 #'   \item value: real, corresponding log-likelihood
 #'  }
-#' @examples
-#' obs=c(rnorm(40),rnorm(60)+1)
-#' quickApprox_getTheta(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=FALSE)
-#' quickApprox_getTheta(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=TRUE)
 #' @keywords internal
-#' @importFrom stats dnorm
+#' @importFrom stats optim
 quickApprox_getTheta <- function(tau,time,obs,u,varShift){
   mask=(time<=tau)
   start=c()
@@ -979,7 +992,6 @@ quickApprox_getTheta <- function(tau,time,obs,u,varShift){
   return(out)
 }
 
-
 #' Compute theta given tau
 #'
 #' Compute theta (mu's and sigma's) given tau (shift time) by maximizing the log-likelihood,
@@ -988,12 +1000,95 @@ quickApprox_getTheta <- function(tau,time,obs,u,varShift){
 #' @inheritParams quickApprox_getTheta
 #' @return A numeric vector: either (mu1,mu2,sigma) (if varShift is FALSE) or
 #'     (mu1,mu2,sigma1,sigma2) (if varShift is TRUE)
-#' @examples
-#' obs=c(rnorm(40),rnorm(60)+1)
-#' quickApprox_getThetaOnly(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=FALSE)
-#' quickApprox_getThetaOnly(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=TRUE)
 #' @keywords internal
 quickApprox_getThetaOnly <- function(tau,time,obs,u,varShift){
   out=quickApprox_getTheta(tau,time,obs,u,varShift)
   return(out$par)
+}
+
+#' Default output list
+#'
+#' Get the default output list returned by Segmentation_Engine when failing.
+#'
+#' @param time real vector, time
+#' @param obs real vector, observations
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @return a list, see ?Recursive_Segmentation for details.
+#' @keywords internal
+getOutputList_Engine <- function(time,obs,u){
+  out=list()
+  out$summary=list(data=data.frame(time=time,obs=obs,u=u,
+                                   I95_lower=obs-1.96*u,
+                                   I95_upper=obs+1.96*u,
+                                   period=1),
+                   shift=data.frame(tau=numeric(0),I95_lower=numeric(0),I95_upper=numeric(0)))
+  out$plot=list(density.tau=NULL,density.inc.tau=NULL)
+  out$tau=numeric(0)
+  out$segments=numeric(0)
+  out$mcmc=data.frame()
+  out$data.p=list()
+  out$DIC=NA
+  out$origin.date.p=min(time)
+  return(out)
+}
+
+#' Default output list
+#'
+#' Get the default output list returned by Segmentation when failing.
+#'
+#' @param time real vector, time
+#' @param obs real vector, observations
+#' @param u real vector, uncertainty in observations (as a standard deviation)
+#' @return a list, see ?Segmentation for details.
+#' @keywords internal
+getOutputList <- function(time,obs,u){
+  res=getOutputList_Engine(time,obs,u)
+  res$data.p=list(obs.p=res$summary$data$obs,time.p=res$summary$data$time,u.p=res$summary$data$u)
+  out=list(summary=res$summary,plot=res$plot,results=list(res),nS=1,
+           origin.date=res$origin.date.p)
+  return(out)
+}
+
+#' Compute critical value
+#'
+#' Compute the critical value of a likelihood-ratio test for a single step change
+#' at an unknown position. Based on the approximations suggested by Gombay and Horvath (1994, 1996a, 1996b, 1997),
+#' as detailled in (Renard)[https://hal.science/tel-02588353] (2006, chapter 3, section I.1.5, p. 101).
+#' @param d integer>1, difference of dimension between M0 (no-change) and M1 (single-change)
+#' @param alpha real in (0;1), type-I error level of the test.
+#' @param n integer, sample size
+#' @return a real number equal to the critical value of the test.
+#' @keywords internal
+#' @importFrom stats uniroot
+getCriticalValue <- function(d,alpha,n){
+  logn=log(n)
+  if(d==1){
+    h=(logn^1.5)/n
+    S=log(((1-h)^2)/(h^2))
+    foo=uniroot(BrownianFunk,interval=c(2,10),d=d,h=h,S=S,alpha=alpha)
+    out=(foo$root)^2
+  } else {
+    crit=-log(-0.5*log(1-alpha))
+    a=sqrt(2*log(logn))
+    b=2*log(logn)+0.5*d*log(log(logn))-lgamma(0.5*d)
+    out=((crit+b)/a)^2
+  }
+  return(out)
+}
+
+#' Gombay and Horvath's Brownian function
+#'
+#' Function to be nullified to compute the critical value when d=1.
+#' See Gombay and Horvath (1994, 1996a, 1996b, 1997), and (Renard)[https://hal.science/tel-02588353]
+#' (2006, chapter 3, section I.1.5, p. 101).
+#' @param z real, critical value
+#' @param d integer>1, difference of dimension between M0 (no-change) and M1 (single-change)
+#' @param h real, h variable (see suggested references)
+#' @param S integer, S variable (noted T in suggested references)
+#' @param alpha real in (0;1), type-I error level of the test.
+#' @return a real number equal to the evaluated Brownian function.
+#' @keywords internal
+BrownianFunk <- function(z,d,h,S,alpha){
+  out=(1/((2^(0.5*d))*gamma(0.5*d)))*(z^d)*exp(-0.5*z^2)*(S-(d/(z^2))*S+(4/(z^2)))-alpha
+  return(out)
 }

@@ -19,7 +19,4 @@ a numeric value equal to the log-likelihood of the no-shift model
 \description{
 No-shift likelihood function for the quick approximation algorithm.
 }
-\examples{
-quickApprox_llfunk0(theta=c(0,1),obs=rnorm(100),u=rep(0,100))
-}
 \keyword{internal}

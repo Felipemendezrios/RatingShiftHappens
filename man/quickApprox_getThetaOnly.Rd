@@ -25,9 +25,4 @@ A numeric vector: either (mu1,mu2,sigma) (if varShift is FALSE) or
 Compute theta (mu's and sigma's) given tau (shift time) by maximizing the log-likelihood,
 or using explicit estimates if available (which is the case when u==0).
 }
-\examples{
-obs=c(rnorm(40),rnorm(60)+1)
-quickApprox_getThetaOnly(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=FALSE)
-quickApprox_getThetaOnly(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=TRUE)
-}
 \keyword{internal}

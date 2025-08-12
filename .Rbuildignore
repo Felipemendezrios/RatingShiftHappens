@@ -6,3 +6,5 @@
 ^README\.Rmd$
 ^LICENSE\.md$
 ^data-raw$
+^scripts
+^README\.pdf$

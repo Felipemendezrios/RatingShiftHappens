@@ -8,10 +8,11 @@ Segmentation_quickApprox(
   obs,
   time = 1:length(obs),
   u = 0 * obs,
-  varShift = FALSE,
   nS = 2,
-  nMin = ifelse(varShift, 2, 1),
-  nSim = 500
+  nMin = 3,
+  nSim = 500,
+  varShift = FALSE,
+  alpha = 0.1
 )
 }
 \arguments{
@@ -21,13 +22,15 @@ Segmentation_quickApprox(
 
 \item{u}{real vector, uncertainty in observations (as a standard deviation)}
 
-\item{varShift}{logical, allow for a shifting variance?}
-
 \item{nS}{integer, number of segments, either 1 or 2}
 
 \item{nMin}{integer, minimum number of observations by segment}
 
 \item{nSim}{integer, number of simulated tau values}
+
+\item{varShift}{logical, allow for a shifting variance?}
+
+\item{alpha}{real in (0;1), type-I error level of the underlying step-change test.}
 }
 \value{
 list with the following components:
@@ -47,24 +50,33 @@ for shift times with their associated probability densities
 }
 \item tau: real, estimated shift time in numeric or POSIXct format in UTC
 \item segments: list, segment mean value indexed by the list number
-\item mcmc: data frame, MCMC simulation. Note that values for mu's and sigma's are fixed to the values corresponding
+\item mcmc: data frame, Monte-Carlo simulations. Note that values for mu's and sigma's are fixed to the values corresponding
 to the maxpost tau.
 \item data.p: list, separate and assign information by identified stable period indexed by the list number
-\item DIC: real, DIC estimation
+\item DIC: real, pseudo-DIC (see description)
 \item origin.date.p: positive real or date, date describing origin of the segmentation for a sample. Useful for recursive segmentation.
 }
 }
 \description{
 A quick approximation to the segmentation procedure for either one or two segments, and
-no prior information. The approximation is based on ignoring the uncertainty in mu1, mu2 and sigma,
-and focusing on the uncertainty in tau. To achieve this, point-estimates of mu1, mu2 and sigma are
-plugged in for each possible value of tau. The resulting algorithm is MCMC-free and independent of RBaM.
+no prior information. The approximation is based on a likelihood-ratio test for a single step change
+at an unknown position. DIC0 is hence replaced with the deviance of a no-shift model M0,
+while DIC1 is replaced by the maximum deviance of a single-shift model M1 + the critical value of the test.
+This way, a change will be detected when DIC1<DIC0, i.e. when deviance1+critical value<deviance0,
+i.e. when deviance0-deviance1>critical value, which precisely corresponds to the outcome of the likelihood ratio test.
+\cr
+Critical values are computed using the approximations suggested by Gombay and Horvath (1994, 1996a, 1996b, 1997),
+as detailled in (Renard)\link{https://hal.science/tel-02588353} (2006, chapter 3, section I.1.5, p. 101).
+\cr
+The uncertainty in tau is still estimated by plugging-in point-estimates of mu1, mu2 and sigma
+for each possible value of tau, and computing the associated likelihood. This likelihood can then be normalized to
+estimate the posterior pdf of tau, which can then be numerically integrated to give the posterior cdf of tau.
+Samples of tau values can then be simulated from this cdf using uniform sampling then inverse-cdf transformation.
+The resulting algorithm is MCMC-free and independent of RBaM.
 }
 \examples{
-# Run segmentation engine function at two segments
-# for data set : RhoneRiverAMAX (further details on ?RhoneRiverAMAX)
-res=Segmentation_quickApprox(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,
-                             u=RhoneRiverAMAX$uH,nS=2)
+# Segmentation into two segments for the RhoneRiverAMAX data set (details in ?RhoneRiverAMAX)
+res=Segmentation_quickApprox(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,nS=2)
 res$summary$shift
 PlotSegmentation(res$summary,res$plot)
 }

@@ -9,12 +9,15 @@ Segmentation(
   time = 1:length(obs),
   u = 0 * obs,
   nSmax = 2,
-  nMin = 1,
+  nMin = ifelse(doQuickApprox, 3, 1),
   nCycles = 100,
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
   mu_prior = list(),
+  doQuickApprox = TRUE,
+  varShift = FALSE,
+  alpha = 0.1,
   ...
 )
 }
@@ -38,6 +41,12 @@ Segmentation(
 \item{temp.folder}{directory, temporary directory to write computations}
 
 \item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
+
+\item{doQuickApprox}{logical, use quick approximation? see ?Segmentation_quickApprox}
+
+\item{varShift}{logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.}
+
+\item{alpha}{real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.}
 
 \item{...}{other arguments passed to RBaM::BaM.}
 }
@@ -71,25 +80,19 @@ This information must be provided using the parameter function in the RBaM packa
 }
 \examples{
 # Run segmentation engine function at two segments
-res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH,nSmax=3)
+res=Segmentation(obs=RhoneRiverAMAX$H,time=RhoneRiverAMAX$Year,u=RhoneRiverAMAX$uH)
 
-# Get lower DIC value and optimal number of segments (to define optimal solution)
-DIC.df = data.frame(nS=c(1:3),DIC=c(res$results[[1]]$DIC,res$results[[2]]$DIC,res$results[[3]]$DIC))
-nSopt=res$nS
+# Verify optimal nS corresponds to lowest DIC value
+res$nS
+res$results[[1]]$DIC
+res$results[[2]]$DIC
 
-ggplot2::ggplot(DIC.df,ggplot2::aes(x=nS,y=DIC,col=factor(nS)))+
-  ggplot2::geom_point(size=3,show.legend = FALSE)+
-  ggplot2::geom_segment(ggplot2::aes(x=nSopt,y=min(DIC)*1.03,xend=nSopt,yend=min(DIC)*1.005),
-                        arrow=ggplot2::arrow(length=ggplot2::unit(0.5,'cm')),
-                        color='BLACK',lwd=1, show.legend = FALSE)+
-  ggplot2::theme_bw()
 # Data information
-knitr::kable(head(res$results[[nSopt]]$summary$data),
+knitr::kable(head(res$results[[res$nS]]$summary$data),
              align = 'c',row.names = FALSE)
 # Shift information
-knitr::kable(head(res$results[[nSopt]]$summary$shift),
+knitr::kable(head(res$results[[res$nS]]$summary$shift),
              align = 'c',row.names = FALSE)
 # Plot segmentation
-PlotSegmentation(res$summary,
-                 res$plot)
+PlotSegmentation(res$summary,res$plot)
 }

@@ -30,9 +30,4 @@ Compute theta (mu's and sigma's) given tau (shift time) by maximizing the log-li
 or using explicit estimates if available (which is the case when u==0). Also returns the
 associated log-likelihood.
 }
-\examples{
-obs=c(rnorm(40),rnorm(60)+1)
-quickApprox_getTheta(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=FALSE)
-quickApprox_getTheta(tau=40,time=1:100,obs=obs,u=rep(0,100),varShift=TRUE)
-}
 \keyword{internal}

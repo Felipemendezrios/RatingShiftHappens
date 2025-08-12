@@ -9,12 +9,15 @@ Recursive_Segmentation(
   time = 1:length(obs),
   u = 0 * obs,
   nSmax = 2,
-  nMin = 1,
+  nMin = ifelse(doQuickApprox, 3, 1),
   nCycles = 100,
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
   mu_prior = list(),
+  doQuickApprox = TRUE,
+  varShift = FALSE,
+  alpha = 0.1,
   ...
 )
 }
@@ -38,6 +41,12 @@ Recursive_Segmentation(
 \item{temp.folder}{directory, temporary directory to write computations}
 
 \item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
+
+\item{doQuickApprox}{logical, use quick approximation? see ?Segmentation_quickApprox}
+
+\item{varShift}{logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.}
+
+\item{alpha}{real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.}
 
 \item{...}{other arguments passed to RBaM::BaM.}
 }
@@ -74,8 +83,7 @@ This information must be provided using the parameter function in the RBaM packa
 # Apply recursive segmentation
 results=Recursive_Segmentation(obs=RhoneRiverAMAX$H,
                                time=RhoneRiverAMAX$Year,
-                               u=RhoneRiverAMAX$uH,
-                               nSmax=3)
+                               u=RhoneRiverAMAX$uH)
 
 # Data information
 knitr::kable(head(results$summary$data),

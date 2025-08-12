@@ -14,12 +14,15 @@ Segmentation_Engine(
   time = 1:length(obs),
   u = 0 * obs,
   nS = 2,
-  nMin = 1,
+  nMin = ifelse(doQuickApprox, 3, 1),
   nCycles = 100,
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
   temp.folder = file.path(tempdir(), "BaM"),
   mu_prior = list(NULL),
+  doQuickApprox = TRUE,
+  varShift = FALSE,
+  alpha = 0.1,
   ...
 )
 }
@@ -43,6 +46,12 @@ Segmentation_Engine(
 \item{temp.folder}{directory, temporary directory to write computations}
 
 \item{mu_prior}{list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)}
+
+\item{doQuickApprox}{logical, use quick approximation? see ?Segmentation_quickApprox}
+
+\item{varShift}{logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.}
+
+\item{alpha}{real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.}
 
 \item{...}{other arguments passed to RBaM::BaM.}
 }

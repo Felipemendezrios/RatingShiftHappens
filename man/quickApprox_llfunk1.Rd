@@ -24,7 +24,4 @@ a numeric value equal to the log-likelihood of the single-shift model
 \description{
 Single-shift likelihood function used in the quick approximation algorithm.
 }
-\examples{
-quickApprox_llfunk1(theta=c(0,1,2),tau=40,time=1:100,obs=c(rnorm(40),rnorm(60)+1),u=rep(0,100))
-}
 \keyword{internal}
