@@ -612,7 +612,7 @@ Recursive_Segmentation <- function(obs,
     m=0 # Local counter used to control indices in the 4 vectors above => reset to 0 at each new level of the recursion
     for(j in 1:nX){ # Loop on each node
       k=k+1 # Increment main counter
-      if(NROW(X[[j]])<2){ # Can't segment with only 1 obs, return default result
+      if(NROW(X[[j]])<nSmax*nMin){ # Can't segment, return default result
         partial.segmentation=getOutputList(time=TIME[[j]],obs=X[[j]],u=U[[j]])
       } else {
         partial.segmentation=Segmentation(obs=X[[j]],time=TIME[[j]],u=U[[j]],
