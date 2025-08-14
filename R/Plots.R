@@ -581,8 +581,8 @@ PlotSegmentation <- function(summary,
     pdf_shift_plot=
       pdf_shift_plot+
       facet_grid(rows=vars(id_iteration),
-                 scales='free_y',
-                 space = 'free_y')
+                 scales='free_y')
+                 # space = 'free_y')
   }
 
   # Customize legend position
