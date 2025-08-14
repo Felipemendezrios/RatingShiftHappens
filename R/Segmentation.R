@@ -110,25 +110,25 @@ Segmentation_Engine <- function(obs,
   DF.order <- data.frame(obs=obs,
                          time=time,
                          u=u)
-  DF.order.f <- DF.order[order(DF.order$time),]
+  DF.order <- DF.order[order(DF.order$time),]
 
   # Check time format
   numeric.check=TRUE
 
   # Get origin date of the segmentation
-  origin.date <- min(DF.order.f$time)
+  origin.date <- min(DF.order$time)
 
   # Date transformation function to passe to numeric format if necessary
-  if(!is.numeric(DF.order.f$time)){
-    DateTransformed <- TransformDateFormat(date=DF.order.f$time)
-    DF.order.f$time <- DateTransformed$time
+  if(!is.numeric(DF.order$time)){
+    DateTransformed <- TransformDateFormat(date=DF.order$time)
+    DF.order$time <- DateTransformed$time
     origin.date <- DateTransformed$origin
     numeric.check=FALSE
   }
 
-  obs <- DF.order.f$obs
-  time <- DF.order.f$time
-  u <- DF.order.f$u
+  obs <- DF.order$obs
+  time <- DF.order$time
+  u <- DF.order$u
 
   if(doQuickApprox){
     hasPrior=!sapply(mu_prior,is.null)
@@ -138,7 +138,6 @@ Segmentation_Engine <- function(obs,
     nSim=as.integer(100*nCycles*burn/nSlim)
     out=Segmentation_quickApprox(obs=obs,time=time,u=u,nS=nS,nMin=nMin,
                                  nSim=nSim,varShift=varShift,alpha=alpha)
-    return(out)
   } else {
     npar = nS + nS - 1
 
@@ -231,7 +230,6 @@ Segmentation_Engine <- function(obs,
                       I95_lower=obs+stats::qnorm(0.025)*u,
                       I95_upper=obs+stats::qnorm(0.975)*u,
                       period = 1)
-
 
     if(nS==1){
       obss=obs # Subseries = whole series
@@ -336,66 +334,21 @@ Segmentation_Engine <- function(obs,
       density_data=NULL
       density_inc_95=NULL
     }
-
-    # Transform all time units to the respective format
-    if(numeric.check!=TRUE){
-
-      # Data time (summary)
-      data$time = NumericFormatTransform(numeric.date = data$time,
-                                         origin.date = origin.date)
-
-      # time series indexed by number of segments identified
-      if(is.list(times)==T){
-        for(i in 1:length(times)){
-          times[[i]] =  NumericFormatTransform(numeric.date = times[[i]],
-                                               origin.date = origin.date)
-        }
-      }else{
-        times = NumericFormatTransform(numeric.date = times,
-                                       origin.date = origin.date)
-      }
-
-      # Rating shift time summary
-      if(all(shift$tau!= 0)){
-        # Transform all time in POSIXct format
-        shift <- data.frame(lapply(shift, function(column) {
-          NumericFormatTransform(numeric.date = column,
-                                 origin.date = origin.date)
-        }))
-      }
-
-      # Tau in input date format
-      tau.MAP=shift$tau
-
-      # Transform density data in POSIXct format if necessary
-      if(nS!=1){
-        density_data$Value <- NumericFormatTransform(numeric.date = density_data$Value,
-                                                     origin.date = origin.date)
-
-        density_inc_95$tau_lower_inc <- NumericFormatTransform(numeric.date = density_inc_95$tau_lower_inc,
-                                                               origin.date = origin.date)
-
-        density_inc_95$tau_upper_inc <- NumericFormatTransform(numeric.date = density_inc_95$tau_upper_inc,
-                                                               origin.date = origin.date)
-
-        density_inc_95$taU_MAP <- NumericFormatTransform(numeric.date = density_inc_95$taU_MAP,
-                                                         origin.date = origin.date)
-      }
-
-    }
-
-    return(list(summary = list(data=data,
-                               shift=shift),
-                plot = list(density.tau = density_data,
-                            density.inc.tau = density_inc_95),
-                tau=tau.MAP,
-                segments=segments.MAP,
-                mcmc=mcmc.segm,
-                data.p = list(obs.p=obss,time.p=times,u.p=us),
-                DIC=mcmc.DIC[1,2],
-                origin.date.p=origin.date
-    ))
+    # Assemble output object
+    out=list(summary = list(data=data,
+                            shift=shift),
+             plot = list(density.tau = density_data,
+                         density.inc.tau = density_inc_95),
+             tau=tau.MAP,
+             segments=segments.MAP,
+             mcmc=mcmc.segm,
+             data.p = list(obs.p=obss,time.p=times,u.p=us),
+             DIC=mcmc.DIC[1,2],
+             origin.date.p=origin.date)
   }
+  # Transform back all time into original units
+  if(!numeric.check){out=transformDatesInOutput(out,origin.date)}
+  return(out)
 }
 #' Segmentation
 #'
@@ -1046,6 +999,54 @@ getOutputList <- function(time,obs,u){
   res$data.p=list(obs.p=res$summary$data$obs,time.p=res$summary$data$time,u.p=res$summary$data$u)
   out=list(summary=res$summary,plot=res$plot,results=list(res),nS=1,
            origin.date=res$origin.date.p)
+  return(out)
+}
+
+#' Date transformer
+#'
+#' Transform the dates contained in a raw output list back into their original format.
+#'
+#' @param out list, output from Segmentation (see ?Segmentation for details)
+#' @param origin.date date, origin used to transform date back
+#' @return a list, see ?Segmentation for details. It is the same as the list `out`,
+#'     but with all dates reformatted.
+#' @keywords internal
+transformDatesInOutput <- function(out,origin.date){
+  # Data time (summary)
+  out$summary$data$time = NumericFormatTransform(numeric.date = out$summary$data$time,
+                                                 origin.date = origin.date)
+  # time series indexed by number of segments identified
+  if(is.list(out$data.p$time.p)==T){
+    for(i in 1:length(out$data.p$time.p)){
+      out$data.p$time.p[[i]] =  NumericFormatTransform(numeric.date = out$data.p$time.p[[i]],
+                                                       origin.date = origin.date)
+    }
+  }else{
+    out$data.p$time.p = NumericFormatTransform(numeric.date = out$data.p$time.p,
+                                               origin.date = origin.date)
+  }
+  # Rating shift time summary
+  if(all(out$summary$shift$tau!= 0)){
+    # Transform all time in POSIXct format
+    out$summary$shift <- data.frame(lapply(out$summary$shift, function(column) {
+      NumericFormatTransform(numeric.date = column,
+                             origin.date = origin.date)
+    }))
+  }
+  # Tau in input date format
+  out$tau=out$summary$shift$tau
+  # Transform density data in POSIXct format if necessary
+  if(NROW(out$summary$shift)>0){
+    out$plot$density.tau$Value <- NumericFormatTransform(numeric.date = out$plot$density.tau$Value,
+                                                         origin.date = origin.date)
+    out$plot$density.inc.tau$tau_lower_inc <- NumericFormatTransform(numeric.date = out$plot$density.inc.tau$tau_lower_inc,
+                                                                     origin.date = origin.date)
+    out$plot$density.inc.tau$tau_upper_inc <- NumericFormatTransform(numeric.date = out$plot$density.inc.tau$tau_upper_inc,
+                                                                     origin.date = origin.date)
+    out$plot$density.inc.tau$taU_MAP <- NumericFormatTransform(numeric.date = out$plot$density.inc.tau$taU_MAP,
+                                                               origin.date = origin.date)
+  }
+  out$origin.date.p=origin.date
   return(out)
 }
 
