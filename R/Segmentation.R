@@ -714,7 +714,7 @@ Recursive_Segmentation <- function(obs,
 #' i.e. when deviance0-deviance1>critical value, which precisely corresponds to the outcome of the likelihood ratio test.
 #' \cr
 #' Critical values are computed using the approximations suggested by Gombay and Horvath (1994, 1996a, 1996b, 1997),
-#' as detailled in (Renard)[https://hal.science/tel-02588353] (2006, chapter 3, section I.1.5, p. 101).
+#' as detailled in Renard (2006, chapter 3, section I.1.5, p. 101, https://hal.science/tel-02588353).
 #' \cr
 #' The uncertainty in tau is still estimated by plugging-in point-estimates of mu1, mu2 and sigma
 #' for each possible value of tau, and computing the associated likelihood. This likelihood can then be normalized to
@@ -1054,7 +1054,7 @@ transformDatesInOutput <- function(out,origin.date){
 #'
 #' Compute the critical value of a likelihood-ratio test for a single step change
 #' at an unknown position. Based on the approximations suggested by Gombay and Horvath (1994, 1996a, 1996b, 1997),
-#' as detailled in (Renard)[https://hal.science/tel-02588353] (2006, chapter 3, section I.1.5, p. 101).
+#' as detailled in Renard (2006, chapter 3, section I.1.5, p. 101, https://hal.science/tel-02588353).
 #' @param d integer>1, difference of dimension between M0 (no-change) and M1 (single-change)
 #' @param alpha real in (0;1), type-I error level of the test.
 #' @param n integer, sample size
@@ -1080,8 +1080,8 @@ getCriticalValue <- function(d,alpha,n){
 #' Gombay and Horvath's Brownian function
 #'
 #' Function to be nullified to compute the critical value when d=1.
-#' See Gombay and Horvath (1994, 1996a, 1996b, 1997), and (Renard)[https://hal.science/tel-02588353]
-#' (2006, chapter 3, section I.1.5, p. 101).
+#' See Gombay and Horvath (1994, 1996a, 1996b, 1997), and Renard
+#' (2006, chapter 3, section I.1.5, p. 101, https://hal.science/tel-02588353).
 #' @param z real, critical value
 #' @param d integer>1, difference of dimension between M0 (no-change) and M1 (single-change)
 #' @param h real, h variable (see suggested references)

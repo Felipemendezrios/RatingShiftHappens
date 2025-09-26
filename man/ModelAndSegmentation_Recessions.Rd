@@ -10,8 +10,8 @@ ModelAndSegmentation_Recessions(
   hrec,
   uHrec,
   indx,
-  nSmax = 3,
-  nMin = 1,
+  nSmax = 2,
+  nMin = ifelse(doQuickApprox, 3, 1),
   nCycles = 100,
   burn = 0.5,
   nSlim = max(nCycles/10, 1),
@@ -19,7 +19,10 @@ ModelAndSegmentation_Recessions(
   temp.folder.Recession = file.path(tempdir(), "BaM", "Recession"),
   funk = "BR1",
   ...,
-  RMSE_args = list()
+  RMSE_args = list(),
+  doQuickApprox = TRUE,
+  varShift = FALSE,
+  alpha = 0.1
 )
 }
 \arguments{
@@ -52,6 +55,12 @@ ModelAndSegmentation_Recessions(
 \item{...}{optional arguments to funk}
 
 \item{RMSE_args}{list, optional arguments to pass in \code{Criticize_Recessions} function for setting weighted RMSE}
+
+\item{doQuickApprox}{logical, use quick approximation? see ?Segmentation_quickApprox}
+
+\item{varShift}{logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.}
+
+\item{alpha}{real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.}
 }
 \value{
 List with the following components:
@@ -99,7 +108,7 @@ recessions_extracted=Extract_Recessions(H=ArdecheRiverStage$H,
                                           uH=0.05,
                                           time=ArdecheRiverStage$Date,
                                           chi=0.5,
-                                          tgood=30)
+                                          tgood=90)
 
 recessions = recessions_extracted$Rec_extracted
 
@@ -110,18 +119,16 @@ PlotExtract_Recessions(Rec_extracted = recessions)
 fit='BR1'
 
 model_rec=ModelAndSegmentation_Recessions(time_rec=recessions$time_rec,
-                                                    daterec=recessions$date,
-                                                    hrec=recessions$hrec,
-                                                    uHrec=recessions$uHrec,
-                                                    indx=recessions$indx,
-                                                    funk=fit,
-                                                    RMSE_args=list(rmse_threshold =0.3))
+                                          daterec=recessions$date,
+                                          hrec=recessions$hrec,
+                                          uHrec=recessions$uHrec,
+                                          indx=recessions$indx,
+                                          funk=fit,
+                                          RMSE_args=list(rmse_threshold =0.3))
 
 # Plot recession segmentation user-defined
 PlotSimObs_Recessions (model_rec=model_rec,
-                       spec_recession=c(2,16,28,48),
-                       recession_rejected=TRUE,
-                       all_recession=FALSE)
+                       all_recession=TRUE)
 
 # Plot the shift times detected
 PlotSegmentation_Recessions(model_rec=model_rec)

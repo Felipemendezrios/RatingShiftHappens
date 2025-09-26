@@ -19,6 +19,6 @@ a real number equal to the critical value of the test.
 \description{
 Compute the critical value of a likelihood-ratio test for a single step change
 at an unknown position. Based on the approximations suggested by Gombay and Horvath (1994, 1996a, 1996b, 1997),
-as detailled in (Renard)\link{https://hal.science/tel-02588353} (2006, chapter 3, section I.1.5, p. 101).
+as detailled in Renard (2006, chapter 3, section I.1.5, p. 101, https://hal.science/tel-02588353).
 }
 \keyword{internal}

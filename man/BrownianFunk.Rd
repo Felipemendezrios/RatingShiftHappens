@@ -22,7 +22,7 @@ a real number equal to the evaluated Brownian function.
 }
 \description{
 Function to be nullified to compute the critical value when d=1.
-See Gombay and Horvath (1994, 1996a, 1996b, 1997), and (Renard)\link{https://hal.science/tel-02588353}
-(2006, chapter 3, section I.1.5, p. 101).
+See Gombay and Horvath (1994, 1996a, 1996b, 1997), and Renard
+(2006, chapter 3, section I.1.5, p. 101, https://hal.science/tel-02588353).
 }
 \keyword{internal}

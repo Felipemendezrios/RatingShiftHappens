@@ -66,7 +66,7 @@ This way, a change will be detected when DIC1<DIC0, i.e. when deviance1+critical
 i.e. when deviance0-deviance1>critical value, which precisely corresponds to the outcome of the likelihood ratio test.
 \cr
 Critical values are computed using the approximations suggested by Gombay and Horvath (1994, 1996a, 1996b, 1997),
-as detailled in (Renard)\link{https://hal.science/tel-02588353} (2006, chapter 3, section I.1.5, p. 101).
+as detailled in Renard (2006, chapter 3, section I.1.5, p. 101, https://hal.science/tel-02588353).
 \cr
 The uncertainty in tau is still estimated by plugging-in point-estimates of mu1, mu2 and sigma
 for each possible value of tau, and computing the associated likelihood. This likelihood can then be normalized to

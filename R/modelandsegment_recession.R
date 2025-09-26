@@ -406,6 +406,9 @@ Criticize_Recessions <- function(raw_data,
 #' @param funk string, model for estimating the recession
 #' @param ... optional arguments to funk
 #' @param RMSE_args list, optional arguments to pass in `Criticize_Recessions` function for setting weighted RMSE
+#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
 #'
 #' @return  List with the following components:
 #' \enumerate{
@@ -453,7 +456,7 @@ Criticize_Recessions <- function(raw_data,
 #'                                           uH=0.05,
 #'                                           time=ArdecheRiverStage$Date,
 #'                                           chi=0.5,
-#'                                           tgood=30)
+#'                                           tgood=90)
 #'
 #' recessions = recessions_extracted$Rec_extracted
 #'
@@ -464,18 +467,16 @@ Criticize_Recessions <- function(raw_data,
 #' fit='BR1'
 #'
 #' model_rec=ModelAndSegmentation_Recessions(time_rec=recessions$time_rec,
-#'                                                     daterec=recessions$date,
-#'                                                     hrec=recessions$hrec,
-#'                                                     uHrec=recessions$uHrec,
-#'                                                     indx=recessions$indx,
-#'                                                     funk=fit,
-#'                                                     RMSE_args=list(rmse_threshold =0.3))
+#'                                           daterec=recessions$date,
+#'                                           hrec=recessions$hrec,
+#'                                           uHrec=recessions$uHrec,
+#'                                           indx=recessions$indx,
+#'                                           funk=fit,
+#'                                           RMSE_args=list(rmse_threshold =0.3))
 #'
 #' # Plot recession segmentation user-defined
 #' PlotSimObs_Recessions (model_rec=model_rec,
-#'                        spec_recession=c(2,16,28,48),
-#'                        recession_rejected=TRUE,
-#'                        all_recession=FALSE)
+#'                        all_recession=TRUE)
 #'
 #' # Plot the shift times detected
 #' PlotSegmentation_Recessions(model_rec=model_rec)
@@ -490,15 +491,17 @@ ModelAndSegmentation_Recessions <- function(time_rec,
                                             hrec,
                                             uHrec,
                                             indx,
-                                            nSmax=3,
-                                            nMin= 1,
+                                            nSmax=2,
+                                            nMin=ifelse(doQuickApprox,3,1),
                                             nCycles=100,
                                             burn=0.5,
                                             nSlim=max(nCycles/10,1),
                                             temp.folder=file.path(tempdir(),'BaM'),
                                             temp.folder.Recession= file.path(tempdir(),'BaM','Recession'),
                                             funk='BR1',...,
-                                            RMSE_args=list()){
+                                            RMSE_args=list(),
+                                            doQuickApprox=TRUE,
+                                            varShift=FALSE,alpha=0.1){
 
   id_recession_model=which(funk==names(GetCatalog_Recession()))
   # Check conditions if they are satisfied
@@ -557,7 +560,9 @@ ModelAndSegmentation_Recessions <- function(time_rec,
                                  nCycles=nCycles,
                                  burn=burn,
                                  nSlim=nSlim,
-                                 temp.folder=temp.folder)
+                                 temp.folder=temp.folder,
+                                 doQuickApprox=doQuickApprox,
+                                 varShift=varShift,alpha=alpha)
 
   # return data recession with period after segmentation
   results$summary$data$indx =  df.to.segm$indx

@@ -16,6 +16,9 @@
 #' @param funk the function for estimating the rating curve to be applied: see ‘Details’
 #' @param ... optional arguments to funk
 #' @param mu_prior list, object describing prior knowledge about residual between the rating curve and observation if user-defined (see details)
+#' @param doQuickApprox logical, use quick approximation? see ?Segmentation_quickApprox
+#' @param varShift logical, allow for a shifting variance? Only used when doQuickApprox=TRUE.
+#' @param alpha real in (0;1), type-I error level of the underlying step-change test. Only used when doQuickApprox=TRUE.
 #'
 #' @details
 #' Some functions for estimating the rating curve are available in this package.
@@ -53,7 +56,7 @@
 #'                                        Q=ArdecheRiverGaugings$Q,
 #'                                        time=ArdecheRiverGaugings$Date,
 #'                                        uQ=ArdecheRiverGaugings$uQ,
-#'                                        nSmax=3,nMin=2,funk=fit)
+#'                                        funk=fit)
 #'
 #' # Data information
 #' knitr::kable(head(results$summary$data),
@@ -91,33 +94,6 @@
 #'                             equation=equation,
 #'                             a=a,
 #'                             b=b)
-#'
-#' # Plot the rating curves after segmentation with zoom user-defined
-#' PlotRCSegmentation_Gaugings(summary=results$summary,
-#'                             equation = equation,
-#'                             autoscale = FALSE,
-#'                             Hmin_user = 1,
-#'                             Hmax_user = 2,
-#'                             H_step_discretization = 0.01,
-#'                             a=a,b=b)
-#'
-#' # Plot the rating curves after segmentation in log scale
-#' PlotRCSegmentation_Gaugings(summary=results$summary,
-#'                             logscale=TRUE,
-#'                             equation = equation,
-#'                             a=a,
-#'                             b=b)
-#'
-#' # Plot the rating curves after segmentation in log scale with zoom
-#' PlotRCSegmentation_Gaugings(summary=results$summary,
-#'                             a=a,
-#'                             b=b,
-#'                             logscale=TRUE,
-#'                             equation = equation,
-#'                             autoscale = FALSE,
-#'                             Hmin_user = 0.5,
-#'                             Hmax_user = 2,
-#'                             H_step_discretization = 0.01)
 #'
 #' # Plot shift times in stage record
 #' PlotSegmentation_Gaugings_Hdt(summary=results$summary,
@@ -159,12 +135,14 @@
 #' k.object=list(k1,k2,k3)
 #' c.object=list(c1,c2,c3)
 #'
+#' \dontrun{
+#' # The code below is wrapped in \dontrun{} because it relies on an executable file
+#' # that the user may not have installed.
+#' # See ?RBaM::downloadBaM() to download this executable.
 #' resultsBaRatin=ModelAndSegmentation_Gaugings(H=ArdecheRiverGaugings$H,
 #'                                               Q=ArdecheRiverGaugings$Q,
 #'                                               time=ArdecheRiverGaugings$Date,
 #'                                               uQ=ArdecheRiverGaugings$uQ,
-#'                                               nSmax=3,
-#'                                               nMin=2,
 #'                                               funk=fit,
 #'                                               a.object=a.object,
 #'                                               k.object=k.object,
@@ -207,20 +185,23 @@
 #'
 #' # Plot all gaugings after segmentation in a plot H-Q
 #' PlotSegmentation_Gaugings_QdH(summary=resultsBaRatin$summary)
+#' }
 ModelAndSegmentation_Gaugings <- function(H,
                                            Q,
                                            time=1:length(H),
                                            uQ=0*Q,
                                            uH=0*H,
                                            nSmax=2,
-                                           nMin= 1,
+                                           nMin= ifelse(doQuickApprox,3,1),
                                            nCycles=100,
                                            burn=0.5,
                                            nSlim=max(nCycles/10,1),
                                            temp.folder=file.path(tempdir(),'BaM'),
                                            funk=FitRC_Exponential,
                                            ...,
-                                           mu_prior = list()
+                                           mu_prior = list(),
+                                           doQuickApprox=TRUE,
+                                           varShift=FALSE,alpha=0.1
                                            ){
   # Initialization
   allRes=list() # store segmentation results for all nodes in a sequential list
@@ -296,7 +277,8 @@ ModelAndSegmentation_Gaugings <- function(H,
                                           u=u_residuals[[j]],
                                           nSmax,nMin,nCycles,burn,nSlim,
                                           temp.folder=temp.folder,
-                                          mu_prior=mu_prior)  # Pass mu_prior to segmentation if user-defined
+                                          mu_prior=mu_prior,  # Pass mu_prior to segmentation if user-defined
+                                          doQuickApprox=doQuickApprox,varShift=varShift,alpha=alpha)
         # Save results for this node
         allRes[[k]]=partial.segmentation
         # Save optimal number of segments
