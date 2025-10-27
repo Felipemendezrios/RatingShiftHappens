@@ -1,0 +1,29 @@
+utilities_private: OK
+
+utilities_public: OK
+
+Segmentation: OK
+
+data: OK
+
+Catalog: OK, but review link with equations_RC_recessions
+
+fitRC: should become fitCurve, and be context-independent. Mostly involves changing functions arguments (e.g. X/Y rather than H/Q).
+
+modelandsegment_gaugings: should become recursiveModeling, and be context-independent. Or maybe need to stick to recursiveCurveFitting, i.e. 1IN-1OUT model (or maybe pIN-1OUT) ? In which case we may have curve_tools (which would include fitCurve)?
+
+modelandsegment_recessions: should not exist. Instead, create file recessions_tools, that includes recession model fitting, plots, and possibly a wrapping function to do recession - fit - segment in one go.
+
+estimation_recessions: should not exist, functions should be part of recessions_tools
+
+equations_RC_recessions: should not exist? or it should at least be named equations_curve_recessions, but most likely it should be part of specific *_tools modules (or directly in Catalog?)
+
+Plots: a lot of simplification/factorization is possible, by taking advantage of ggplots + functionalities (e.g. do not create a new function to change titles, +labs() will work). Stick to context-independent plots here. If need be, specialized plots should be in *_tools modules.
+
+Needs a BaRatin_tools module? or can it stay part of curve_tools? -> No, make a BaRatin_tools, including in particular the fitRC_BaRatinXXX functions
+
+
+
+
+Everywhere: replace MCMC options by a proper RBaM::mcmcOptions object
+
