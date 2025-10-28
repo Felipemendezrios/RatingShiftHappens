@@ -2,9 +2,10 @@ utilities_private: OK
 
 utilities_public: OK
 
-Segmentation: OK
-
 data: OK
+
+Segmentation: consider creating a class for the results
+Consider removing unnecesaary fields, e.g. plot, segments, data.p
 
 Catalog: OK, but review link with equations_RC_recessions
 
