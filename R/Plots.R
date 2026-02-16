@@ -1182,7 +1182,6 @@ PlotRCSegmentation_Gaugings_Tree <- function(Hgrid=data.frame(grid=seq(-1,2,by=0
     RBaM:: BaM(mod=M,
                data=D,
                workspace = temp.folder.RCPlot,
-               dir.exe = file.path(find.package("RBaM"), "bin"),
                pred=list(totalU,paramU,maxpost), # list of predictions
                # pred=priorU, # list of predictions
                remnant = remnant_prior,
