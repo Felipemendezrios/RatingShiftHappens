@@ -424,7 +424,6 @@ FitRC_SimplifiedBaRatin<- function(time,
              workspace = temp.folder.RC,
              mcmc = mcmc_temp,
              cook = cook_temp,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
 
   # Save data object and model object
@@ -452,7 +451,6 @@ FitRC_SimplifiedBaRatin<- function(time,
   RBaM:: BaM(mod = M,
              data = D,
              workspace = temp.folder.RC,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              mcmc = mcmc_temp,
              cook = cook_temp,
              pred = totalU, # list of predictions
@@ -620,7 +618,6 @@ FitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
              workspace = temp.folder.RC,
              mcmc = mcmc_temp,
              cook = cook_temp,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
 
   # Save data object and model object
@@ -648,7 +645,6 @@ FitRC_SimplifiedBaRatinWithPrior<- function(time,H,Q,uQ,uH,
   RBaM:: BaM(mod=M,
              data=D,
              workspace = temp.folder.RC,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              mcmc=mcmc_temp,
              cook = cook_temp,
              pred=totalU, # list of predictions
@@ -827,7 +823,6 @@ FitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
              workspace = temp.folder.RC,
              mcmc = mcmc_temp,
              cook = cook_temp,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
 
   # Save data object and model object
@@ -869,7 +864,6 @@ FitRC_BaRatinBAC<- function(time,H,Q,uQ,uH,
   RBaM:: BaM(mod = M,
              data = D,
              workspace = temp.folder.RC,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              mcmc = mcmc_temp,
              cook = cook_temp,
              pred = totalU, # list of predictions
@@ -1050,7 +1044,6 @@ FitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
              workspace = temp.folder.RC,
              mcmc = mcmc_temp,
              cook = cook_temp,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              remnant = remnant_prior)
 
   # Save data object and model object
@@ -1092,7 +1085,6 @@ FitRC_BaRatinKAC<- function(time,H,Q,uQ,uH,
   RBaM:: BaM(mod = M,
              data = D,
              workspace = temp.folder.RC,
-             dir.exe = file.path(find.package("RBaM"), "bin"),
              pred = totalU, # list of predictions
              mcmc = mcmc_temp,
              cook = cook_temp,
